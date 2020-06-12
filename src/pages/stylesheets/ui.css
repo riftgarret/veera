@@ -1,5 +1,17 @@
 /* Core stylesheet for DevTools UI. */
 
+@font-face {
+    font-family: system;
+    font-style: normal;
+    font-weight: 300;
+    src: local("SFMono-Regular"),
+    local(Consolas),
+    local("Liberation Mono"),
+    local(Menlo),
+    local(Courier),
+    local(monospace);
+  }
+
 html {
     font-family: var(--main-font);
     background-color: var(--bg-color);
@@ -597,4 +609,20 @@ button {
 
 #spark-prog-reset {
     width: 100%;
+}
+
+.djeeta-code-container {
+    grid-template-columns: 1fr 30px 1fr;
+    height: 25em;   
+    display: grid; 
+}
+
+.djeeta-code {
+    font-family: "system";
+    font-size: 140%;    
+    width: 100%;
+    margin: 0.2em 2px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    height: 100%;    
 }

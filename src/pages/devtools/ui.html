@@ -11,6 +11,7 @@
         <script type="text/javascript" src="ui.js" defer></script>
         <script  type="text/javascript" src="unfUI.js" defer></script>
         <script  type="text/javascript" src="battleUI.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI.js" defer></script>
         <script type="text/javascript" src="main.js" defer></script>
     </head>
     <body>
@@ -103,6 +104,7 @@
                 <li class="nav-tab" data-navpage="unf">UNF</li>
                 <li class="nav-tab" data-navpage="places">Places</li>
                 <li class="nav-tab" data-navpage="tools">Tools</li>
+                <li class="nav-tab" data-navpage="djeeta">Djeeta</li>
                 <li class="nav-tab" data-navpage="settings">Settings</li>
             </ul>
             <div id="dailies" class="tab active">
@@ -466,6 +468,33 @@
                         <button id="spark-prog-reset" data-event="resetSpark">Reset</button>
                     </div>
                 </div>
+            </div>
+            <div id="djeeta" class="tab">
+                <div id="current-fight" class="panel">
+                    <span class="panel-header" data-event="collapse">Current Fight</span>
+                    <div class="panel-content">                        
+                        <div class="combat-state">
+                            <div class="battle-stats">
+                                Boss<span id="djeeta-boss">-</span> 
+                                HP <span id="djeeta-boss-hpp">-</span> 
+                                Mode <span id="djeeta-boss-mode">-</span>
+                                <br/>
+                                Status <span id="djeeta-boss-status">-</span>
+                            </div>
+                            <div class="battle-stats">
+                                <span id="djeeta-char">-</span> 
+                                HP <span id="djeeta-char-hpp">-</span>                                     
+                                <br/>
+                                Status <span id="djeeta-char-status">-</span>
+                            </div>                            
+                        </div>
+                        <div class="djeeta-code-container">
+                                <div id="tracked-actions" class="djeeta-code"></div>                        
+                                <button id="btn-load-script">🡆</button>
+                                <div id="djeeta-script" class="djeeta-code" contenteditable="true"></div>                        
+                        </div>                                                
+                    </div>
+                </div>                
             </div>
             <div id="settings" class="tab">
                 <!-- TODO: Improve layout -->

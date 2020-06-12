@@ -38,7 +38,7 @@ window.DevTools = {
     }
 };
 
-function hear(msg) {
+function hear(msg, sender) {
     // Convert to util object. Makes it easier to deal with and is in the end likely faster since we can check much smaller strings.
     let path = "", isData;
     if (msg.action == "request") {
@@ -47,6 +47,10 @@ function hear(msg) {
         isData = msg.data.url.protocol == "data:";
     }
     devlog("[background] Heard:", msg, isData ? "Data URI" : path);
+    if(sender.tab && sender.tab.id) {
+        console.log("sender data: " + sender.tab.id);
+    }
+    
     switch (msg.action) {
         case "request":
             // JSON
@@ -121,14 +125,29 @@ function hear(msg) {
                     case path.ismatch("rest/raid/ability_result.json"):
                     case path.ismatch("rest/multiraid/ability_result.json"):
                         battleUseAbility(msg.data.json, msg.data.postData);
+                        DjeetaMind.recordAbility(msg.data.postData, msg.data.json);
+                        DjeetaMind.refreshMind();
                         break;
                     case path.ismatch("rest/raid/normal_attack_result.json"):
                     case path.ismatch("rest/multiraid/normal_attack_result.json"):
                         battleAttack(msg.data.json);
+                        DjeetaMind.recordAttack(msg.data.postData, msg.data.json);
+                        DjeetaMind.refreshMind();
                         break;
                     case path.ismatch("rest/raid/summon_result"):
                     case path.ismatch("rest/multiraid/summon_result"):
                         battleUseSummon(msg.data.json);
+                        DjeetaMind.recordSummon(msg.data.postData, msg.data.json);
+                        DjeetaMind.refreshMind();
+                        break;
+                    case path.ismatch("rest/raid/start"):
+                    case path.ismatch("rest/multiraid/start"):
+                        Battle.reset(msg.data.json);
+                        DjeetaMind.parseFightData(msg.data.json);
+                        DjeetaMind.refreshMind();
+                        break;
+                    case path.ismatch("rest/multiraid/chat_result"):
+                        DjeetaMind.recordChat(msg.data.json);
                         break;
                     case path.ismatch("quest/treasure_raid"):
                     case path.ismatch("top/multi_quest_list"):
@@ -161,11 +180,7 @@ function hear(msg) {
                     case path.ismatch("quest/user_item"):
                     case path.ismatch("item/use_normal_item"):
                         useRecoveryItem(msg.data.json);
-                        break;
-                    case path.ismatch("rest/raid/start"):
-                    case path.ismatch("rest/multiraid/start"):
-                        Battle.reset(msg.data.json);
-                        break;
+                        break;                    
                     case path.ismatch("casino/exchange"):
                     case path.ismatch("shop_exchange/purchase"):
                     case path.ismatch("rest/sidestory/purchase"):
@@ -309,17 +324,31 @@ function hear(msg) {
 
 function hearQuery(data, sender, respond) {
     devlog("Query rcv: ", data);
-    if (data.source == "ui") {
-        var retValue;
-        switch (data.query) {
-            case "archivedBattle":
-                retValue = Battle.load(data.val);
-        }
+    switch(data.source) {
+        case "ui": {
+            var retValue;
+            switch (data.query) {
+                case "archivedBattle":
+                    retValue = Battle.load(data.val);
+            }
 
-        devlog("Responding with: ", retValue);
-        respond({
-            query: data.query,
-            value: retValue
-        });
+            devlog("Responding with: ", retValue);
+            respond({
+                query: data.query,
+                value: retValue
+            });
+        }
+        break;
+        
+        case "content": {
+            var retValue;
+            switch (data.type) {
+                case "djeeta":
+                    DjeetaMind.onContentReady(data.data, sender, respond);
+                    break;
+            }            
+        }
+        break;
     }
+    
 }
