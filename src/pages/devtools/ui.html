@@ -11,7 +11,7 @@
         <script type="text/javascript" src="ui.js" defer></script>
         <script  type="text/javascript" src="unfUI.js" defer></script>
         <script  type="text/javascript" src="battleUI.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI.js" defer></script>        
         <script type="text/javascript" src="main.js" defer></script>
     </head>
     <body>
@@ -475,23 +475,63 @@
                     <div class="panel-content">                        
                         <div class="combat-state">
                             <div class="battle-stats">
-                                Boss<span id="djeeta-boss">-</span> 
-                                HP <span id="djeeta-boss-hpp">-</span> 
-                                Mode <span id="djeeta-boss-mode">-</span>
-                                <br/>
-                                Status <span id="djeeta-boss-status">-</span>
-                            </div>
-                            <div class="battle-stats">
-                                <span id="djeeta-char">-</span> 
-                                HP <span id="djeeta-char-hpp">-</span>                                     
-                                <br/>
-                                Status <span id="djeeta-char-status">-</span>
-                            </div>                            
+                                <div class="battle-meta">Turn: <span id="battle-turn"></span></div>
+                                <div class="boss-meta-container">
+                                    <div class="boss-meta" pos="0" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-hp"></div>
+                                        <div class="unit-mode"></div>
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                    <div class="boss-meta" pos="1" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-hp"></div>
+                                        <div class="unit-mode"></div>
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                    <div class="boss-meta" pos="2" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-hp"></div>
+                                        <div class="unit-mode"></div>
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                </div>
+                                <div class="player-meta-container">
+                                    <div class="player-meta" pos="0" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-ca"></div>
+                                        <div class="unit-hp"></div>                                        
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                    <div class="player-meta" pos="1" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-ca"></div>
+                                        <div class="unit-hp"></div>                                        
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                    <div class="player-meta" pos="2" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-ca"></div>
+                                        <div class="unit-hp"></div>                                        
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                    <div class="player-meta" pos="3" style="display: none;">
+                                        <div class="unit-name"></div>
+                                        <div class="unit-ca"></div>
+                                        <div class="unit-hp"></div>                                        
+                                        <div class="unit-conditions"></div>
+                                    </div>
+                                </div>                                
+                            </div>                        
+                        </div>                        
+                        <div id="script-dashboard">
+                            <button id="btn-load-script">Load</button>
+                            <div id="script-console"></div>
                         </div>
                         <div class="djeeta-code-container">
-                                <div id="tracked-actions" class="djeeta-code"></div>                        
-                                <button id="btn-load-script">🡆</button>
-                                <div id="djeeta-script" class="djeeta-code" contenteditable="true"></div>                        
+                            <div id="tracked-actions" class="djeeta-code"></div>                        
+                            <button id="btn-copy-script">🡆</button>
+                            <div id="djeeta-script" class="djeeta-code" contenteditable="true"></div>                        
                         </div>                                                
                     </div>
                 </div>                

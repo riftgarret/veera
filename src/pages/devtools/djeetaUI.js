@@ -2,6 +2,21 @@
 
 var $id = (id) => document.getElementById(id);
 
+// initial load listeners
+$id("btn-copy-script").addEventListener("click", (ev) => $id("djeeta-script").innerHTML = $id("tracked-actions").innerHTML);
+$id("btn-load-script").addEventListener("click", (ev) => {
+    let script = $id("djeeta-script").innerText;
+    BackgroundPage.query("djeetaScriptLoad", script)
+        .then(data => {
+            if(data.error) {
+                $id('script-console').innerHTML = "<span style='color: red'>" + data.error.desc + "</span>";
+            } else {
+                $id('script-console)').innerHTML = "Success";
+            }
+        });
+});
+
+// ui functions
 UI.djeeta = {
     state: {},
 
@@ -36,17 +51,49 @@ UI.djeeta = {
         return div;
     },
     
-    updateStateUI: function(state) {
-        if(!state.bosses) return;
-        var boss = state.bosses[0];
+    updateStateUI: function(state) {        
+        // common
+        var updateCommon = function(unit, ele) {
+            ele.querySelector(".unit-name").innerHTML = unit.name;
+            ele.querySelector(".unit-hp").innerHTML = unit.hp + " / " + unit.hpMax 
+                        + " : " + Math.ceil(100 * unit.hp / unit.hpMax) + "%";
+            ele.querySelector(".unit-conditions");            
+        };
 
-        $id("djeeta-boss").innerHTML = boss.name.en;
-        $id("djeeta-boss-hpp").innerHTML = Math.ceil(100 * boss.hp / boss.hpMax) + "%";
-        $id("djeeta-boss-mode").innerHTML = boss.mode;
-        // todo conditions
+        if(!state.bosses) return;        
 
-        var char = state.party[0];
-        $id("djeeta-char").innerHTML = char.name;
-        $id("djeeta-char-hpp").innerHTML = Math.ceil(100 * char.hp / char.hpMax) + "%";
+        $id("battle-turn").innerHTML = state.turn;
+
+        // bosses
+        for(var i = 0; i < 3; i++) {
+            var ele = document.querySelector("div.boss-meta[pos=\"" + i + "\"]");
+            if(i < state.bosses.length) {
+                var unit = state.bosses[i];
+                ele.style.display = "block";
+                updateCommon(unit, ele);                          
+                var modeEle = ele.querySelector(".unit-mode")                
+                modeEle.style.display = unit.mode? "block" : "none";
+                if(unit.mode) {
+                    modeEle.innerHTML = unit.mode;
+                }
+            
+            } else {                
+                ele.style.display = "none";      
+            }                                    
+        }
+
+        // players
+        for(var i = 0; i < 4; i++) {
+            var ele = document.querySelector("div.player-meta[pos=\"" + i + "\"]");
+            if(i < state.party.length) {
+                var unit = state.party[i];
+                ele.style.display = "block";
+                updateCommon(state.party[i], ele);
+                ele.querySelector(".unit-ca").innerHTML = unit.ougi + " / " + unit.ougiMax;
+            } else {                
+                ele.style.display = "none";                                
+            }                                    
+        }
+        
     }
 }

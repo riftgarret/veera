@@ -19,9 +19,10 @@
    "content_scripts": [ {
       "css": [  ],
       "js": [ 
-         "src/content/inject.js", 
+         "src/content/message.js", 
          "src/content/utils.js", 
-         "src/content/djeeta_bot.js" 
+         "src/content/djeeta_bot.js",
+         "src/content/main.js" 
       ],
       "matches": [ "*://game.granbluefantasy.jp/*", "*://gbf.game.mbga.jp/*" ],
       "run_at": "document_start"
@@ -41,8 +42,12 @@
                  "src/background/data/raiddata.js",
                  "src/background/battle.js",
                  "src/background/unf.js",
-                 "src/background/tools.js",
-                 "src/background/djeeta_mind.js"]
+                 "src/background/tools.js",      
+                 "src/background/djeeta_script.js",
+                 "src/background/djeeta_script_evals.js",           
+                 "src/background/djeeta_classes.js",
+                 "src/background/djeeta_mind.js"                 
+               ]
    },
 
    "permissions": [

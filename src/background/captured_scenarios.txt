@@ -1,0 +1,67 @@
+SCENARIO: SUPER
+
+attr: "1"
+chain: ""
+cjs_param: {voice_change_flag: 0}
+cmd: "super"
+count: 1
+cutin_image: null
+effect_all: ""
+fixed_pos_owner_bg: false
+force_top_flag: ""
+full_screen_flag: false
+is_activate_counter_damaged: false
+kind: "esp_8100293_03"
+list: Array(1)
+0:
+damage: Array(1)
+0:
+attr: "1"
+critical: false
+effect: ""
+guard: false
+hp: 0
+miss: 0
+pos: 2
+size: "s"
+split: (5) ["5", "5", "7", "1", "0"]
+value: 55710
+__proto__: Object
+last: (...)
+length: 1
+__proto__: Array(0)
+__proto__: Object
+last: (...)
+length: 1
+__proto__: Array(0)
+name: "Dimensional Cleave"
+pos: 0
+return_motion_label: null
+serif: ""
+setting_id: 2
+skip_flag: false
+skip_frame: ""
+skip_frame_nsp: ""
+skip_label: ""
+skip_label_nsp: ""
+target: "player"
+to: 2
+total: []
+voice: null
+voice_wait: null
+window_effect_mode: ""
+
+SCENARIO: RECAST BOSS (colosus 1/2 diamonds)
+cmd: "recast"
+max: 3
+pos: 0
+split: ["2"]
+to: "boss"
+value: 2
+
+SCENARIO: REPLACE (when char died)
+cmd: "replace"
+next: "3040039000.png"
+npc: 4
+pos: 2
+voice: null

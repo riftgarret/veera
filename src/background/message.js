@@ -6,22 +6,33 @@ window.DevTools = {
         chrome.runtime.onConnect.addListener(this.connected);
     },
     connected(port) {
-        console.log("Onee-sama!", port);
-        DevTools.connection = port;
-        port.onMessage.addListener(hear);
-        port.onDisconnect.addListener(DevTools.deafen);
-        chrome.runtime.onMessage.addListener(hearQuery);
-        window.dispatchEvent(new Event(EVENTS.connected));
+        let self = DevTools;
+        switch(port.name) {            
+            case "devtools-page": {
+                console.log("Onee-sama!", port);        
+                self.connection = port;
+                port.onMessage.addListener(hear);
+                port.onDisconnect.addListener(self.deafen);
+                chrome.runtime.onMessage.addListener(hearQuery);
+                window.dispatchEvent(new Event(EVENTS.connected));
+                break;
+            }
+            case "content-page": {
+                ContentTab.connected(port);
+                break;
+            }
+        }                
     },
     deafen() {
+        let self = DevTools;
         if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError);
         }
-        if (DevTools.connection) {
-            DevTools.connection.onMessage.removeListener(this.listen);
+        if (self.connection) {
+            self.connection.onMessage.removeListener(this.listen);
             chrome.runtime.onMessage.removeListener(hearQuery);
-            DevTools.connection.disconnect();
-            DevTools.connection = null;
+            self.connection.disconnect();
+            self.connection = null;
         }
         devlog("Disconnected.");
         window.dispatchEvent(new Event(EVENTS.disconnected));
@@ -36,7 +47,43 @@ window.DevTools = {
     query(key) {
         return new Promise(r => chrome.runtime.sendMessage({source: "bg", query: key}, ret => r(ret.value)));
     }
-};
+}; 
+
+window.ContentTab = {
+    connection: null, 
+    connected(port) {            
+        console.log("Djeeta-sama!", port);        
+        this.connection = port;
+        port.onMessage.addListener(hearContent);
+        port.onDisconnect.addListener(this.deafen);                
+    },
+    deafen() {
+        let self = ContentTab;
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+        }
+        if (self.connection) {
+            self.connection.onMessage.removeListener(this.listen);
+            self.connection.onMessage.removeListener(hearContent);
+            self.connection.disconnect();
+            self.connection = null;
+        }
+        devlog("Disconnected.");
+        window.dispatchEvent(new Event(EVENTS.disconnected));
+    },
+    send(action, data) {
+        if (!this.connection) {
+            deverror("No active connection to DevTools.");
+            return;
+        }
+        this.connection.postMessage({action, data});
+    },
+    query(key) {
+        if(State.game.tabId) {
+            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key}, ret => r(ret.value)));
+        }
+    }
+}
 
 function hear(msg, sender) {
     // Convert to util object. Makes it easier to deal with and is in the end likely faster since we can check much smaller strings.
@@ -148,6 +195,9 @@ function hear(msg, sender) {
                         break;
                     case path.ismatch("rest/multiraid/chat_result"):
                         DjeetaMind.recordChat(msg.data.json);
+                        break;
+                    case path.ismatch("rest/raid/setting"):
+                        DjeetaMind.recordSetting(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("quest/treasure_raid"):
                     case path.ismatch("top/multi_quest_list"):
@@ -322,6 +372,10 @@ function hear(msg, sender) {
     }
 }
 
+function hearContent(msg, sender) {
+    
+}
+
 function hearQuery(data, sender, respond) {
     devlog("Query rcv: ", data);
     switch(data.source) {
@@ -330,6 +384,11 @@ function hearQuery(data, sender, respond) {
             switch (data.query) {
                 case "archivedBattle":
                     retValue = Battle.load(data.val);
+                    break;
+
+                case "djeetaScriptLoad":
+                    retValue = DjeetaMind.loadScript(data.val)
+                    break;
             }
 
             devlog("Responding with: ", retValue);
@@ -337,6 +396,7 @@ function hearQuery(data, sender, respond) {
                 query: data.query,
                 value: retValue
             });
+            
         }
         break;
         
