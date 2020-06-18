@@ -1,5 +1,10 @@
 "use strict";
 
+window.addEventListener("bg-connected", (p) => {    
+    BackgroundPage.query("djeetaIsScriptEnabled", {}).then(UI.djeeta.updateEnableScriptButton);
+    console.log("port connection event found");    
+});
+
 var $id = (id) => document.getElementById(id);
 
 // initial load listeners
@@ -15,6 +20,13 @@ $id("btn-load-script").addEventListener("click", (ev) => {
             }
         });
 });
+
+$id("btn-enable-script").addEventListener("click", (ev) => {
+    let isEnable = ev.target.getAttribute("isEnabled") == "1";
+    BackgroundPage.query("djeetaScriptEnabled", !isEnable)
+        .then(UI.djeeta.updateEnableScriptButton)
+});
+
 
 // ui functions
 UI.djeeta = {
@@ -36,7 +48,27 @@ UI.djeeta = {
                 this.state = msg.data;
                 this.updateStateUI(this.state);
                 break;
+
+            case "requestedAction":
+                this.updateActionQueue(msg.data);
+                break;
         }
+    },
+
+    updateActionQueue: function(actionList) {        
+        let html = "";        
+        for(let action of actionList) {
+            html += "<span class=\"djeeta-action-meta\">";
+            html += JSON.stringify(action);
+            html += "</span>";
+        }
+        $id('action-queue').innerHTML = html;
+    },
+
+    updateEnableScriptButton: function(enable) {
+        let e = $id("btn-enable-script");
+        e.setAttribute("isEnabled", enable? "1": "0");
+        e.innerHTML = enable? "Enable" : "Disable";
     },
 
     snapshotState: function() { 

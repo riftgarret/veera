@@ -4,10 +4,11 @@ window.BackgroundPage = {
         return new Promise(r => chrome.runtime.sendMessage({source: "ui", query: key, val}, ret => r(ret.value)));
     },
     connection: null,
-    connect: function() {
+    connect: function() {        
         chrome.runtime.onMessage.addListener(hearQuery);
         this.connection = chrome.runtime.connect({name: "devtools-page"});
         this.connection.onMessage.addListener(this.hear);
+        window.dispatchEvent(new Event("bg-connected"));
     },
     send: function(action, data) {
         if (!this.connection) {

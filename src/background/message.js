@@ -13,15 +13,15 @@ window.DevTools = {
                 self.connection = port;
                 port.onMessage.addListener(hear);
                 port.onDisconnect.addListener(self.deafen);
-                chrome.runtime.onMessage.addListener(hearQuery);
-                window.dispatchEvent(new Event(EVENTS.connected));
+                chrome.runtime.onMessage.addListener(hearQuery);                
                 break;
             }
             case "content-page": {
                 ContentTab.connected(port);
                 break;
-            }
-        }                
+            }            
+        }    
+        window.dispatchEvent(new Event(EVENTS.connected, {port: port.name}));            
     },
     deafen() {
         let self = DevTools;
@@ -55,7 +55,7 @@ window.ContentTab = {
         console.log("Djeeta-sama!", port);        
         this.connection = port;
         port.onMessage.addListener(hearContent);
-        port.onDisconnect.addListener(this.deafen);                
+        port.onDisconnect.addListener(self.deafen);                
     },
     deafen() {
         let self = ContentTab;
@@ -64,12 +64,11 @@ window.ContentTab = {
         }
         if (self.connection) {
             self.connection.onMessage.removeListener(this.listen);
-            self.connection.onMessage.removeListener(hearContent);
+            chrome.runtime.onMessage.removeListener(hearContent);
             self.connection.disconnect();
             self.connection = null;
         }
         devlog("Disconnected.");
-        window.dispatchEvent(new Event(EVENTS.disconnected));
     },
     send(action, data) {
         if (!this.connection) {
@@ -78,9 +77,9 @@ window.ContentTab = {
         }
         this.connection.postMessage({action, data});
     },
-    query(key) {
+    query(key, data) {
         if(State.game.tabId) {
-            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key}, ret => r(ret.value)));
+            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => r(ret.value)));
         }
     }
 }
@@ -172,26 +171,22 @@ function hear(msg, sender) {
                     case path.ismatch("rest/raid/ability_result.json"):
                     case path.ismatch("rest/multiraid/ability_result.json"):
                         battleUseAbility(msg.data.json, msg.data.postData);
-                        DjeetaMind.recordAbility(msg.data.postData, msg.data.json);
-                        DjeetaMind.refreshMind();
+                        DjeetaMind.recordAbility(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/normal_attack_result.json"):
                     case path.ismatch("rest/multiraid/normal_attack_result.json"):
                         battleAttack(msg.data.json);
-                        DjeetaMind.recordAttack(msg.data.postData, msg.data.json);
-                        DjeetaMind.refreshMind();
+                        DjeetaMind.recordAttack(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/summon_result"):
                     case path.ismatch("rest/multiraid/summon_result"):
                         battleUseSummon(msg.data.json);
-                        DjeetaMind.recordSummon(msg.data.postData, msg.data.json);
-                        DjeetaMind.refreshMind();
+                        DjeetaMind.recordSummon(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/start"):
                     case path.ismatch("rest/multiraid/start"):
                         Battle.reset(msg.data.json);
-                        DjeetaMind.parseFightData(msg.data.json);
-                        DjeetaMind.refreshMind();
+                        DjeetaMind.parseFightData(msg.data.json);                        
                         break;
                     case path.ismatch("rest/multiraid/chat_result"):
                         DjeetaMind.recordChat(msg.data.json);
@@ -386,6 +381,14 @@ function hearQuery(data, sender, respond) {
                     retValue = Battle.load(data.val);
                     break;
 
+                case "djeetaIsScriptEnabled":
+                    retValue = DjeetaMind.isScriptEnabled;
+                    break;
+
+                case "djeetaScriptEnabled":
+                    retValue = DjeetaMind.enableScript(data.val);
+                    break;
+
                 case "djeetaScriptLoad":
                     retValue = DjeetaMind.loadScript(data.val)
                     break;
@@ -403,7 +406,7 @@ function hearQuery(data, sender, respond) {
         case "content": {
             var retValue;
             switch (data.type) {
-                case "djeeta":
+                case "djeetaFightReady":
                     DjeetaMind.onContentReady(data.data, sender, respond);
                     break;
             }            

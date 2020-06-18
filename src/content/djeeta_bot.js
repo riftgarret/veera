@@ -115,6 +115,12 @@ function VeeraController() {
 }
 
 Object.defineProperties(VeeraController.prototype, {
+    onActionReceived: {
+        value: function(action) {
+            console.log(action);
+        }
+    },
+
     enqueueOperation: {
         value: function(operation) {   
             this.operations.enqueue(operation);
@@ -128,45 +134,4 @@ Object.defineProperties(VeeraController.prototype, {
     }    
 });
 
-function BattleState() {
-    this.hasBattleData = false;
-    this.data = undefined;
-}
-
-function loadBattleFormation(data) {
-    bs.data = data;
-    checkStartHook();
-}
-
-var bs = new BattleState();
-var vb = new VeeraBot();
-
-var isHooked = false;
-function checkStartHook() {    
-    if(!isHooked) {
-        isHooked = true;
-        var target = document.querySelector("div.btn-attack-start");
-        var isReady = () => target.classList.contains("display-on");        
-        var onReady = () => {
-            console.log("Djeeta > Reporting in!");
-            chrome.runtime.sendMessage({source: "content", type: "djeeta", data: "reporting in"});
-        }
-
-        if(isReady()) {
-            onReady();
-        } else {
-            var observer = new MutationObserver(function (muts) {
-            muts.forEach(function(rec) {
-                if(rec.type === 'attributes') {
-                    if(isReady()) {                    
-                        onReady();
-                        observer.disconnect();
-                    }
-                }
-            })});
-            observer.observe(target, { attributes: true, attributeFilter: ['class'] });
-        }
-                
-    }    
-}
-
+window.DjeetaHandler = new VeeraController();

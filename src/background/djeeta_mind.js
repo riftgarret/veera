@@ -3,7 +3,8 @@ function DjeetaMind() {
     let state = this.state = new DjeetaState();
     this.parse = new DjeetaParser();
 
-    this.ui = {
+    // This object captures methods for interacting with the Dev tools UI layer
+    this.djeetaUI = {
         updateState: function(state) {
             updateUI("djeeta", { type: "state", data: state});
         },
@@ -21,6 +22,17 @@ function DjeetaMind() {
 
         reset: function() {           
             updateUI("djeeta", { type: "clear"});           
+        }
+    }
+
+    // this object captures methods for messaging the content script running in game
+    this.gameUI = {
+        sendMessage: function(action, data) {
+            ContentTab.send(action, data);  
+        },
+
+        query: function(key, data) {
+            return ContentTab.query(key, data);
         }
     }
 
@@ -88,7 +100,7 @@ Object.defineProperties(DjeetaMind.prototype, {
     // state updating / parsing calls
     reset: {
         value: function() {
-            this.ui.reset();                
+            this.djeetaUI.reset();                
             this.scriptRunner.reset();
         }
     },
@@ -103,21 +115,20 @@ Object.defineProperties(DjeetaMind.prototype, {
                 this.reset();
             }
 
-            this.ui.updateState(this.state);
+            this.djeetaUI.updateState(this.state);
+            this.gameUI.sendMessage("djeetaInit");
         }
     },     
 
     recordAbility: {
         value: function(postData, json) {            
             let skillTarget = postData.ability_aim_num;
-            let charIndex = postData.ability_character_num;
 
             let safeCharName = (idx) => {
                 let char = this.state.party[idx];
                 return char.leader == 1? "MC" : char.name;
             }
-
-            let charName = safeCharName(charIndex);            
+       
             let abilityName = this.state.getAbilityNameById(postData.ability_id);
             let params = [abilityName];
 
@@ -141,7 +152,7 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.ui.updateState(this.state);
+            this.djeetaUI.updateState(this.state);
         }
     },
 
@@ -163,7 +174,7 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.ui.updateState(this.state);
+            this.djeetaUI.updateState(this.state);
         }
     },
 
@@ -181,7 +192,7 @@ Object.defineProperties(DjeetaMind.prototype, {
             
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.ui.updateState(this.state);
+            this.djeetaUI.updateState(this.state);
         }
     },
 
@@ -210,7 +221,7 @@ Object.defineProperties(DjeetaMind.prototype, {
     recordChat: {
         value: function(postData) {            
             // no idea what is tracked here as it doesnt appear in data.
-            this.ui.appendAction({
+            this.djeetaUI.appendAction({
                 when: this.whenCurrentTurn,
                 action: "sticker"
             });            
@@ -221,19 +232,6 @@ Object.defineProperties(DjeetaMind.prototype, {
         value: function(data, sender, response) {            
             console.log("Djeeta Reported in!!");
             response(this.requestAction());
-        }
-    },
-
-    refreshMind: {
-        value: function() {
-            if(!!Battle.current) {
-                console.log("sending battle data");
-                var msg = {
-                    type: "characterInfo",
-                    data: Battle.current
-                };
-                chrome.tabs.sendMessage(State.game.tabId, msg);
-            }
         }
     },
 
@@ -249,6 +247,12 @@ Object.defineProperties(DjeetaMind.prototype, {
             }
             return result;
         }
+    },
+
+    isScriptEnabled: {
+        get: function() {
+            return this.scriptRunner.isRunning;
+         }
     },
 
     enableScript: {
@@ -273,6 +277,9 @@ Object.defineProperties(DjeetaMind.prototype, {
                         
             if(result.isRunning) {
                 let actions = this.scriptRunner.actionQueue();                
+
+                updateUI("djeeta", {type: "requestedAction", data: actions});
+
                 result.action = actions[0];                
             }
 

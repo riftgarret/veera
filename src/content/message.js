@@ -18,18 +18,17 @@ window.BackgroundPage = {
         this.connection.postMessage({action, data});
     },
     hear: function(msg) {    
-        var key = msg.type;
-        console.log("received type: " + key);
-        switch(key) {
-            case "characterInfo":            
-                loadBattleFormation(msg.data);
+        var action = msg.action;
+        console.log("received type: " + action);
+        switch(action) {
+            case "djeetaInit":            
+                hookForFightReady();
                 break;
         }        
     }
 };
 
 function hearQuery(data, sender, respond) {
-    devlog("Query rcv: ", data);
     if (data.source == "bg") {
         var retValue;
         switch (data.query) {
