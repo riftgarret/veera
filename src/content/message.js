@@ -21,9 +21,11 @@ window.BackgroundPage = {
         var action = msg.action;
         console.log("received type: " + action);
         switch(action) {
+            case "djeetaScriptEnabled":
+            case "djeetaScriptPing":
             case "djeetaInit":            
                 hookForFightReady();
-                break;
+                break;                            
         }        
     }
 };

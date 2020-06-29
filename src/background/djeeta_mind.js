@@ -1,6 +1,7 @@
 "use strict";
-function DjeetaMind() {
+function DjeetaMind() {    
     let state = this.state = new DjeetaState();
+
     this.parse = new DjeetaParser();
 
     // This object captures methods for interacting with the Dev tools UI layer
@@ -50,6 +51,11 @@ function DjeetaMind() {
         },
 
         actionQueue: function() {
+            if(state.roundWon) {
+                let action = state.stageCurrent == state.stageMax? "navigateToVictory" : "navigateNextStage";                
+                return [{ actionMeta: { action } }];                
+            }
+
             let actions = this.evaluator.findActions(state);
             // remove actions we've already done this turn.
             if(this.actionHistory[state.turn]) {
@@ -105,6 +111,12 @@ Object.defineProperties(DjeetaMind.prototype, {
         }
     },
 
+    pushDevState: {
+        value: function() {
+            this.djeetaUI.updateState(this.state);
+        }
+    },
+
     parseFightData: {
         value: function(json) {
             let oldRaidId = this.state.raidId;
@@ -115,7 +127,7 @@ Object.defineProperties(DjeetaMind.prototype, {
                 this.reset();
             }
 
-            this.djeetaUI.updateState(this.state);
+            this.pushDevState();
             this.gameUI.sendMessage("djeetaInit");
         }
     },     
@@ -139,7 +151,7 @@ Object.defineProperties(DjeetaMind.prototype, {
                 Array.prototype.push.apply(params, postData.ability_sub_param);
             }
                         
-            this.ui.appendAction({
+            this.djeetaUI.appendAction({
                 when: this.whenCurrentTurn,
                 action: "skill",
                 params: params
@@ -152,7 +164,8 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.djeetaUI.updateState(this.state);
+            this.pushDevState();
+            this.postActionScriptCheck();
         }
     },
 
@@ -161,7 +174,7 @@ Object.defineProperties(DjeetaMind.prototype, {
             let summonId = postData.summon_id;       
 
             let summonName = this.state.getSummonNameByPos(summonId);                                    
-            this.ui.appendAction({
+            this.djeetaUI.appendAction({
                 when: this.whenCurrentTurn,
                 action: "summon",
                 params: [summonName]
@@ -174,7 +187,8 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.djeetaUI.updateState(this.state);
+            this.pushDevState();
+            this.postActionScriptCheck();
         }
     },
 
@@ -184,7 +198,7 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             if(this.isHoldingCA != isHoldingCA) {
                 let action = (isHoldingCA)? "holdCA" : "allowCA";
-                this.ui.appendAction({
+                this.djeetaUI.appendAction({
                     when: this.whenCurrentTurn,
                     action: action
                 });                
@@ -192,7 +206,28 @@ Object.defineProperties(DjeetaMind.prototype, {
             
             this.parse.scenario(json.scenario, this.state);
             this.parse.status(json.status, this.state);
-            this.djeetaUI.updateState(this.state);
+            this.processHoldCA();
+            this.pushDevState();
+            this.postActionScriptCheck();
+        }
+    },
+
+    processHoldCA: {
+        value: function() {     
+            let notifyCA = false;            
+            if(this.previousCA == undefined) {
+                notifyCA = true;                                
+            } else {
+                notifyCA = this.previousCA != this.state.isHoldingCA;
+            }
+
+            this.previousCA = this.state.isHoldingCA;
+            if(notifyCA) {
+                this.scriptRunner.processAction({
+                    action: "holdCA", 
+                    value: this.state.isHoldingCA
+                });
+            }
         }
     },
 
@@ -202,19 +237,25 @@ Object.defineProperties(DjeetaMind.prototype, {
                 switch(postData.set) {
                     case "special_skill": {
                         let holdCA = (value == 1);
-                        this.scriptRunner.processAction({
-                            action: "holdCA", 
-                            value: holdCA
-                        });
+                        // ignore this we will compare to previous action
+                        // this.scriptRunner.processAction({
+                        //     action: "holdCA", 
+                        //     value: holdCA
+                        // });
                     }
                 }
             }
+            this.postActionScriptCheck();
         }
     },
 
     whenCurrentTurn: {
-        get: function() {
-            return "turn = " + this.state.turn;
+        get: function() {            
+            let ret = "turn = " + this.state.turn;
+            if(this.state.stageMax > 1) {
+                ret += " AND stage = " + this.state.stageCurrent;
+            }
+            return ret;
         }
     },
 
@@ -224,14 +265,20 @@ Object.defineProperties(DjeetaMind.prototype, {
             this.djeetaUI.appendAction({
                 when: this.whenCurrentTurn,
                 action: "sticker"
-            });            
+            });    
+            
+            this.postActionScriptCheck();
         }
-    },
+    }, 
 
-    onContentReady: {
-        value: function(data, sender, response) {            
-            console.log("Djeeta Reported in!!");
-            response(this.requestAction());
+    // TODO hook up event listener
+    onScenarioEvent: {
+        value: function(e) {
+            switch(e.scenario) {
+                case SCENARIO_EVENTS.WIN:
+                    console.log("Handle navigation if enabled");
+                    break;                
+            }
         }
     },
 
@@ -263,6 +310,7 @@ Object.defineProperties(DjeetaMind.prototype, {
             } else {
                 this.scriptRunner.isRunning = true; 
                 // do anything? notify content we are enabled?
+                ContentTab.send("djeetaScriptEnabled");
             }
             
             return enable;
@@ -270,7 +318,9 @@ Object.defineProperties(DjeetaMind.prototype, {
     },
 
     requestAction: {
-        value: function() {    
+        value: function() { 
+            console.log("Djeeta Requesting Action.");
+            
             let result = {
                 isRunning: this.scriptRunner.isRunning
             };
@@ -285,7 +335,15 @@ Object.defineProperties(DjeetaMind.prototype, {
 
             return result;
         }
-    }
+    },
+
+    postActionScriptCheck: {
+        value: function() {
+            if(this.scriptRunner.isRunning) {
+                ContentTab.send("djeetaScriptPing");
+            }
+        }
+    },    
 });
 
 window.DjeetaMind = new DjeetaMind();

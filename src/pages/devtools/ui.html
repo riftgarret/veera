@@ -478,62 +478,79 @@
                                 <div class="battle-meta">Turn: <span id="battle-turn"></span></div>
                                 <div class="boss-meta-container">
                                     <div class="boss-meta" pos="0" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-hp"></div>
-                                        <div class="unit-mode"></div>
-                                        <div class="unit-conditions"></div>
-                                    </div>
-                                    <div class="boss-meta" pos="1" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-hp"></div>
-                                        <div class="unit-mode"></div>
-                                        <div class="unit-conditions"></div>
-                                    </div>
-                                    <div class="boss-meta" pos="2" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-hp"></div>
-                                        <div class="unit-mode"></div>
-                                        <div class="unit-conditions"></div>
-                                    </div>
+                                        <img class="unit-icon" />
+                                        <div class="meta-container">
+                                            <div>                                            
+                                                <div class="unit-element-icon"></div>
+                                                <div class="unit-name"></div>
+                                            </div>                
+                                            <div>
+                                                <div class="unit-hp-progress-outer">                                                                                                
+                                                    <div class="unit-hp-progress-inner"></div>                                            
+                                                    <div class="unit-hp"></div>
+                                                </div>                                                                                                                                                
+                                            </div>
+                                            <div style="justify-content: space-between;">
+                                                <div class="unit-diamonds"></div>                                                                                    
+                                                <div class="unit-mode"></div>
+                                            </div>
+                                        </div>                                                
+                                        <div class="unit-conditions buffs"></div>                                        
+                                        <div class="unit-conditions debuffs"></div>  
+                                    </div>                                    
                                 </div>
                                 <div class="player-meta-container">
                                     <div class="player-meta" pos="0" style="display: none;">
                                         <div class="unit-name"></div>
-                                        <div class="unit-ca"></div>
-                                        <div class="unit-hp"></div>                                        
-                                        <div class="unit-conditions"></div>
-                                    </div>
-                                    <div class="player-meta" pos="1" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-ca"></div>
-                                        <div class="unit-hp"></div>                                        
-                                        <div class="unit-conditions"></div>
-                                    </div>
-                                    <div class="player-meta" pos="2" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-ca"></div>
-                                        <div class="unit-hp"></div>                                        
-                                        <div class="unit-conditions"></div>
-                                    </div>
-                                    <div class="player-meta" pos="3" style="display: none;">
-                                        <div class="unit-name"></div>
-                                        <div class="unit-ca"></div>
-                                        <div class="unit-hp"></div>                                        
-                                        <div class="unit-conditions"></div>
-                                    </div>
+                                        <img class="unit-icon" />
+                                        <div class="unit-element"></div>
+                                        <div class="text-hp-label" style="display: none;"></div>
+                                        <div class="unit-hp" color="green"></div>
+                                        <div class="unit-hp-progress-outer">                                            
+                                            <div class="unit-hp-progress-inner" color="green"></div>                                            
+                                        </div>
+                                        <div class="unit-ca-label" style="display: none;"></div>
+                                        <div class="unit-ca-progress-outer">
+                                            <div class="unit-ca-progress-100"></div>
+                                            <div class="unit-ca-progress-100full"></div>
+                                            <div class="unit-ca-progress-200"></div>
+                                            <div class="unit-ca-progress-200full"></div>
+                                            <div class="unit-ca-progress-disabled"></div>
+                                        </div>
+                                        <div class="unit-ca-value"></div>
+                                        <div class="unit-skill-label" style="display: none;"></div>
+                                        <div class="unit-skill-container">
+                                            <div class="unit-skill-state" pos="0"></div>
+                                            <div class="unit-skill-state" pos="1"></div>
+                                            <div class="unit-skill-state" pos="2"></div>
+                                            <div class="unit-skill-state" pos="3"></div>
+                                        </div>
+                                        <div class="unit-conditions buffs"></div>                                        
+                                        <div class="unit-conditions debuffs"></div>                                        
+                                    </div>                                    
                                 </div>                                
                             </div>                        
                         </div>                        
-                        <div id="script-dashboard">
-                            <button id="btn-load-script">Load</button>
+                        <div id="script-dashboard">                            
                             <button id="btn-enable-script" isEnabled="0">Enable</button>
                             <div id="action-queue"></div>
                             <div id="script-console"></div>
                         </div>
+                        <ul id="script-tabs" class="navlist">
+                            <li class="nav-tab active" data-navpage="script-tracker-container">Tracker</li>
+                            <li class="nav-tab" data-navpage="script-editor-container">Editor</li>
+                            <li class="nav-tab" data-navpage="script-runner">Runner</li>
+                        </ul>                                
                         <div class="djeeta-code-container">
-                            <div id="tracked-actions" class="djeeta-code"></div>                        
-                            <button id="btn-copy-script">🡆</button>
-                            <div id="djeeta-script" class="djeeta-code" contenteditable="true"></div>                        
+                            <div id="script-tracker-container" class="code-tab active">
+                                <div id="script-tracker" class="djeeta-code"></div>
+                                <button id="btn-copy-script">🡆 Copy To Editor</button>
+                            </div>                                                    
+                            <div id="script-editor-container" class="code-tab">
+                                <div id="script-editor" class="djeeta-code" contenteditable="true"></div>                        
+                                <button id="btn-load-script">🡆 Load Runner</button>
+                            </div>                            
+                            <div id="script-runner" class="djeeta-code code-tab"></div>                        
                         </div>                                                
                     </div>
                 </div>                

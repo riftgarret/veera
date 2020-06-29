@@ -14,14 +14,14 @@ window.DevTools = {
                 port.onMessage.addListener(hear);
                 port.onDisconnect.addListener(self.deafen);
                 chrome.runtime.onMessage.addListener(hearQuery);                
+                window.dispatchEvent(new Event(EVENTS.connected));
                 break;
             }
             case "content-page": {
                 ContentTab.connected(port);
                 break;
             }            
-        }    
-        window.dispatchEvent(new Event(EVENTS.connected, {port: port.name}));            
+        }                        
     },
     deafen() {
         let self = DevTools;
@@ -373,9 +373,9 @@ function hearContent(msg, sender) {
 
 function hearQuery(data, sender, respond) {
     devlog("Query rcv: ", data);
+    let retValue;
     switch(data.source) {
-        case "ui": {
-            var retValue;
+        case "ui": {            
             switch (data.query) {
                 case "archivedBattle":
                     retValue = Battle.load(data.val);
@@ -392,26 +392,24 @@ function hearQuery(data, sender, respond) {
                 case "djeetaScriptLoad":
                     retValue = DjeetaMind.loadScript(data.val)
                     break;
-            }
-
-            devlog("Responding with: ", retValue);
-            respond({
-                query: data.query,
-                value: retValue
-            });
-            
+            }                       
         }
         break;
         
-        case "content": {
-            var retValue;
-            switch (data.type) {
-                case "djeetaFightReady":
-                    DjeetaMind.onContentReady(data.data, sender, respond);
+        case "content": {            
+            switch (data.query) {
+                case "djeetaRequestAction":
+                    retValue = DjeetaMind.requestAction();
                     break;
             }            
         }
         break;
     }
+
+    devlog("Responding with: ", retValue);
+    respond({
+        query: data.query,
+        value: retValue
+    });
     
 }

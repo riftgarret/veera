@@ -4,6 +4,7 @@ if(chrome.runtime) {
     BackgroundPage.connect();
 }
 
+var roundReadyObserver = null;
 function hookForFightReady() {                
     var target = document.querySelector("div.btn-attack-start");
     var isReady = () => target.classList.contains("display-on");        
@@ -15,16 +16,18 @@ function hookForFightReady() {
 
     if(isReady()) {
         onReady();
-    } else {
-        var observer = new MutationObserver(function (muts) {
-        muts.forEach(function(rec) {
-            if(rec.type === 'attributes') {
-                if(isReady()) {                    
-                    onReady();
-                    observer.disconnect();
+    } else if(roundReadyObserver == null) {        
+        roundReadyObserver = new MutationObserver(function (muts) {
+            for(let rec of muts) {
+                if(rec.type === 'attributes') {
+                    if(isReady()) {                    
+                        onReady();
+                        roundReadyObserver.disconnect();
+                        break;
+                    }
                 }
             }
-        })});
-        observer.observe(target, { attributes: true, attributeFilter: ['class'] });
+        });
+        roundReadyObserver.observe(target, { attributes: true, attributeFilter: ['class'] });
     }        
 }

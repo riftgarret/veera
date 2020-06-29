@@ -3,33 +3,46 @@
 // example:
 // when(conditionExp) doSomething(params)
 function DjeetaScriptEvaluator() {
+    
+    this.lines = [];    
+    this.errorCount = 0;
+    
+    let reset = () => {        
+        this.lines.length = 0;
+        this.errorCount = 0;
+    }
 
-    this.rules = [];
+    this.isReady = function() {
+        return this.lines.length > 0 && this.errorCount == 0;
+    }
 
     this.read = function(script) {
-        this.rules.length = 0;
+        reset();
         let lineCounter = 0;
 
         let lines = script.match(/[^\r\n]+/g);                
-        for(let line of lines) {            
-            lineCounter++;
-            if(line.trim() == "") break;
+        for(let line of lines) {                                    
+            let lineObj = {lineNumber: ++lineCounter, raw: line};
+            this.lines.push(lineObj);
 
-            try {
-                this.rules.push(new Rule(line));
+            if(line.trim() == "") continue; // empty just continue
+
+            try {                            
+                lineObj.rule = new Rule(new RawClip(line));                
             } catch(e) {
-                console.warn("failed to parse" + e);
-                throw {
-                    line: lineCounter,
-                    desc: "Bad script syntax on line " + lineCounter
-                };
+                let errorObj = {error: e, line: lineCounter};
+                lineObj.error = errorObj;                                
+                this.errorCount++;
+
+                console.warn("failed to parse: " + e);                
             }
         }
     }
     
     this.findActions = function(state) {
         let actionsFound = [];
-        for(let rule of this.rules) {
+        for(let line of this.lines) {
+            let rule = line.rule;
             if(rule.isValid(state)) {
                 Array.prototype.push.apply(actionsFound, rule.actions);
             }
@@ -37,11 +50,33 @@ function DjeetaScriptEvaluator() {
 
         let validActions = actionsFound.filter(a => a.isValid(state));
         return validActions;
-    }
+    }    
+
+    this.evalulateRules = function(state) {        
+        let results = [];
+        for(let node of this.lines) {
+            if(!node.rule) continue;
+
+            results.push({
+                line: node,
+                result: node.rule.getResults(state)
+            });            
+        }
+        return results;
+    }    
 }
 
+function RawClip(raw, position = 0) {
+    this.raw = raw;
+    this.pos = position;    
+}
+
+RawClip.prototype.subClip = function(innerRaw, innerIndexStartSearchPos = 0) {
+    return new RawClip(innerRaw, this.raw.indexOf(innerRaw, innerIndexStartSearchPos) + this.pos);
+};    
+
 function Rule(raw) {
-    let results = raw.matchAll(/(?<method>\w+)\((?<params>.*?)\)/g);    
+    let results = raw.raw.matchAll(/(?<method>\w+)\((?<params>.*?)\)/g);    
 
     this.when = undefined;
     this.actions = [];
@@ -49,7 +84,7 @@ function Rule(raw) {
     for(let result of results) {
         let {method, params} = result.groups;
 
-        let evaluator = createMethodExpression(method, params);
+        let evaluator = createMethodExpression(raw.subClip(method, result.index), raw.subClip(params, result.index));
         switch(method) {
             case "when":
                 this.when = evaluator;
@@ -59,53 +94,70 @@ function Rule(raw) {
         }
     }
 
-    this.isValid = (state) => this.when.isValid(state);        
+    this.isValid = (state) => this.when.isValid(state);
+    
+    this.getResults = function(state) {
+        let result = {
+            when: this.when.getResults(state),
+            actions: []
+        };       
+        
+        for(let action of this.actions) {
+            result.actions.push({action, isValid: action.isValid(state)});
+        }
+
+        return result;
+    };
 }
 
-function createMethodExpression(method, params) {
-    switch(method) {
-        case "when": return new WhenCondition(params);
-        case "skill": return new AbilityAction(params);
-        case "summon": return new SummonAction(params);        
-        case "holdCA": return new HoldCAAction(params);
+function createMethodExpression(methodClip, paramsClip) {
+    switch(methodClip.raw) {
+        case "when": return new WhenCondition(paramsClip);
+        case "skill": return new AbilityAction(paramsClip);
+        case "summon": return new SummonAction(paramsClip);        
+        case "holdCA": return new HoldCAAction(paramsClip);
         
-        default: 
-            console.warn("unknown method: " + method);
+        default:             
+            throw new ScriptError(`unknown method ${methodClip.raw}`, methodClip);
     }
 }
 
-function createInnerExpression(raw) {
-    var params = raw.match(/\w+/gs); // todo proper capture
+function createInnerExpression(rawClip) {
+    var params = rawClip.raw.match(/\w+/gs); // todo proper capture
     if(!isNaN(params[0])) {
-        return new NumberExpression(params[0]);
+        return new NumberExpression(rawClip.subClip(params[0]));
     }
 
     switch(params[0]) {
         case "turn": {
-            return new TurnExpression(raw);            
+            return new TurnExpression(rawClip);            
+        }
+        case "stage": {
+            return new StageExpression(rawClip);
         }
         case "boss": 
         case "char": {
-            return new UnitExpression(raw, params);
+            return new UnitExpression(rawClip, params);
         }
         default: 
-            throw "unknown expression: " + raw;
+            throw new ScriptError(`unknown expression: ${params[0]}`, rawClip);
     }    
 };
 
-function WhenCondition(raw) {
-    this.raw = raw;
+function WhenCondition(rawClip) {
+    this.rawClip = rawClip;
 
-    this.condExp = new ExpressionEval(raw);
+    this.condExp = new ExpressionEval(rawClip);
     this.isValid = (state) => this.condExp.eval(state);
+    this.getResults = (state) => this.condExp.getResults(state);
 }; 
 
-function SummonAction(raw) {
-    this.raw = raw;
+function SummonAction(rawClip) {
+    this.rawClip = rawClip;
 
     let getSummon = function(state) {
-        return !isNaN(raw)? state.getSummonByPos(Number(raw)) 
-                    : state.getSummonByName(raw);                    
+        return !isNaN(rawClip.raw)? state.getSummonByPos(Number(rawClip.raw)) 
+                    : state.getSummonByName(rawClip.raw);                    
     }
 
     this.actionMeta = function(state) {        
@@ -124,10 +176,10 @@ function SummonAction(raw) {
     };
 };
 
-function AbilityAction(raw) {
-    this.raw = raw;
+function AbilityAction(rawClip) {
+    this.rawClip = rawClip;
     
-    let findSkill = (abilities) => abilities.find(a => a.name.startsWith(raw));
+    let findSkill = (abilities) => abilities.find(a => a.name.startsWith(rawClip.raw));
 
     this.actionMeta = function(state) {
         let skill = findSkill(state.abilities);
@@ -144,10 +196,10 @@ function AbilityAction(raw) {
     }    
 };
 
-function HoldCAAction(raw) {
-    this.raw = raw;
+function HoldCAAction(rawClip) {
+    this.rawClip = rawClip;
 
-    let shouldHoldCA = () => raw == "1" || raw == "true";
+    let shouldHoldCA = () => rawClip.raw == "1" || rawClip.raw == "true";
 
     this.actionMeta = function(state) {        
         return {
@@ -159,28 +211,33 @@ function HoldCAAction(raw) {
     this.isValid = (state) => state.holdCA != shouldHoldCA();
 }
 
-function CharacterEval(raw) {
-    this.raw = raw;
+function CharacterEval(rawClip) {
+    this.rawClip = rawClip;
 
-    let getChar = (state) => !isNaN(raw)? state.getCharByPos(Number(raw)) : state.getCharByName(raw);
+    let getChar = (state) => !isNaN(rawClip.raw)? state.getCharByPos(Number(rawClip.raw)) : state.getCharByName(raw.raw);
 
     this.isValid = (state) => getChar(state).isAlive;    
 
     this.eval = getChar;
 }
 
-function TurnExpression(raw) {
-    this.raw = raw;        
+function TurnExpression(rawClip) {
+    this.rawClip = rawClip;        
     this.eval = (state) => state.turn ;
 };
 
-function NumberExpression(raw) {
-    this.raw = raw;
-    this.eval = (state) => Number(raw);
+function StageExpression(rawClip) {
+    this.rawClip = rawClip;        
+    this.eval = (state) => state.stageCurrent;
 };
 
-function UnitExpression(raw, params) {
-    this.raw = raw;    
+function NumberExpression(rawClip) {
+    this.rawClip = rawClip;
+    this.eval = (state) => Number(rawClip.raw);
+};
+
+function UnitExpression(rawClip, params) {
+    this.rawClip = rawClip;    
     
     switch(params[0]) {
         case "boss": {
@@ -201,25 +258,35 @@ function UnitExpression(raw, params) {
 
             break;
         }
+
+        default:
+            throw new ScriptError(`unknown unit expression: ${params[0]}`, params[0], raw);
     }
 
     switch(params[2]) {
         case "hp":
             this.propEval = (unit) => unit.hp;
             break;        
+
+        default:
+            throw new ScriptError(`unknown unit trait: ${params[2]}`, rawClip);
     }
 
     this.eval = (state) => this.propEval(this.unitEval(state));
 };
 
-function ExpressionEval(raw) {
-    this.raw = raw;
-    var split = raw.split(" AND ");
+function ExpressionEval(rawClip) {
+    this.rawClip = rawClip;
+
+    // search for multiple statements
+    let split = rawClip.raw.split(" AND ");
     // if has multiple, then create inner children
     if(split.length > 1) {
-        var evals = this.evals = [];
+        let pos = 0;
+        let evals = this.evals = [];
         for(let subraw of split) {
-            evals.push(new ExpressionEval(subraw));   
+            evals.push(new ExpressionEval(rawClip.subClip(subraw, pos)));
+            pos += subraw.length;
         }
         
         this.eval = (state) => {
@@ -228,22 +295,43 @@ function ExpressionEval(raw) {
             }
             return true;
         }
-    } else {
-        var esplit = raw.match(/(\w+|[\<\>\=]+)/gs); 
-        if(esplit.length != 3) throw "invalid condition split: " + raw;
 
-        this.leftExp = createInnerExpression(esplit[0]);
-        this.condExp = new ComparatorEval(esplit[1]);
-        this.rightExp = createInnerExpression(esplit[2]);
+        this.getResults = (state) => {
+            let result = {
+                exp: this,
+                children: [],
+                isValid: this.eval(state)
+            };
+
+            for(let subeval of evals) {                
+                children.push(subeval.getResults(state));
+            }
+            return result;
+        }
+    } else if(rawClip.raw.toLowerCase() == "always") { // always case
+        this.eval = (state) => true;
+        this.getResults = (state) => { return { exp: this, isValid: true } };
+        return;
+    } else { // comparitive syntax
+        let esplit = rawClip.raw.match(/(\w+|[\<\>\=]+)/gs); 
+        let pos = 0;
+        if(esplit.length != 3) throw new ScriptError("invalid condition split: ", rawClip);
+
+        this.leftExp = createInnerExpression(rawClip.subClip(esplit[0], pos));
+        pos += esplit[0].length;        
+        this.condExp = new ComparatorEval(rawClip.subClip(esplit[1], pos));        
+        pos += esplit[1].length;
+        this.rightExp = createInnerExpression(rawClip.subClip(esplit[2], pos));
 
         this.eval = (state) => this.condExp.eval(this.leftExp.eval(state), this.rightExp.eval(state));
+        this.getResults = (state) => { return { exp: this, isValid: this.eval(state) }};
     }
 };
 
-function ComparatorEval(raw) {    
-    this.raw = raw;
+function ComparatorEval(rawClip) {    
+    this.rawClip = rawClip;
     this.eval = (left, right) => {
-        switch(raw) {
+        switch(rawClip.raw) {
             case "<":
                 return left < right;
             case "<=":
@@ -258,7 +346,14 @@ function ComparatorEval(raw) {
             case "!=":
                 return left != right;
             default:
-                throw "Invalid comparator syntax: " + raw;
+                throw new ScriptError(`Invalid comparator syntax: ${rawClip.raw}`, rawClip);
         }
     }
 };
+
+class ScriptError extends Error {
+    constructor(msg, rawClip) {
+        super(msg);
+        this.rawClip = rawClip;        
+    }
+}

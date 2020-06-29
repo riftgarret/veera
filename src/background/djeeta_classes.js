@@ -7,7 +7,10 @@ class DjeetaState {
         this.bosses = [];    
         this.abilities = [];
         this.summons = [];
-        this.formation = [];            
+        this.formation = [];
+        this.stageCurrent = 1;
+        this.stageMax = 1;
+        this.roundWon = false;            
         this.isHoldingCA = false;
         this.summonsEnabled = true;
         this.turn = 1;
@@ -60,6 +63,9 @@ class DjeetaParser {
         state.isHoldingCA = json.special_skill_flag == "1";
         state.summonsEnabled = json.summon_enable == 1;
         state.turn = json.turn;
+        state.stageCurrent = Number(json.battle.count);
+        state.stageMax = Number(json.battle.total);
+        state.roundWon = false; // can never load a round we won
         this.abilities(json, state);
         this.startSummons(json, state);
         this.startParty(json, state);
@@ -96,11 +102,14 @@ class DjeetaParser {
                         }
                         case "boss": {
                             let boss = state.getBossAtPos(action.pos);
-                            boss.conditions = this.conditions(boss.condition, false).concat(this.conditions, boss.condition, true);
+                            boss.buffs = this.conditions(action.condition, true);
+                            boss.debuffs = this.conditions(action.condition, false);
                             break;
                         }
                         case "field_effect":
                             break; // TODO?
+                        case "effect_unit":
+                            break;
                         default: throw "unhandled condition type: " + action.to;
                     }
                     break;
@@ -176,6 +185,11 @@ class DjeetaParser {
                     // TODO propgate unit
                     break;
                 }
+
+                case "win": {                    
+                    state.roundWon = true;
+                    break;
+                }
             }
         }
     }
@@ -215,20 +229,23 @@ class DjeetaParser {
 
         for (let i = 0, l = bossParam.length; i < l; i++) {
             let enemy = bossParam[i];
-            let conditions = this.conditions(enemy.condition, false).concat(this.conditions, enemy.condition, true);
+            let buffs = this.conditions(enemy.condition, true);
+            let debuffs = this.conditions(enemy.condition, false);
 
             let enemyObj = {
                 id: Number(enemy.enemy_id),
                 name: enemy.name.en,
                 cjs: enemy.cjs,
+                attr: Number(enemy.attr),
                 hp: Number(enemy.hp),
                 hpMax: Number(enemy.hpmax),
                 recast: Number(enemy.recast),
-                recastMax: Number(enemy.recastmax),
-                conditions: conditions,
+                recastMax: Number(enemy.recastmax),                
                 mode: this.bossMode(enemy.modechange),
                 gauge: enemy.modegauge,
-                hasModeGauge: enemy.modeflag
+                hasModeGauge: enemy.modeflag,
+                buffs: buffs,
+                debuffs: debuffs,                
             };
             bosses.push(enemyObj);
         }
@@ -236,10 +253,10 @@ class DjeetaParser {
 
     bossMode(modechange) {
         switch(modechange) {
-            case "1": return "Normal";
-            case "2": return "Overdrive";
-            case "3": return "Break";
-            default: return "unknown mode";
+            case "1": return "normal";
+            case "2": return "overdrive";
+            case "3": return "break";
+            default: return "unknown";
         }
     }
 
@@ -262,6 +279,7 @@ class DjeetaParser {
                 charIndex: i,
                 cjs: player.cjs,
                 pid: player.pid,
+                pidImage: player.pid_image,
                 attr: Number(player.attr),
                 alive: !!player.alive,
                 leader: !!player.leader,
@@ -270,8 +288,7 @@ class DjeetaParser {
                 ougi: Number(player.recast),
                 ougiMax: Number(player.recastmax),
                 buffs: buffs,
-                debuffs: debuffs,
-                condition: {},                
+                debuffs: debuffs,                
             };
             party.push(playerObj);
         }
@@ -319,8 +336,9 @@ class DjeetaParser {
                     name: props["ability-name"],
                     id: props["ability-id"],
                     recast: props["ability-recast"],
-                    recastMax: props["recast-default"]
-                };
+                    recastMax: props["recast-default"],
+                    iconType: props["icon-type"]
+                };                
 
                 abilities.push(abilityObj);                
             }                
