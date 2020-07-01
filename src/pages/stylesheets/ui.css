@@ -611,6 +611,170 @@ button {
     width: 100%;
 }
 
+/** DJEETA SCRIPT **/
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+  
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+  
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 17px;
+    width: 17px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(17px);
+    -ms-transform: translateX(17px);
+    transform: translateX(17px);
+}
+
+.menu {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.menu-content {
+    display: none;
+    position: absolute;
+    background-color: #2c2c30;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);    
+    z-index: 1;
+}
+
+.menu-button {
+    padding: 6px 10px;
+}
+
+.menu-content a {
+    float: none;
+    padding: 8px 10px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.menu-content a:hover {
+    background-color: #444;
+}
+
+.menu-button {
+      border: none;
+}
+
+.menu-content.show {
+    display: block;
+}
+
+#dialog-container {
+    display: none;
+    position: absolute;
+    background-color: #2c2c30;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);    
+    z-index: 1;    
+    grid-template-rows: auto 160px auto;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 
+        "title close"
+        "list list"
+        "prompt button";
+    column-gap: 6px;
+    row-gap: 4px;
+    padding: 4px;
+    border: 1px solid white;
+}
+
+#dialog-container.show {
+    display: grid;
+}
+
+#dialog-container .list {
+    overflow-y: scroll;      
+    grid-area: list;
+    padding: 2px;
+    border: 0.5px dotted #bbb;
+}
+
+#dialog-container .button {
+    grid-area: button;
+    padding: 4px 10px;
+}
+
+#dialog-container .close {
+    grid-area: close;
+    padding: 2px 8px;    
+    justify-self: end;
+    align-self: center;
+    cursor: pointer;
+}
+
+#dialog-container .title {
+    grid-area: title;
+}
+
+#dialog-container .prompt {
+    grid-area: prompt;    
+}
+
+#dialog-container .list > a {
+    float: none;
+    padding: 4px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+#dialog-container .list > a:hover {
+    background-color: #444;
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 22px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
 .djeeta-code-container {    
     width: 500px;
     height: 300px;
@@ -624,11 +788,12 @@ button {
     overflow-x: scroll;
     overflow-y: scroll;
     height: 100%;    
+    padding: 3px;
 }
 
 .code-tab {
     display: none;
-    position: relative;
+    position: relative;    
     width: 100%;
     height: 100%;
 }
@@ -637,16 +802,69 @@ button {
     display: block;
 }
 
+#master-dashboard {    
+    width: 500px;
+    height: 100px;
+}
+
+.script-dashboard {
+    position: relative;
+    display: block;        
+}
+
+#script-console {    
+    position: absolute;
+    bottom: 2px;
+    height: 30px;
+    left: 2px;
+    right: 2px;
+    font-family: "system";
+}
+
+#action-queue {
+    position: absolute;
+    bottom: 34px;
+    height: 30px;
+    left: 2px;
+    right: 2px;
+    font-family: "system";
+    display: flex;
+}
+
 #script-tracker {
-    background-color: rgba(4,221,2,0.2);
+    background-color: rgba(4,221,2,0.05);
 }
 
 #script-editor {
-    background-color: rgba(4,4,221,0.2);
+    background-color: rgba(4,4,221,0.05);
 }
 
 #script-runner {
-    background-color: rgba(221,4,2,0.2);
+    background-color: rgba(221,4,2,0.05);
+}
+
+#script-runner > div.error {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+div.error span.error {
+    text-decoration: line-through;
+    background-color: darkred;
+}
+
+.dashboard-component {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-component > *:nth-child(n+2) {
+    margin-left: 5px;
+}
+
+.dashboard-component > span {
+    color: white;
+    pointer-events: none;    
 }
 
 /* common djeeta props */

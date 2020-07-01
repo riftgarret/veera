@@ -5,8 +5,10 @@
         <meta charset="UTF-8">
         <link href="../stylesheets/ui.css" rel="stylesheet">
         <link id="theme" href="../stylesheets/night.css" rel="stylesheet">
+        <script type="text/javascript" src="jquery-3.5.1.min.js"></script>
         <script type="text/javascript" src="message.js"></script>
         <script type="text/javascript" src="network.js"></script>
+        <script type="text/javascript" src="storage.js"></script>
         <script type="text/javascript" src="../../lib/Chart.min.js"></script>
         <script type="text/javascript" src="ui.js" defer></script>
         <script  type="text/javascript" src="unfUI.js" defer></script>
@@ -531,26 +533,65 @@
                                 </div>                                
                             </div>                        
                         </div>                        
-                        <div id="script-dashboard">                            
-                            <button id="btn-enable-script" isEnabled="0">Enable</button>
+                        <div id="master-dashboard" class="script-dashboard">                                                        
+                            
                             <div id="action-queue"></div>
                             <div id="script-console"></div>
                         </div>
                         <ul id="script-tabs" class="navlist">
                             <li class="nav-tab active" data-navpage="script-tracker-container">Tracker</li>
                             <li class="nav-tab" data-navpage="script-editor-container">Editor</li>
-                            <li class="nav-tab" data-navpage="script-runner">Runner</li>
+                            <li class="nav-tab" data-navpage="script-runner-container">Runner</li>
                         </ul>                                
+                        <div id="dialog-container">
+                            <div class="title"></div>
+                            <div class="close">✕</div>
+                            <div class="list"></div>
+                            <input type="text" class="prompt"></input>
+                            <button class="button"></button>
+                        </div>
                         <div class="djeeta-code-container">
                             <div id="script-tracker-container" class="code-tab active">
-                                <div id="script-tracker" class="djeeta-code"></div>
-                                <button id="btn-copy-script">🡆 Copy To Editor</button>
+                                <div class="script-dashboard">
+                                    <div style="display: flex; ">
+                                        <div class="script-title">History</div>
+                                        <button id="btn-copy-script">🡆 Copy To Editor</button>
+                                    </div>
+                                </div>
+                                <div id="script-tracker" class="djeeta-code"></div>                                
                             </div>                                                    
                             <div id="script-editor-container" class="code-tab">
-                                <div id="script-editor" class="djeeta-code" contenteditable="true"></div>                        
-                                <button id="btn-load-script">🡆 Load Runner</button>
+                                <div class="script-dashboard">
+                                    
+                                    <div class="script-title">Editor</div>
+                                    <div class="dashboard-component">
+                                        <div id="editor-file-menu" class="menu">
+                                            <button id="btn-editor-file-menu" class="menu-button">File</button>
+                                            <div class="menu-content">
+                                                <a class="menu-new">New</a>
+                                                <a class="menu-open">Open</a>
+                                                <a class="menu-save">Save</a>                                                
+                                            </div>
+                                        </div>
+                                        <button id="btn-execute-script">Execute</button>                                            
+                                    </div>                                    
+                                    
+                                </div>
+                                <div id="script-editor" class="djeeta-code" contenteditable="true"></div>                                                        
                             </div>                            
-                            <div id="script-runner" class="djeeta-code code-tab"></div>                        
+                            <div id="script-runner-container" class="code-tab">
+                                <div class="script-dashboard">
+                                    <div class="script-title">Runner</div>                                    
+                                    <div class="dashboard-component">
+                                        <span>Enable Script:</span>
+                                        <label id="toggle-enable-script" class="switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>                                                                                                                    
+                                </div>
+                                <div id="script-runner" class="djeeta-code"></div>                        
+                            </div>
                         </div>                                                
                     </div>
                 </div>                

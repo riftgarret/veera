@@ -7,21 +7,75 @@ HTMLElement.prototype.setAttributes = function(blob) {
     }
 };
 
-const diamonds = {
+HTMLCollection.prototype.map = Array.prototype.map; // so we can map children
 
-}
+UI.scripts = {
+    scriptMetas: null,
+    currentScriptMeta: null,
+
+    init: function() {
+        Storage.get({djeeta_scripts: []}, (data) => {            
+            this.scriptMetas = data.djeeta_scripts;
+            console.log("Scripts loaded");
+        });
+    },
+
+    saveScript: function(meta, callback) {                            
+        let saveScripts = this.scriptMetas.map(x => (x.name === meta.name)? meta : x);                
+        
+        if(!saveScripts.includes(meta)) {
+            saveScripts.push(meta);
+        }        
+
+        Storage.set({djeeta_scripts: saveScripts}, () => {
+            this.scriptMetas = saveScripts;
+            console.log("scripts updated.");
+            callback();
+        });        
+    },
+
+    findMeta: function(name) {
+        return this.scriptMetas.find(meta => meta.name === name);
+    },
+
+    toMetaList: function() {
+        return this.scriptMetas.map(meta => {
+            return {
+                html: meta.name, 
+                attributes: {key: meta.name}
+            };
+        });
+    }
+};
 
 // ui functions
 UI.djeeta = {
     state: {},
     bossMetaElements: [],
-    playerMetaElements: [],
+    playerMetaElements: [],    
 
     init: function() {
         window.addEventListener("bg-connected", (p) => {    
             BackgroundPage.query("djeetaIsScriptEnabled", {}).then(UI.djeeta.updateEnableScriptButton);
             console.log("port connection event found");    
-        });                
+        });       
+        
+        // menu click listener removal
+        window.addEventListener("click", (e) => {
+            if(!e.target.classList.contains("menu-button")) {
+                for(let menu of document.querySelectorAll(".menu-content")) {
+                    if(menu.classList.contains("show")) {
+                        menu.classList.remove("show");
+                    }
+                }
+            }
+        });
+
+        let toggleMenuFunc = (e) => e.target.parentElement.querySelector(".menu-content").classList.toggle("show");        
+
+        let getScriptAsText = (e) => e.children.map(x => x.innerText.trim()).join("\n");                    
+
+        $id("btn-editor-file-menu").addEventListener("click", toggleMenuFunc);
         
         // initial load listeners
         $id("btn-copy-script").addEventListener("click", (ev) => {
@@ -29,23 +83,83 @@ UI.djeeta = {
             document.querySelector(".nav-tab[data-navpage=\"script-editor-container\"]").dispatchEvent(new MouseEvent("click", {bubbles: true}));
         });
 
-        $id("btn-load-script").addEventListener("click", (ev) => {
-            let script = $id("script-editor").innerText;
+        $id("btn-execute-script").addEventListener("click", (ev) => {
+            // due to the nature of <div><br></div> in line breaks register as 2 \n's
+            let script = getScriptAsText($id("script-editor"));            
+
             BackgroundPage.query("djeetaScriptLoad", script)
                 .then(data => {
                     if(data.error) {
-                        $id('script-console').innerHTML = "<span style='color: red'>" + data.error.desc + "</span>";
+                        UI.djeeta.consoleUI("<span style='color: red'>" + data.error.desc + "</span>");
                     } else {
-                        $id('script-console)').innerHTML = "Success";
+                        UI.djeeta.consoleUI("Success");
+                        UI.djeeta.loadSyntaxResult(data.result);
                     }
                 });
         });
-        
-        $id("btn-enable-script").addEventListener("click", (ev) => {
-            let isEnable = ev.target.getAttribute("isEnabled") == "1";
-            BackgroundPage.query("djeetaScriptEnabled", !isEnable)
-                .then(UI.djeeta.updateEnableScriptButton)
+
+        document.querySelector("#editor-file-menu .menu-save").addEventListener("click", (e) => {
+            let script = getScriptAsText($id("script-editor"));
+            if(script.trim() == "") {
+                return;
+            }
+
+            let onSaveScript = (name) => {
+                if(name.trim() == "") {
+                    this.consoleUI("Aborting Save, no name provided.");
+                    return;
+                }
+
+                let meta = {
+                    name,
+                    script,
+                    updated: new Date()
+                }
+                UI.scripts.saveScript(meta, () => {
+                    this.consoleUI(`${meta.name} Saved.`)
+                    UI.scripts.currentScriptMeta = meta;
+                });
+            };
+
+            let prompt = UI.scripts.currentScriptMeta? UI.scripts.currentScriptMeta.name : undefined;
+            UI.djeeta.displayFileDialog("Save", 
+                UI.scripts.toMetaList(),            
+                "Save",
+                onSaveScript,
+                prompt);
         });
+
+        document.querySelector("#editor-file-menu .menu-open").addEventListener("click", (e) => {            
+            let onLoadScript = (name) => {
+                if(name.trim() == "") {
+                    this.consoleUI("Aborting Load, no name provided.");
+                    return;
+                }
+
+                let script = UI.scripts.findMeta(name);
+                if(!script) {
+                    console.warn(`failed to find script ${name}`);
+                    return;
+                }
+
+                UI.scripts.currentScriptMeta = script;
+
+                // TODO populate meta info UI portions.
+                $id('script-editor').innerText = script.script;
+                UI.djeeta.consoleUI(`${name} Loaded.`);
+            };
+            
+            UI.djeeta.displayFileDialog("Open", 
+                UI.scripts.toMetaList(),            
+                "Open",
+                onLoadScript);
+        });
+        
+        // $id("btn-enable-script").addEventListener("click", (ev) => {
+        //     let isEnable = ev.target.getAttribute("isEnabled") == "1";
+        //     BackgroundPage.query("djeetaScriptEnabled", !isEnable)
+        //         .then(UI.djeeta.updateEnableScriptButton)
+        // });
 
         let toDamageAmount = function(number) {
             if(number < 1000000) {
@@ -122,6 +236,105 @@ UI.djeeta = {
         for(let i of [1, 2, 3]) {
             this.playerMetaElements.push(extractPlayerElements(cloneElement(playerEle, i)));
         }
+
+        
+    },
+    
+    insertWrappedTag(str, start, end, startTag, endTag) {        
+        return `${str.slice(0, start)}${startTag}${str.slice(start, end)}${endTag}${str.slice(end)}`;
+    },
+
+    displayFileDialog: function(title, list, button, onclick, prompt) {
+        let itemClickFunc = (e, dialog) => dialog.prompt.value = e.target.getAttribute("key");
+
+        this.displayDialog({
+            title,
+            list: list.map(x => { return {html: x.html, attributes: x.attributes, click: itemClickFunc}}),
+            button: {html: button, click: (e, dialog) => onclick(dialog.prompt.value)},
+            prompt            
+        })
+    },
+
+    displayDialog: function(argsObj) {
+        let dialog = $id("dialog-container");                
+        let title = dialog.querySelector(".title");
+        let list = dialog.querySelector(".list");
+        let prompt = dialog.querySelector(".prompt");
+        let button = dialog.querySelector(".button");
+        let close = dialog.querySelector(".close");
+        let dialogObj = {dialog, title, list, prompt, button, close};
+
+        let setElementDisplay = function(e, display) {
+            e.style.display = display? "block" : "none";
+        }
+
+        // title:
+        setElementDisplay(title, !!argsObj.title);
+        if(argsObj.title) {
+            title.innerHTML = argsObj.title;            
+        }
+
+        // list
+        setElementDisplay(list, !!argsObj.list);
+        if(argsObj.list) {
+            list.innerHTML = "";
+            for(let item of argsObj.list) {
+                let newE = document.createElement("a");
+                newE.innerHTML = item.html;
+                if(item.click) {
+                    newE.addEventListener("click", (e) => item.click(e, dialogObj));
+                }
+                if(item.attributes) {
+                    newE.setAttributes(item.attributes);
+                }
+                list.appendChild(newE);
+            }
+        } 
+
+        // prompt
+        prompt.value = argsObj.prompt || "";
+
+        // button
+        button.innerHTML = argsObj.button.html;
+        button.onclick = (e) => {
+            argsObj.button.click(e, dialogObj);
+            dialog.classList.remove("show");
+        }
+
+        close.onclick = (e) => dialog.classList.remove("show");        
+        
+        if(!dialog.classList.contains("show")) {
+            dialog.classList.add("show");
+        }
+
+        prompt.focus();
+    },
+
+    consoleUI: function(html) {
+        $id('script-console').innerHTML = html;
+    },
+
+    loadSyntaxResult: function(syntaxResult) {        
+        console.log("load syntax");
+
+        let parent = $id("script-runner");
+        parent.innerHTML = "";
+        for(let line of syntaxResult.lines) {
+            let div = document.createElement("div");
+            if(line.error) {
+                let error = line.error;
+                let clip = error.rawClip;                
+                div.classList.add("error");                
+                let html = this.insertWrappedTag(line.raw, clip.pos, clip.pos + clip.raw.length, 
+                    "<span class=\"error\" title=\"" + error.msg + "\">", "</span>");
+                div.innerHTML = html;
+            } else if(line.raw) {
+                div.innerHTML = line.raw;
+            } else {
+                div.innerHTML = "<br>";
+            }            
+            parent.appendChild(div);
+        }
     },
 
     handleMsg: function(msg) {
@@ -158,9 +371,9 @@ UI.djeeta = {
     },
 
     updateEnableScriptButton: function(enable) {
-        let e = $id("btn-enable-script");
-        e.setAttribute("isEnabled", enable? "1": "0");
-        e.innerHTML = enable? "Stop" : "Execute";
+        // let e = $id("btn-enable-script");
+        // e.setAttribute("isEnabled", enable? "1": "0");
+        // e.innerHTML = enable? "Stop" : "Execute";
     },
 
     snapshotState: function() { 
@@ -281,7 +494,8 @@ UI.djeeta = {
         }
         
     }
-}
+};
 
 // replicate player and boss cells 
+UI.scripts.init();
 UI.djeeta.init();

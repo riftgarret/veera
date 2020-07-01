@@ -48,6 +48,7 @@ function DjeetaMind() {
         },
         evaluate: function(text) {
             this.evaluator.read(text);
+            return this.evaluator;
         },
 
         actionQueue: function() {
@@ -287,7 +288,8 @@ Object.defineProperties(DjeetaMind.prototype, {
         value: function(script) {
             let result = {};
             try {
-                this.scriptRunner.evaluate(script);
+                // TODO disable runner before loading
+                result.result = this.scriptRunner.evaluate(script);
             } catch (e) {
                 result.error = e;
                 console.error(e);

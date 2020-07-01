@@ -20,7 +20,7 @@ function DjeetaScriptEvaluator() {
         reset();
         let lineCounter = 0;
 
-        let lines = script.match(/[^\r\n]+/g);                
+        let lines = script.split(/\n/g);
         for(let line of lines) {                                    
             let lineObj = {lineNumber: ++lineCounter, raw: line};
             this.lines.push(lineObj);
@@ -30,8 +30,8 @@ function DjeetaScriptEvaluator() {
             try {                            
                 lineObj.rule = new Rule(new RawClip(line));                
             } catch(e) {
-                let errorObj = {error: e, line: lineCounter};
-                lineObj.error = errorObj;                                
+                e.syntaxLine = lineCounter;                
+                lineObj.error = e;                                
                 this.errorCount++;
 
                 console.warn("failed to parse: " + e);                
@@ -42,7 +42,8 @@ function DjeetaScriptEvaluator() {
     this.findActions = function(state) {
         let actionsFound = [];
         for(let line of this.lines) {
-            let rule = line.rule;
+            if(line.error || !line.rule) continue;    // skip lines with errors
+            let rule = line.rule;            
             if(rule.isValid(state)) {
                 Array.prototype.push.apply(actionsFound, rule.actions);
             }
@@ -54,12 +55,12 @@ function DjeetaScriptEvaluator() {
 
     this.evalulateRules = function(state) {        
         let results = [];
-        for(let node of this.lines) {
-            if(!node.rule) continue;
+        for(let line of this.lines) {
+            if(line.error || !line.rule) continue;    // skip lines with errors
 
             results.push({
-                line: node,
-                result: node.rule.getResults(state)
+                line,
+                result: line.rule.getResults(state)
             });            
         }
         return results;
@@ -354,6 +355,7 @@ function ComparatorEval(rawClip) {
 class ScriptError extends Error {
     constructor(msg, rawClip) {
         super(msg);
+        this.msg = msg;
         this.rawClip = rawClip;        
     }
 }
