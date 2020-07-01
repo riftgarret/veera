@@ -1,11 +1,4 @@
 "use strict";
-var $id = (id) => document.getElementById(id);
-
-HTMLElement.prototype.setAttributes = function(blob) {
-    for(let key in blob) {
-        this.setAttribute(key, blob[key]);
-    }
-};
 
 HTMLCollection.prototype.map = Array.prototype.map; // so we can map children
 
@@ -61,31 +54,26 @@ UI.djeeta = {
         });       
         
         // menu click listener removal
-        window.addEventListener("click", (e) => {
-            if(!e.target.classList.contains("menu-button")) {
-                for(let menu of document.querySelectorAll(".menu-content")) {
-                    if(menu.classList.contains("show")) {
-                        menu.classList.remove("show");
-                    }
-                }
+        $(window).click((e) => {
+            if(!$(e.target).hasClass("menu-button")) {
+                $(".menu-content").removeClass("show");                
             }
         });
-
-        let toggleMenuFunc = (e) => e.target.parentElement.querySelector(".menu-content").classList.toggle("show");        
+        
 
         let getScriptAsText = (e) => e.children.map(x => x.innerText.trim()).join("\n");                    
 
-        $id("btn-editor-file-menu").addEventListener("click", toggleMenuFunc);
+        $("#btn-editor-file-menu").click((e) => $(e.target).siblings(".menu-content").toggleClass("show"));
         
         // initial load listeners
-        $id("btn-copy-script").addEventListener("click", (ev) => {
-            $id("script-editor").innerHTML = $id("script-tracker").innerHTML;
-            document.querySelector(".nav-tab[data-navpage=\"script-editor-container\"]").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+        $("#btn-copy-script").click((ev) => {
+            $("#script-editor").html($("#script-tracker").html());
+            $(".nav-tab[data-navpage=\"script-editor-container\"]").trigger(new MouseEvent("click", {bubbles: true}));
         });
 
-        $id("btn-execute-script").addEventListener("click", (ev) => {
+        $("#btn-execute-script").click((ev) => {
             // due to the nature of <div><br></div> in line breaks register as 2 \n's
-            let script = getScriptAsText($id("script-editor"));            
+            let script = getScriptAsText($("#script-editor"));            
 
             BackgroundPage.query("djeetaScriptLoad", script)
                 .then(data => {
@@ -98,8 +86,8 @@ UI.djeeta = {
                 });
         });
 
-        document.querySelector("#editor-file-menu .menu-save").addEventListener("click", (e) => {
-            let script = getScriptAsText($id("script-editor"));
+        $("#editor-file-menu .menu-save").click((e) => {
+            let script = getScriptAsText($("#script-editor"));
             if(script.trim() == "") {
                 return;
             }
@@ -129,7 +117,7 @@ UI.djeeta = {
                 prompt);
         });
 
-        document.querySelector("#editor-file-menu .menu-open").addEventListener("click", (e) => {            
+        $("#editor-file-menu .menu-open").click((e) => {            
             let onLoadScript = (name) => {
                 if(name.trim() == "") {
                     this.consoleUI("Aborting Load, no name provided.");
@@ -145,7 +133,7 @@ UI.djeeta = {
                 UI.scripts.currentScriptMeta = script;
 
                 // TODO populate meta info UI portions.
-                $id('script-editor').innerText = script.script;
+                $id('script-editor').text(script.script);
                 UI.djeeta.consoleUI(`${name} Loaded.`);
             };
             
@@ -155,7 +143,7 @@ UI.djeeta = {
                 onLoadScript);
         });
         
-        // $id("btn-enable-script").addEventListener("click", (ev) => {
+        // $("#btn-enable-script").addEventListener("click", (ev) => {
         //     let isEnable = ev.target.getAttribute("isEnabled") == "1";
         //     BackgroundPage.query("djeetaScriptEnabled", !isEnable)
         //         .then(UI.djeeta.updateEnableScriptButton)
@@ -172,26 +160,26 @@ UI.djeeta = {
 
         let extractBossElements = function(rootEle) {
             let node = {root: rootEle};
-            node.unitIcon = rootEle.querySelector(".unit-icon");
-            node.elementIcon = rootEle.querySelector(".unit-element-icon");
-            node.name = rootEle.querySelector(".unit-name");
-            node.hp = rootEle.querySelector(".unit-hp");
-            node.hpContainer = rootEle.querySelector(".unit-hp-progress-outer");
-            node.hpProgress = rootEle.querySelector(".unit-hp-progress-inner");
-            node.diamonds = rootEle.querySelector(".unit-diamonds");
-            node.mode = rootEle.querySelector(".unit-mode");
-            node.buffs = rootEle.querySelector(".unit-conditions.buffs");
-            node.debuffs = rootEle.querySelector(".unit-conditions.debuffs");    
+            node.unitIcon = rootEle.find(".unit-icon");
+            node.elementIcon = rootEle.find(".unit-element-icon");
+            node.name = rootEle.find(".unit-name");
+            node.hp = rootEle.find(".unit-hp");
+            node.hpContainer = rootEle.find(".unit-hp-progress-outer");
+            node.hpProgress = rootEle.find(".unit-hp-progress-inner");
+            node.diamonds = rootEle.find(".unit-diamonds");
+            node.mode = rootEle.find(".unit-mode");
+            node.buffs = rootEle.find(".unit-conditions.buffs");
+            node.debuffs = rootEle.find(".unit-conditions.debuffs");    
 
-            node.hpProgress.addEventListener("mousemove", (e) => {
-                let rect = node.hpContainer.getBoundingClientRect();
+            node.hpProgress.mousemove((e) => {
+                let rect = node.hpContainer[0].getBoundingClientRect();
                 let x = e.clientX - rect.left; //x position within the element.                
                 let frac = x / rect.width; // snap to a single percent
                 let fracSnap = Math.max(0, Math.floor(100 * frac));
-                let targetHP = (fracSnap / 100) * Number(node.hp.getAttribute('hp-max'));
-                let currentHP = Number(node.hp.getAttribute('hp-value'));
+                let targetHP = (fracSnap / 100) * Number(node.hp.attr('hp-max'));
+                let currentHP = Number(node.hp.attr('hp-value'));
                 let description = `${toDamageAmount(currentHP - Math.floor(targetHP))} dmg until ${fracSnap}%`;
-                node.hpProgress.setAttribute("title", description);
+                node.hpProgress.attr("title", description);
             });
 
             return node;
@@ -199,39 +187,39 @@ UI.djeeta = {
 
         let extractPlayerElements = function(rootEle) {
             let node = {root: rootEle};
-            node.name = rootEle.querySelector(".unit-name");
-            node.hp = rootEle.querySelector(".unit-hp");
-            node.hpProgress = rootEle.querySelector(".unit-hp-progress-inner");
-            node.unitIcon = rootEle.querySelector(".unit-icon");
-            node.ca = rootEle.querySelector(".unit-ca-value");
+            node.name = rootEle.find(".unit-name");
+            node.hp = rootEle.find(".unit-hp");
+            node.hpProgress = rootEle.find(".unit-hp-progress-inner");
+            node.unitIcon = rootEle.find(".unit-icon");
+            node.ca = rootEle.find(".unit-ca-value");
             node.caProgress = {
-                p100: rootEle.querySelector(".unit-ca-progress-100"),
-                p100full: rootEle.querySelector(".unit-ca-progress-100full"),
-                p200: rootEle.querySelector(".unit-ca-progress-200"),
-                p200full: rootEle.querySelector(".unit-ca-progress-200full"),
-                pDisabled: rootEle.querySelector(".unit-ca-progress-disabled")
+                p100: rootEle.find(".unit-ca-progress-100"),
+                p100full: rootEle.find(".unit-ca-progress-100full"),
+                p200: rootEle.find(".unit-ca-progress-200"),
+                p200full: rootEle.find(".unit-ca-progress-200full"),
+                pDisabled: rootEle.find(".unit-ca-progress-disabled")
             };
-            node.skills = rootEle.querySelectorAll(".unit-skill-state");            
-            node.buffs = rootEle.querySelector(".unit-conditions.buffs");
-            node.debuffs = rootEle.querySelector(".unit-conditions.debuffs");    
+            node.skills = rootEle.find(".unit-skill-state");            
+            node.buffs = rootEle.find(".unit-conditions.buffs");
+            node.debuffs = rootEle.find(".unit-conditions.debuffs");    
 
             return node;
         }
 
         let cloneElement = function(original, newPos) {
-            let next = original.cloneNode(true);
-            next.setAttribute("pos", newPos);
-            original.parentElement.appendChild(next);
+            let next = original.clone();
+            next.attr("pos", newPos);
+            original.parent().append(next);
             return next;
         }
 
-        let bossEle = document.querySelector("div.boss-meta");
+        let bossEle = $("div.boss-meta");
         this.bossMetaElements.push(extractBossElements(bossEle));
         for(let i of [1, 2]) {
             this.bossMetaElements.push(extractBossElements(cloneElement(bossEle, i)));
         }
 
-        let playerEle = document.querySelector("div.player-meta");
+        let playerEle = $("div.player-meta");
         this.playerMetaElements.push(extractPlayerElements(playerEle));
         for(let i of [1, 2, 3]) {
             this.playerMetaElements.push(extractPlayerElements(cloneElement(playerEle, i)));
@@ -256,36 +244,32 @@ UI.djeeta = {
     },
 
     displayDialog: function(argsObj) {
-        let dialog = $id("dialog-container");                
-        let title = dialog.querySelector(".title");
-        let list = dialog.querySelector(".list");
-        let prompt = dialog.querySelector(".prompt");
-        let button = dialog.querySelector(".button");
-        let close = dialog.querySelector(".close");
-        let dialogObj = {dialog, title, list, prompt, button, close};
-
-        let setElementDisplay = function(e, display) {
-            e.style.display = display? "block" : "none";
-        }
+        let dialog = $("#dialog-container");                
+        let title = dialog.find(".title");
+        let list = dialog.find(".list");
+        let prompt = dialog.find(".prompt");
+        let button = dialog.find(".button");
+        let close = dialog.find(".close");
+        let dialogObj = {dialog, title, list, prompt, button, close};        
 
         // title:
-        setElementDisplay(title, !!argsObj.title);
+        title.toggle(!!argsObj.title);        
         if(argsObj.title) {
-            title.innerHTML = argsObj.title;            
+            title.html(argsObj.title);            
         }
 
         // list
-        setElementDisplay(list, !!argsObj.list);
+        list.toggle(!!argsObj.list);
         if(argsObj.list) {
-            list.innerHTML = "";
+            list.html("");
             for(let item of argsObj.list) {
-                let newE = document.createElement("a");
-                newE.innerHTML = item.html;
+
+                let newE = $(`<a>${html}</a>`);                
                 if(item.click) {
-                    newE.addEventListener("click", (e) => item.click(e, dialogObj));
+                    newE.click((e) => item.click(e, dialogObj));
                 }
                 if(item.attributes) {
-                    newE.setAttributes(item.attributes);
+                    newE.attr(item.attributes);
                 }
                 list.appendChild(newE);
             }
@@ -311,29 +295,29 @@ UI.djeeta = {
     },
 
     consoleUI: function(html) {
-        $id('script-console').innerHTML = html;
+        $id('script-console').html(html);
     },
 
     loadSyntaxResult: function(syntaxResult) {        
         console.log("load syntax");
 
-        let parent = $id("script-runner");
-        parent.innerHTML = "";
+        let parent = $("#script-runner");
+        parent.empty();
         for(let line of syntaxResult.lines) {
-            let div = document.createElement("div");
+            let div = $("<div></div>");
             if(line.error) {
                 let error = line.error;
                 let clip = error.rawClip;                
-                div.classList.add("error");                
+                div.addClass("error");                
                 let html = this.insertWrappedTag(line.raw, clip.pos, clip.pos + clip.raw.length, 
                     "<span class=\"error\" title=\"" + error.msg + "\">", "</span>");
-                div.innerHTML = html;
+                div.html(html);
             } else if(line.raw) {
-                div.innerHTML = line.raw;
+                div.html(line.raw);
             } else {
-                div.innerHTML = "<br>";
+                div.html("<br>");
             }            
-            parent.appendChild(div);
+            parent.append(div);
         }
     },
 
@@ -341,11 +325,11 @@ UI.djeeta = {
         switch(msg.type) {
             case "append":
                 var actionNode = this.generateActionStateNode(msg.data);
-                $id("script-tracker").appendChild(actionNode);
+                $("#script-tracker").append(actionNode);
                 break;
 
             case "clear":
-                $id("script-tracker").innerHTML = "";
+                $("#script-tracker").empty();
                 this.state = {};
                 break;
 
@@ -367,11 +351,11 @@ UI.djeeta = {
             html += JSON.stringify(action);
             html += "</span>";
         }
-        $id('action-queue').innerHTML = html;
+        $id('action-queue').html(html);
     },
 
     updateEnableScriptButton: function(enable) {
-        // let e = $id("btn-enable-script");
+        // let e = $("#btn-enable-script");
         // e.setAttribute("isEnabled", enable? "1": "0");
         // e.innerHTML = enable? "Stop" : "Execute";
     },
@@ -381,10 +365,9 @@ UI.djeeta = {
     },
 
     generateActionStateNode: function(innerHTML) {
-        var div = document.createElement("div");
-        var stateSnapshot = this.snapshotState();
-        div.innerHTML = innerHTML;
-        div.addEventListener("click", (e) => UI.djeeta.updateStateUI(stateSnapshot));
+        let div = $(`<div>${innerHTML}</div>`);
+        let stateSnapshot = this.snapshotState();        
+        div.click((e) => UI.djeeta.updateStateUI(stateSnapshot));
         return div;
     },
     
@@ -396,30 +379,31 @@ UI.djeeta = {
         };
 
         let updateConditions = function(conditions, div) {
-            div.innerHTML = "";
+            div.empty();
             for(let cond of conditions) {
-                let img = document.createElement("img");
-                img.src = `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/ui/icon/status/x64/status_${cond}.png`;
-                img.title = cond;
-                div.appendChild(img);
+                let img = $("<img />");
+                img.attr({
+                    src: `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/ui/icon/status/x64/status_${cond}.png`,
+                    title: cond
+                });                
+                div.append(img);
             }
         };
 
         let populateDiamonds = function(unit, diamondsDiv) {
-            diamondsDiv.innerHTML = "";
+            diamondsDiv.empty();
             for(let i = 1; i < unit.recastMax; i++) {
                 let isBreak = (unit.mode == "break")? 1 : 0;
                 let isFilled = unit.recast + i <= unit.recastMax? 1 : 0;                
-                let diamondElement = document.createElement("div");
-                diamondElement.className = "diamond";
-                diamondElement.setAttributes({ isBreak, isFilled });
-                diamondsDiv.appendChild(diamondElement);
+                let diamondElement = $(`<div class="diamond></div>`);                
+                diamondElement.attr({ isBreak, isFilled });
+                diamondsDiv.append(diamondElement);
             } 
         }
 
         if(!state.bosses) return;        
 
-        $id("battle-turn").innerHTML = state.turn;
+        $("#battle-turn").html(state.turn);
 
         // bosses
         for(let i = 0; i < this.bossMetaElements.length; i++) {
@@ -430,24 +414,19 @@ UI.djeeta = {
                 updateConditions(unit.buffs, node.buffs);
                 updateConditions(unit.debuffs, node.debuffs);   
                 populateDiamonds(unit, node.diamonds);                 
-                node.root.style = "";          
-                node.name.innerHTML = unit.name;
-                node.elementIcon.setAttribute("attr", unit.attr);                
-                node.hp.innerHTML = unit.hp + " : " + Math.ceil(100 * unit.hp / unit.hpMax) + "%";
-                node.hp.setAttributes({"hp-value": unit.hp, "hp-max": unit.hpMax});                
-                node.hpProgress.style.width = (100 * unit.hp / unit.hpMax) + "%";                
-                node.mode.style.display = unit.mode? "block" : "none";
+                node.root.show();          
+                node.name.html(unit.name);
+                node.elementIcon.attr("attr", unit.attr);                
+                node.hp.html(unit.hp + " : " + Math.ceil(100 * unit.hp / unit.hpMax) + "%");
+                node.hp.attr({"hp-value": unit.hp, "hp-max": unit.hpMax});                
+                node.hpProgress.css("width", (100 * unit.hp / unit.hpMax) + "%");                
+                node.mode.toggle(unit.mode);
                 let cjSplit = unit.cjs.split("_");
-                node.unitIcon.src = `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/assets/${cjSplit[0]}/s/${cjSplit[1]}.png`;
-                if(unit.mode == "unknown") {
-                    node.mode.style.display = "none;";
-                } else {
-                    node.mode.style.display = "block;";
-                    node.mode.innerHTML = unit.mode;
-                }              
-                               
+                node.unitIcon.attr("src", `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/assets/${cjSplit[0]}/s/${cjSplit[1]}.png`);
+                node.mode.toggle(unit.mode != "unknown");
+                node.mode.html(unit.mode);                               
             } else {                
-                node.root.style.display = "none";      
+                node.root.hide();      
             }                                    
         }
 
@@ -459,37 +438,37 @@ UI.djeeta = {
                 updateCommon(unit, node);
                 updateConditions(unit.buffs, node.buffs);
                 updateConditions(unit.debuffs, node.debuffs);
-                node.root.style = "";
-                node.unitIcon.src = `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/assets/${unit.leader? "leader" : "npc"}/raid_normal/${unit.pidImage}.jpg`;
-                node.hp.innerHTML = unit.hp;
-                node.hpProgress.style.width = (100 * unit.hp / unit.hpMax) + "%";
-                node.ca.innerHTML = unit.ougi;                
-                node.caProgress.p100.style.width = (Math.min(unit.ougi, 100)) + "%";
-                node.caProgress.p100full.style = unit.ougi >= 100? "" : "display: none;";
-                node.caProgress.p200.style.width = (Math.max(0, Math.min(unit.ougi - 100, 100))) + "%";
-                node.caProgress.p200full.style = unit.ougi == 200? "" : "display: none;";
+                node.root.show();
+                node.unitIcon.attr("src", `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/assets/${unit.leader? "leader" : "npc"}/raid_normal/${unit.pidImage}.jpg`);
+                node.hp.html(unit.hp);
+                node.hpProgress.css("width", (100 * unit.hp / unit.hpMax) + "%");
+                node.ca.html(unit.ougi);
+                node.caProgress.p100.css("width", (Math.min(unit.ougi, 100)) + "%");
+                node.caProgress.p100full.toggle(unit.ougi >= 100);
+                node.caProgress.p200.css("width", (Math.max(0, Math.min(unit.ougi - 100, 100))) + "%");
+                node.caProgress.p200full.toggle(unit.ougi == 200);
 
                 let abilities = state.abilities.filter(a => a.charIndex == unit.charIndex).sort((a, b) => a.abilityIndex - b.abilityIndex);
                 for(let ai = 0; ai < 4; ai++) {
-                    let skillNode = node.skills[ai];
+                    let skillNode = $(node.skills[ai]);
                     if(ai >= abilities.length) {
-                        skillNode.setAttribute("state", 0);                        
-                        skillNode.innerHTML = "";
+                        skillNode.attr("state", 0);                        
+                        skillNode.empty();
                     } else {
                         let ability = abilities[ai];
-                        skillNode.setAttribute("type", ability.iconType);                        
+                        skillNode.attr("type", ability.iconType);                        
                         if(ability.recast == 0) {
-                            skillNode.setAttribute("state", 2);
-                            skillNode.innerHTML = "";
+                            skillNode.attr("state", 2);
+                            skillNode.empty();
                         } else {
-                            skillNode.setAttribute("state", 1);
-                            skillNode.innerHTML = ability.recast;
+                            skillNode.attr("state", 1);
+                            skillNode.html(ability.recast);
                         }
                     }
                 }                
                             
             } else {                
-                node.root.style.display = "none";                                
+                node.root.hide();
             }                                    
         }
         
