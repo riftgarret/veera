@@ -776,8 +776,8 @@ input:checked + .slider:before {
 }
 
 .djeeta-code-container {    
-    width: 500px;
-    height: 300px;
+    width: 600px;
+    height: 500px;
 }
 
 .djeeta-code {
@@ -786,20 +786,21 @@ input:checked + .slider:before {
     width: 100%;
     margin: 0.2em 2px;
     overflow-x: scroll;
-    overflow-y: scroll;
-    height: 100%;    
+    overflow-y: scroll;    
     padding: 3px;
+    flex: 1 1 auto;
 }
 
 .code-tab {
     display: none;
+    flex-flow: column;
     position: relative;    
     width: 100%;
     height: 100%;
 }
 
 .code-tab.active {
-    display: block;
+    display: flex;
 }
 
 #master-dashboard {    
@@ -809,7 +810,17 @@ input:checked + .slider:before {
 
 .script-dashboard {
     position: relative;
-    display: block;        
+    flex: 0 1 auto;
+}
+
+.column-table {
+    display: flex;
+    flex-flow: column;
+}
+
+.column-table > div {
+    display: flex;
+    flex-flow: row;
 }
 
 #script-console {    
@@ -837,6 +848,8 @@ input:checked + .slider:before {
 
 #script-editor {
     background-color: rgba(4,4,221,0.05);
+    outline: none;
+    color: white;
 }
 
 #script-runner {
@@ -852,14 +865,54 @@ div.error span.error {
     background-color: darkred;
 }
 
+#script-runner span.invalid, #script-runner div.invalid {
+    text-decoration: line-through;
+    color: #bbb;
+}
+
+#script-runner span.valid {
+    color: rgba(150, 205, 150, 0.7);
+}
+
+#script-runner span.action-exp.valid[counter="1"] {
+    color: rgba(150, 235, 150, 1);
+}
+
+#script-runner span.action-exp.valid[counter="2"] {
+    color: rgba(150, 235, 150, .8);
+}
+
+#script-runner span.action-exp.valid[counter="3"] {
+    color: rgba(150, 235, 150, .6);
+}
+
+#script-runner span.action-exp.valid[counter]::before {
+    content: attr(counter);
+    color: white;
+    font-family: var(--main-font);
+    font-size: 12px;        
+    white-space: nowrap;    
+    padding: 0.5rem 0.85rem;
+    border-radius: 3px;    
+}
+
+#script-runner span.action-exp.valid[counter="1"]::before {
+    background: rgba(0,0,0,0.2)
+}
+
 .dashboard-component {
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
 }
 
 .dashboard-component > *:nth-child(n+2) {
     margin-left: 5px;
+}
+
+.dashboard-component input[type="text"] {
+    width: 30px;
 }
 
 .dashboard-component > span {

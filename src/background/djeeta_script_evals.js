@@ -54,14 +54,11 @@ function DjeetaScriptEvaluator() {
     }    
 
     this.evalulateRules = function(state) {        
-        let results = [];
+        let results = {};
         for(let line of this.lines) {
             if(line.error || !line.rule) continue;    // skip lines with errors
 
-            results.push({
-                line,
-                result: line.rule.getResults(state)
-            });            
+            results[line.lineNumber] = line.rule.getResults(state);
         }
         return results;
     }    
@@ -161,12 +158,19 @@ function SummonAction(rawClip) {
                     : state.getSummonByName(rawClip.raw);                    
     }
 
+    let getSummonPosition = function(state) {
+        return !isNaN(rawClip.raw)? Number(rawClip.raw)
+                    : state.getSummonByName(rawClip.raw).pos;
+    }
+
     this.actionMeta = function(state) {        
-        let summon =  getSummon(state);
+        let summon =  getSummon(state) || {};
         
         return {
             action: "summon",
-            name: summon? summon.name : undefined
+            name: summon.name,
+            pos: getSummonPosition(state),
+            id: summon.id
         };
     };
     
@@ -177,23 +181,86 @@ function SummonAction(rawClip) {
     };
 };
 
+function AttackAction(rawClip) {
+    this.rawClip = rawClip;
+    this.actionMeta = (_) => { return { action: "attack" } };
+    this.isValid = (_) => { return true };
+}
+
 function AbilityAction(rawClip) {
     this.rawClip = rawClip;
+    let abilitySplit = rawClip.raw.split(",");
+    const abilityName = abilitySplit[0];
+    let findTarget, subParams;
+    switch(abilitySplit.length) {
+        case 2:            
+            let target = abilitySplit[1];
+            let targetEval = new CharacterEval(rawClip.subClip(target, abilityName.length));
+            findTarget = (state) => targetEval.eval(state);
+            break;
+        case 3:
+            subParams = [Number(abilitySplit[1]), Number(abilitySplit[2])];
+            break;
+    }    
     
-    let findSkill = (abilities) => abilities.find(a => a.name.startsWith(rawClip.raw));
+    let findSkill = (abilities) => abilities.find(a => a.name.startsWith(abilityName));    
+    
 
     this.actionMeta = function(state) {
-        let skill = findSkill(state.abilities);
+        let skill = findSkill(state.abilities) || {};
 
-        return {
+        let ret = {
             action: "skill",
-            name: skill? skill.name : undefined
+            name: skill.name,
+            charPos: Number(state.formation[skill.charIndex]),
+            skillPos: skill.abilityIndex,
+            pickCode: skill.pick,
+            id: skill.id
         }
+
+        if(findTarget) {
+            let target = findTarget(state);
+            ret.targetAim = target.charIndex;
+        }
+
+        if(subParams) {
+            ret.subParams = subParams;
+        }
+
+        return ret;
     }
 
     this.isValid = function(state) {
         let skill = findSkill(state.abilities);
-        return skill && skill.recast == 0;        
+
+        if(!skill) return false;        
+
+        let target = findTarget? findTarget(state) : undefined;
+        let targetInFront = target? state.formation.includes("" + target.charIndex) : false;
+
+        // check to make sure we have valid parameters
+        switch(skill.pick) {
+            case GBFC.PICK.NORMAL:
+                break;
+            case GBFC.PICK.SWITCH_POSITION:
+            case GBFC.PICK.SWITCH_SPECIAL:
+            case GBFC.PICK.MAGIC_CIRCLE:
+            case GBFC.PICK.NINJA_JITSU:
+            case GBFC.PICK.SECRET_GEAR:
+                if(!subParams) return false;
+                break;
+            case GBFC.PICK.RESURRECTION:
+                if(!target || target.alive) return false;                                
+                break;
+            case GBFC.PICK.ATTRIBUTE_SINGLE_EXCEPT_OWN:
+                if(!target || target.charIndex == skill.charIndex || !targetInFront) return false;
+                break;            
+            default: // all other cases should be picking single character, alive, and in formation
+                if(!target || !target.alive || !targetInFront) return false;
+                break;            
+        }
+        
+        return skill.recast == 0;        
     }    
 };
 
@@ -212,15 +279,7 @@ function HoldCAAction(rawClip) {
     this.isValid = (state) => state.holdCA != shouldHoldCA();
 }
 
-function CharacterEval(rawClip) {
-    this.rawClip = rawClip;
 
-    let getChar = (state) => !isNaN(rawClip.raw)? state.getCharByPos(Number(rawClip.raw)) : state.getCharByName(raw.raw);
-
-    this.isValid = (state) => getChar(state).isAlive;    
-
-    this.eval = getChar;
-}
 
 function TurnExpression(rawClip) {
     this.rawClip = rawClip;        
@@ -237,26 +296,46 @@ function NumberExpression(rawClip) {
     this.eval = (state) => Number(rawClip.raw);
 };
 
+function CharacterEval(rawClip) {
+    this.rawClip = rawClip;
+
+    let getChar = (state) => !isNaN(rawClip.raw)? 
+                state.getCharByPos(Number(rawClip.raw)) 
+                : state.getCharByName(rawClip.raw);
+
+    this.isValid = (state) => !!(getChar(state) || {}).alive;    
+
+    this.eval = getChar;
+}
+
+function BossEval(rawClip) {
+    const str = rawClip.raw;
+
+    const getBoss = function(state) {
+        if(str == "") return state.bosses[0];
+        try {            
+            return state.bosses[Number(str)];
+        } catch (e) {
+            throw new SyntaxError(`Unable to get locate boss index: ${str}`, e);
+        }
+    }
+
+    this.isValid = (state) => (getBoss(state) || {}).alive;    
+
+    this.eval = getBoss;
+}
+
 function UnitExpression(rawClip, params) {
     this.rawClip = rawClip;    
-    
+    this.unitExp;
     switch(params[0]) {
         case "boss": {
-            if(!isNaN(params[1])) {
-                this.unitEval = (state) => state.bosses[params[1]];
-            } else {
-                throw "TODO find boss name";
-            }
+            unitExp = new BossEval(rawClip.subClip(params.length > 1? params[1] : ""));
             break;
         }
 
         case "char": {
-            if(!isNaN(params[1])) {
-                this.unitEval = (state) => state.party[params[1]];
-            } else {
-                throw "TODO find char name";
-            }
-
+            unitExp = new CharacterEval(rawClip.subClip(params[1]));
             break;
         }
 
@@ -264,16 +343,17 @@ function UnitExpression(rawClip, params) {
             throw new ScriptError(`unknown unit expression: ${params[0]}`, params[0], raw);
     }
 
+    let propEval;
     switch(params[2]) {
         case "hp":
-            this.propEval = (unit) => unit.hp;
+            propEval = (unit) => unit.hp;
             break;        
 
         default:
             throw new ScriptError(`unknown unit trait: ${params[2]}`, rawClip);
     }
 
-    this.eval = (state) => this.propEval(this.unitEval(state));
+    this.eval = (state) => propEval(unitExp.eval(state));
 };
 
 function ExpressionEval(rawClip) {
@@ -305,7 +385,7 @@ function ExpressionEval(rawClip) {
             };
 
             for(let subeval of evals) {                
-                children.push(subeval.getResults(state));
+                result.children.push(subeval.getResults(state));
             }
             return result;
         }

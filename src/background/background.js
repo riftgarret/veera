@@ -3,6 +3,7 @@ const EVENTS = {// jshint ignore:line
     connected: "connected",
     disconnected: "disconnected",
     pageChanged: "pageChanged",
+    pageRefresh: "pageRefresh",
     suppliesUpdated: "suppliesUpdated",
     dailyReset: "dailyReset",
     weeklyReset: "weeklyReset",
@@ -13,7 +14,8 @@ const EVENTS = {// jshint ignore:line
     playerDeath: "playerDeath",
     battleOver: "battleOver",
     questOver: "questOver",
-    evMissionDone: "evMissionDone"
+    evMissionDone: "evMissionDone",
+    tabFound: "tabFound"
 };
 const GAME_URL = {// jshint ignore:line
     baseGame: "http://game.granbluefantasy.jp/",
@@ -37,7 +39,7 @@ function MainInit() {
             State.game.linkToTab(id)
                 .then(() => {
                     chrome.tabs.onUpdated.addListener(State.game.evhTabUpdated);
-                    console.group("Loading data");
+                    console.group("Loading data");                    
                 });
         })
         .then(State.load)

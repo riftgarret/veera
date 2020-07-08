@@ -2,7 +2,16 @@
 
 var context = window;
 
-function generateClick(target) {
+jQuery.fn.gbfClick = async function() {
+    await generateClick(this[0], djeetaConfig.buttonDownInterval);
+    return this;
+}
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
+}
+
+async function generateClick(target, delayMouseUp = 0) {
     var result = false;
     if (target) {
         var elt = target;
@@ -46,6 +55,9 @@ function generateClick(target) {
         }
         // log(elt, rect.left, rect.top, clientX, clientY);
         var downOk = elt.dispatchEvent(mouseDownEvt);
+        if(delayMouseUp > 0) {
+            await timeout(delayMouseUp);
+        }
         var upOk = elt.dispatchEvent(mouseUpEvt);
         if (downOk && upOk) {
             elt.dispatchEvent(clickEvt);

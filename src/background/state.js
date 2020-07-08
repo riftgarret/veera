@@ -67,6 +67,7 @@ window.State = {
                         devlog(`Ufufu... onee-sama ha tab ${id} wo mite imasu ne.`);
                         this.tabId = id;
                         this.windowId = t.windowId;
+                        window.dispatchEvent(new Event(EVENTS.tabFound));
                         r();
                     }
                     else {
@@ -94,8 +95,12 @@ window.State = {
         },
         evhTabUpdated(id, changes) {
             if (id == State.game.tabId) {
-                if (changes.hasOwnProperty("url")) {
-                    fireEvent(EVENTS.pageChanged, changes.url);
+                if (changes.status === "loading") {
+                    if (changes.hasOwnProperty("url")) {
+                        fireEvent(EVENTS.pageChanged, changes.url);
+                    } else {
+                        fireEvent(EVENTS.pageRefresh);
+                    }
                 }
             }
         }

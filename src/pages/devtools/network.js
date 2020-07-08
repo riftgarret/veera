@@ -33,7 +33,7 @@ window.Network = {
                             success = true;
                         }
                         break;
-                }
+                }                
             }
             catch (e) {
                 success = false;
@@ -43,7 +43,7 @@ window.Network = {
             if (success) {
                 BackgroundPage.send("request", data);
             }
-        }
+        } 
     },
     getData(harEntry) {
         return new Promise(

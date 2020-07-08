@@ -381,16 +381,19 @@ function hearQuery(data, sender, respond) {
                     retValue = Battle.load(data.val);
                     break;
 
-                case "djeetaIsScriptEnabled":
-                    retValue = DjeetaMind.isScriptEnabled;
+                case "djeetaIsCombatScriptEnabled":
+                    retValue = DjeetaMind.isCombatScriptEnabled;
                     break;
 
-                case "djeetaScriptEnabled":
-                    retValue = DjeetaMind.enableScript(data.val);
+                case "djeetaCombatScriptEnabled":
+                    retValue = DjeetaMind.enableCombatScript(data.val);
                     break;
 
                 case "djeetaScriptLoad":
                     retValue = DjeetaMind.loadScript(data.val)
+                    break;
+                case "xxx":
+                    retValue = null;
                     break;
             }                       
         }

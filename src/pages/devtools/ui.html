@@ -14,6 +14,8 @@
         <script  type="text/javascript" src="unfUI.js" defer></script>
         <script  type="text/javascript" src="battleUI.js" defer></script>
         <script  type="text/javascript" src="djeetaUI.js" defer></script>        
+        <script  type="text/javascript" src="djeetaUI-script.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI-runner.js" defer></script>
         <script type="text/javascript" src="main.js" defer></script>
     </head>
     <body>
@@ -576,19 +578,31 @@
                                         <button id="btn-execute-script">Execute</button>                                            
                                     </div>                                    
                                     
-                                </div>
-                                <div id="script-editor" class="djeeta-code" contenteditable="true"></div>                                                        
+                                </div>                                
+                                <textarea id="script-editor" spellcheck="false" class="djeeta-code"></textarea>
                             </div>                            
                             <div id="script-runner-container" class="code-tab">
-                                <div class="script-dashboard">
-                                    <div class="script-title">Runner</div>                                    
-                                    <div class="dashboard-component">
-                                        <span>Enable Script:</span>
-                                        <label id="toggle-enable-script" class="switch">
-                                            <input type="checkbox" checked>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </div>                                                                                                                    
+                                <div class="script-dashboard column-table">
+                                    <div>                                        
+                                        <div class="dashboard-component">
+                                            <span>Enable Script:</span>
+                                            <label id="toggle-combat-script" class="switch">
+                                                <input type="checkbox">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="dashboard-component">
+                                            <span>Refresh delay</span>
+                                            <input id="refresh-delay" type="text" value="1.0"/>
+                                        </div>
+                                        <div class="dashboard-component">
+                                            <span>Skill delay</span>
+                                            <input id="skill-delay" type="text" value="1.0"/>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                                 <div id="script-runner" class="djeeta-code"></div>                        
                             </div>

@@ -11,7 +11,7 @@ function hookForFightReady() {
     var onReady = () => {
         console.log("Djeeta > Reporting in!");
         BackgroundPage.query("djeetaRequestAction")
-            .then(DjeetaHandler.onActionReceived);
+            .then((res) => DjeetaHandler.onActionReceived(res));
     }
 
     if(isReady()) {

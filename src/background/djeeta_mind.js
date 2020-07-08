@@ -1,6 +1,7 @@
 "use strict";
 function DjeetaMind() {    
     let state = this.state = new DjeetaState();
+    this.currentPage = Page.UNKNOWN;
 
     this.parse = new DjeetaParser();
 
@@ -10,11 +11,23 @@ function DjeetaMind() {
             updateUI("djeeta", { type: "state", data: state});
         },
 
+        updateScriptToggle: function(enable) {
+            updateUI("djeeta", { type: "toggleCombatScriptUI", data: enable});
+        },
+
+        sendConsoleMessage: function(msgHtml) {
+            updateUI("djeeta", { type: "consoleMessage", data: msgHtml});
+        },
+
         appendAction: function(data) {
             let text = "when(" + data.when + ") ";
             text += data.action + "(";
-            if(data.params) {
-                text += data.params.join(",");
+            if(data.params != undefined) {
+                if(Array.isArray(data.params)) {
+                    text += data.params.join(",");
+                } else {
+                    text += data.params;
+                }
             }
             text += ")";
 
@@ -40,45 +53,104 @@ function DjeetaMind() {
     this.scriptRunner = {        
         evaluator: new DjeetaScriptEvaluator(),
         isRunning: false,
+        isExpectingRefresh: false, // handle refresh
+        mind: this,
         actionHistory: {},
-        defaultAttack: {
-            actionMeta: {
-                action: "attack"                
-            }
-        },
-        evaluate: function(text) {
+        defaultAttack: new AttackAction(),                
+
+        readScript: function(text) {
             this.evaluator.read(text);
             return this.evaluator;
+        },    
+        
+        evaluate: function() {
+            let evaluatedRules = this.evaluateRules();
+            return {
+                results: evaluatedRules,
+                queue: this.buildActionQueue(evaluatedRules)
+            }
         },
 
-        actionQueue: function() {
+        buildActionQueue: function(evaluatedRules) {
             if(state.roundWon) {
                 let action = state.stageCurrent == state.stageMax? "navigateToVictory" : "navigateNextStage";                
                 return [{ actionMeta: { action } }];                
+            }                      
+
+            // converts found valid actions into single array.            
+            let actions = Array.from(Object.entries(evaluatedRules))
+                .flatMap(e => e[1].when.isValid? 
+                    e[1].actions.flatMap(a => 
+                        a.isValid && !a.acted? [a.action] : []) : []);
+            
+
+            if(actions.length == 0 && state.roundLost) {
+                console.log("Round lost, we should abandon actions, disable script");                
+                this.disableScriptAndNotifyUI(`Script aborted loss scenario.`);
+                return actions;
             }
 
-            let actions = this.evaluator.findActions(state);
-            // remove actions we've already done this turn.
-            if(this.actionHistory[state.turn]) {
-                actions = actions.filter(a => this.actionHistory[state.turn].includes(a));
-            }
             // push attack as last option every time
             actions.push(this.defaultAttack);
             return actions;
+        },
+
+        evaluateRules: function() {            
+            let evals = this.evaluator.evalulateRules(state);
+
+            // additionally we need to mark actions already processed as acted
+            Array.from(Object.entries(evals)).forEach(e => {
+                for(let action of e[1].actions) {
+                    if (this.actionHistory[state.turn] && this.actionHistory[state.turn].includes(action.action)) {
+                        action.acted = true;
+                    }
+                }                
+            });
+                        
+            return evals;
         },
 
         actionExecuted: function(action) {
             if(this.actionHistory[state.turn] == undefined) {
                 this.actionHistory[state.turn] = [];
             }
-            this.actionHistory[state.turn].push(action);
+
+            if(!this.actionHistory[state.turn].includes(action)) {
+                this.actionHistory[state.turn].push(action);
+            }
+        },
+        
+        disableScriptAndNotifyUI: function(uiConsoleMsg) {
+            if(uiConsoleMsg) {
+                this.mind.djeetaUI.sendConsoleMessage(uiConsoleMsg);
+            }
+            this.isRunning = false; 
+            this.mind.djeetaUI.updateScriptToggle(false);
+        },
+
+        processRefresh: function(mind) {
+            if(mind.currentPage == Page.COMBAT && this.isRunning) {
+                if(this.isExpectingRefresh) {
+                    this.isExpectingRefresh = false; // everything is good
+                } else {
+                    this.disableScriptAndNotifyUI(`<span class="error">Script aborted from nonscripted refresh.</span>`);                    
+                }                
+            }            
+        },
+
+        processPageChange: function(newPage) {
+            if(this.mind.currentPage == Page.COMBAT && this.isRunning) {
+                if(newPage !== Page.COMBAT) {
+                    this.disableScriptAndNotifyUI(`Script aborted from page navigation.`);                    
+                }
+            }
         },
 
         processAction: function(actionMeta) {
             if(!this.isRunning) return;
 
-            let queue = this.actionQueue();
-            queue = queue.filter(a => a.actionMeta.action == actionMeta.action);
+            let { queue } = this.evaluate();
+            queue = queue.filter(a => a.actionMeta(state).action == actionMeta.action);
             let foundAction;
             switch(actionMeta.action) {
                 case "holdCA":
@@ -99,6 +171,7 @@ function DjeetaMind() {
 
         reset: function() {
             this.actionHistory = {};
+            this.isExpectingRefresh = false;            
         }
     };
 }
@@ -109,6 +182,7 @@ Object.defineProperties(DjeetaMind.prototype, {
         value: function() {
             this.djeetaUI.reset();                
             this.scriptRunner.reset();
+            this.previousCA = undefined;
         }
     },
 
@@ -119,17 +193,17 @@ Object.defineProperties(DjeetaMind.prototype, {
     },
 
     parseFightData: {
-        value: function(json) {
-            let oldRaidId = this.state.raidId;
+        value: function(json) {            
+            let oldToken = this.state.createUniqueBattleToken();
             
             this.parse.startJson(json, this.state);
             
-            if(oldRaidId != this.state.raidId) {
+            if(!this.state.isNewBattle(oldToken)) {
                 this.reset();
             }
 
             this.pushDevState();
-            this.gameUI.sendMessage("djeetaInit");
+            this.gameUI.sendMessage("djeetaInit");            
         }
     },     
 
@@ -194,39 +268,37 @@ Object.defineProperties(DjeetaMind.prototype, {
     },
 
     recordAttack: {
-        value: function(postData, json) {            
-            let isHoldingCA = postData.lock == 1;
-
-            if(this.isHoldingCA != isHoldingCA) {
-                let action = (isHoldingCA)? "holdCA" : "allowCA";
-                this.djeetaUI.appendAction({
-                    when: this.whenCurrentTurn,
-                    action: action
-                });                
-            }      
-            
+        value: function(postData, json) {              
+            this.processHoldCA(postData);                          
             this.parse.scenario(json.scenario, this.state);
-            this.parse.status(json.status, this.state);
-            this.processHoldCA();
+            this.parse.status(json.status, this.state);            
             this.pushDevState();
             this.postActionScriptCheck();
         }
     },
 
     processHoldCA: {
-        value: function() {     
+        value: function(attackPost) {
+            let isHoldingCA = attackPost.lock == 1;
+                    
             let notifyCA = false;            
             if(this.previousCA == undefined) {
                 notifyCA = true;                                
-            } else {
-                notifyCA = this.previousCA != this.state.isHoldingCA;
+            } else {                
+                notifyCA = this.previousCA != isHoldingCA;
             }
 
-            this.previousCA = this.state.isHoldingCA;
-            if(notifyCA) {
+            this.previousCA = isHoldingCA;
+            if(notifyCA) {                
+                this.djeetaUI.appendAction({
+                    action: `holdCA`,
+                    params: isHoldingCA,
+                    when: this.whenCurrentTurn              
+                });
+
                 this.scriptRunner.processAction({
                     action: "holdCA", 
-                    value: this.state.isHoldingCA
+                    value: isHoldingCA
                 });
             }
         }
@@ -237,12 +309,13 @@ Object.defineProperties(DjeetaMind.prototype, {
             if(!!json.success) {
                 switch(postData.set) {
                     case "special_skill": {
-                        let holdCA = (value == 1);
+                        let holdCA = (postData.value == 1);
+                        this.state.isHoldingCA = holdCA;
                         // ignore this we will compare to previous action
-                        // this.scriptRunner.processAction({
-                        //     action: "holdCA", 
-                        //     value: holdCA
-                        // });
+                        this.scriptRunner.processAction({
+                            action: "holdCA", 
+                            value: holdCA
+                        });
                     }
                 }
             }
@@ -289,7 +362,7 @@ Object.defineProperties(DjeetaMind.prototype, {
             let result = {};
             try {
                 // TODO disable runner before loading
-                result.result = this.scriptRunner.evaluate(script);
+                result.result = this.scriptRunner.readScript(script);
             } catch (e) {
                 result.error = e;
                 console.error(e);
@@ -298,24 +371,37 @@ Object.defineProperties(DjeetaMind.prototype, {
         }
     },
 
-    isScriptEnabled: {
+    isCombatScriptEnabled: {
         get: function() {
             return this.scriptRunner.isRunning;
          }
     },
 
-    enableScript: {
+    enableCombatScript: {
         value: function(enable) {            
-            if(!enable && this.scriptRunner.isRunning) {
-                this.scriptRunner.isRunning = false;
-                // TODO send cancel to content script if we are doing that
+            let changed = false;
+            if(enable) {                
+                if(this.scriptRunner.isRunning) {
+                    // do nothing we are running
+                } else if(this.currentPage !== Page.COMBAT) {
+                    this.djeetaUI.sendConsoleMessage(`<span class="error">Cannot enable script while from non-battle screen.</span>`);
+                } else {
+                    this.scriptRunner.isRunning = true; 
+                    ContentTab.send("djeetaCombatScriptEnabled");
+                    changed = true;
+                }                
             } else {
-                this.scriptRunner.isRunning = true; 
-                // do anything? notify content we are enabled?
-                ContentTab.send("djeetaScriptEnabled");
+                if(this.scriptRunner.isRunning) {
+                    this.scriptRunner.isRunning = false;
+                    changed = true;
+                }
+            }            
+
+            if(changed) {
+                
             }
             
-            return enable;
+            return this.isCombatScriptEnabled;
         }
     },
 
@@ -328,14 +414,57 @@ Object.defineProperties(DjeetaMind.prototype, {
             };
                         
             if(result.isRunning) {
-                let actions = this.scriptRunner.actionQueue();                
+                let evaluation = this.scriptRunner.evaluate();                
 
-                updateUI("djeeta", {type: "requestedAction", data: actions});
-
-                result.action = actions[0];                
+                if(evaluation.queue.length > 0) {                    
+                    updateUI("djeeta", {type: "scriptEvaluation", data: evaluation})
+                    result.actionMeta = evaluation.queue[0].actionMeta(this.state);
+                }                
             }
 
             return result;
+        }
+    },
+
+    onPageChanged: {
+        value: function(url) {           
+            let oldPage = this.currentPage; 
+            let hash = new URL(url).hash;
+            let newPage;            
+            switch(true) {
+                case hash.startsWith("#raid/"):
+                case hash.startsWith("#raid_multi/"):
+                case hash.startsWith("#raid_semi/"):
+                    newPage = Page.COMBAT;
+                    break;
+                case hash.startsWith("/#quest/assist"):
+                    newPage = Page.RAIDS;
+                    break;
+                case hash.startsWith("#quest/supporter_raid/"):
+                case hash.startsWith("#quest/supporter/"):
+                    newPage = Page.SUMMON_SELECT;
+                    break;
+                case hash.startsWith("#result/"):
+                case hash.startsWith("#result_multi/"):
+                    newPage = Page.SUMMON_SELECT;
+                    break;
+                default:
+                    newPage = Page.UNKNOWN;                               
+            }
+
+            this.scriptRunner.processPageChange(this, newPage);
+
+            this.currentPage = newPage;
+
+            if(newPage !== oldPage) {
+                console.log(`New page detected ${oldPage} -> ${this.currentPage}`);
+            }
+        }
+    },
+
+    onPageRefresh: {
+        value: function() {
+            this.scriptRunner.processRefresh(this);
         }
     },
 
@@ -349,3 +478,8 @@ Object.defineProperties(DjeetaMind.prototype, {
 });
 
 window.DjeetaMind = new DjeetaMind();
+window.addEventListener(EVENTS.pageChanged, (e) => DjeetaMind.onPageChanged(e.detail));
+window.addEventListener(EVENTS.pageRefresh, (e) => DjeetaMind.onPageRefresh());
+window.addEventListener(EVENTS.tabFound, 
+    () => chrome.tabs.get(State.game.tabId, 
+        (tab) => DjeetaMind.onPageChanged(tab.url)));

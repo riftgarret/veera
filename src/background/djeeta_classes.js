@@ -1,5 +1,13 @@
 "use strict";
 
+const Page = {
+    COMBAT: "combat",
+    SUMMON_SELECT: "summon_select",
+    REWARD: "reward",
+    RAIDS: "raids",    
+    UNKNOWN: "unknown"
+};
+
 // state to manage current fight 
 class DjeetaState {
     constructor() {
@@ -10,7 +18,8 @@ class DjeetaState {
         this.formation = [];
         this.stageCurrent = 1;
         this.stageMax = 1;
-        this.roundWon = false;            
+        this.roundWon = false;
+        this.roundLost = false;            
         this.isHoldingCA = false;
         this.summonsEnabled = true;
         this.turn = 1;
@@ -27,6 +36,7 @@ class DjeetaState {
     getCharAtPos(pos) { return this.party[this.formation[pos]] }
 
     getCharByName(name) {
+        if(name.toLowerCase() == "mc") return this.party[0];
         return this.party.find(c => c.name == name);        
     }
 
@@ -41,8 +51,8 @@ class DjeetaState {
         return char.name;
     }
 
-    getSummonNameByPos(pos) {
-        return this.getSummonByPos(pos).name;
+    getSummonPosByName(name) {        
+        return this.summons.findIndex(s => s.name === name);
     }
 
     getSummonByPos(pos) {        
@@ -54,6 +64,20 @@ class DjeetaState {
 
     getSummonByName(name) {        
         return this.summons.find(s => s.name == name);      
+    }    
+
+    createUniqueBattleToken() {
+        let questId = this.questId;
+        let raidId = this.raidId;            
+        return {questId, raidId};
+    }
+
+    isNewBattle(token) {
+        if(this.stageCurrent > 1) {
+            return token.questId == this.questId;
+        } else {
+            return token.raid == this.raidId;
+        }
     }
 };
 
@@ -70,7 +94,8 @@ class DjeetaParser {
         this.startSummons(json, state);
         this.startParty(json, state);
         this.startBosses(json, state);
-        this.raidId(json, state);
+        state.questId = json.quest_id;
+        state.raidId = json.raid_id;
     }
     
     status(status, state) {
@@ -199,17 +224,20 @@ class DjeetaParser {
         // TODO: Just use raid_id for everything and somehow merge multi-stage battles.
         if (json.multi) {
             id = json.twitter.battle_id;
-            if (id == "00000000") { id = json.twitter.raid_id }
-            name = json.twitter.monster;
+            if (id == "00000000") { id = json.twitter.raid_id }            
         }
         else {
             // raid id changes between stages
             // also need string for archive selection (UI's select->option returns strings)
-            id = (json.battle && json.battle.total > 1) ? json.quest_id : json.raid_id.toString();
-            name = Raids.lastHost.name || json.boss.param[0].monster;
+            id = (json.battle && json.battle.total > 1) ? json.quest_id : json.raid_id.toString();            
         }
         state.raidId = id;   
     }  
+
+    uniqueBattleId(json, state) {
+        
+
+    }
 
     conditions(conditionNode, isBuffs) {            
         let result = [];  
@@ -303,6 +331,7 @@ class DjeetaParser {
             let summonObj = {
                 name: summon.name,
                 id: summon.id,
+                pos: idx,
                 recast: summon.recast,
                 get isAvailable() { return this.recast == 0 }
             }
@@ -329,8 +358,9 @@ class DjeetaParser {
         for (let [_, charElement] of Object.entries(rawAbilities)) {
             for (let [abilityKey, skillMeta] of Object.entries(charElement.list)) {                
                 let props = skillMeta[0];                
-
+                
                 let abilityObj = {
+                    pick: props["ability-pick"] == ""? GBFC.PICK.NORMAL : Number(props["ability-pick"]),
                     charIndex: props["ability-character-num"],
                     abilityIndex: (Number(abilityKey) - 1),
                     name: props["ability-name"],
