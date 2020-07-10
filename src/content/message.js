@@ -22,10 +22,11 @@ window.BackgroundPage = {
         console.log("received type: " + action);
         switch(action) {
             case "djeetaCombatScriptEnabled":
-            case "djeetaScriptPing":
-            case "djeetaInit":            
-                hookForFightReady();
-                break;                            
+            case "djeetaCombatScriptPing":
+            case "djeetaCombatInit":            
+                waitForBattleReady();
+                break;  
+                            
         }        
     }
 };
@@ -36,6 +37,10 @@ function hearQuery(data, sender, respond) {
         switch (data.query) {
             case "tabId":
                 retValue = chrome.devtools.inspectedWindow.tabId;
+                break;
+            case "djeetaExecuteAction":
+                retValue = DjeetaHandler.onActionRequested(data.data);
+                break;
         }
 
         respond({

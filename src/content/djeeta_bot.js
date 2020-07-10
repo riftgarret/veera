@@ -35,6 +35,12 @@ Object.defineProperties(VeeraBot.prototype, {
         }
     },
 
+    clickOkPopup: {
+        value: async function() {
+            return await $('.pop-usual:visible .btn-usual-ok').gbfClick();
+        }
+    },
+
     clickAttack: {
         value: async function() {
             return await $('div.btn-attack-start').gbfClick();
@@ -199,7 +205,9 @@ Object.defineProperties(VeeraExecutor.prototype, {
                 await waitButtonInterval();       
             }
 
-            return await vb.clickSummon(action.pos);        
+            await vb.clickSummon(action.pos);        
+            await waitButtonInterval();       
+            return await vb.clickOkPopup();
         }
     },
 
@@ -244,8 +252,8 @@ Object.defineProperties(DjeetaHandler.prototype, {
                         this.executor.summon(actionMeta);
                         break;
                     case "attack":
-                        //this.executor.attack(actionMeta);
-                        console.log("attack");
+                        this.executor.attack(actionMeta);
+                        // console.log("attack");
                         break;
                     case "holdCA":
                         this.executor.holdCA(actionMeta);
@@ -255,37 +263,23 @@ Object.defineProperties(DjeetaHandler.prototype, {
             console.log(`seconds for action: ${(Date.now() - start) / 1000}`)
         }
     },    
+
+    onActionRequested: {
+        value: function(request) {
+            switch(request.action) {
+                case "refreshPage":
+                    timeout(request.delay)
+                        .then(() => window.location.reload());
+                    return true;
+                case "navigate":
+                    timeout(request.delay)
+                        .then(() => window.location.hash = request.hash);                    
+                    return true;
+            }
+            console.log(`unkonwn request: ${request}`);
+            return false;
+        }
+    }
 });
 
 window.DjeetaHandler = new DjeetaHandler();
-
-/* {ability}, true
-        AddAbilityQueue: function(a, c) {
-
-            raid_id: stage.pJsnData.raid_id,
-                    target_num: stage.gGameStatus.$target,
-                    lock: stage.gGameStatus.lock,
-                    ability_id: k,
-                    ability_character_num: i,
-                    ability_sub_param: stage.gGameStatus.ability_sub_param,
-                    ability_aim_num: stage.gGameStatus.ability_aim_num
-
-                    :runeslayer
-                        ability_aim_num: undefined
-                        ability_character_num: "0"
-                        ability_id: "200231"
-                        ability_sub_param: (2) ["1", "2"]
-                        lock: 0
-                        raid_id: 846727520
-                        target_num: undefined
-                        tnum: 5
-
-                    target:
-                        ability_aim_num: "2"
-                        ability_character_num: "3"
-                        ability_id: "214251"
-                        raid_id: 846727520
-                        tnum: 5
-
-
-            */

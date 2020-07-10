@@ -5,7 +5,7 @@ if(chrome.runtime) {
 }
 
 var roundReadyObserver = null;
-function hookForFightReady() {                
+function waitForBattleReady() {                
     var target = document.querySelector("div.btn-attack-start");
     var isReady = () => target.classList.contains("display-on");        
     var onReady = () => {

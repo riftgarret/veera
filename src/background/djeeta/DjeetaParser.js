@@ -1,86 +1,5 @@
 "use strict";
 
-const Page = {
-    COMBAT: "combat",
-    SUMMON_SELECT: "summon_select",
-    REWARD: "reward",
-    RAIDS: "raids",    
-    UNKNOWN: "unknown"
-};
-
-// state to manage current fight 
-class DjeetaState {
-    constructor() {
-        this.party = [];    
-        this.bosses = [];    
-        this.abilities = [];
-        this.summons = [];
-        this.formation = [];
-        this.stageCurrent = 1;
-        this.stageMax = 1;
-        this.roundWon = false;
-        this.roundLost = false;            
-        this.isHoldingCA = false;
-        this.summonsEnabled = true;
-        this.turn = 1;
-        this.raidId = 0;    
-    }    
-
-    getAbilityNameById(id) {
-        let found = this.abilities.find(a => a.id == id);
-        return found? found.name : undefined;
-    }
-
-    getBossAtPos(pos) { return this.bosses[pos] }
-
-    getCharAtPos(pos) { return this.party[this.formation[pos]] }
-
-    getCharByName(name) {
-        if(name.toLowerCase() == "mc") return this.party[0];
-        return this.party.find(c => c.name == name);        
-    }
-
-    getCharNameByPos(pos) {
-        if(this.party.length == 0) {
-            return undefined;
-        }
-        var char = this.getCharAtPos(pos);
-        if(char.leader == 1) {
-            return "MC";
-        }
-        return char.name;
-    }
-
-    getSummonPosByName(name) {        
-        return this.summons.findIndex(s => s.name === name);
-    }
-
-    getSummonByPos(pos) {        
-        if(pos == "supporter") {
-            return this.summons[5];
-        }
-        return this.summons[pos - 1];
-    }
-
-    getSummonByName(name) {        
-        return this.summons.find(s => s.name == name);      
-    }    
-
-    createUniqueBattleToken() {
-        let questId = this.questId;
-        let raidId = this.raidId;            
-        return {questId, raidId};
-    }
-
-    isNewBattle(token) {
-        if(this.stageCurrent > 1) {
-            return token.questId == this.questId;
-        } else {
-            return token.raid == this.raidId;
-        }
-    }
-};
-
 // parser for json and postData
 class DjeetaParser {
     startJson(json, state) {        
@@ -90,6 +9,8 @@ class DjeetaParser {
         state.stageCurrent = Number(json.battle.count);
         state.stageMax = Number(json.battle.total);
         state.roundWon = false; // can never load a round we won
+        state.notableEvents.length = 0; 
+        state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
         this.abilities(json, state);
         this.startSummons(json, state);
         this.startParty(json, state);
@@ -106,6 +27,8 @@ class DjeetaParser {
     }
 
     scenario(scenario, state) {
+        state.notableEvents.length = 0; 
+
         for (let action of scenario) {
 
             switch (action.cmd) {
@@ -163,17 +86,21 @@ class DjeetaParser {
                     let getUnit = action.target == "player"? (pos) => state.getCharAtPos(pos) 
                         : action.target == "boss"? (pos) => state.getBossAtPos(pos)
                         : undefined;
-                    
-                    for (let superObj of action.list) {
-                        if(superObj.damage) {
-                            for (let dmgInstance of superObj.damage) {
-                                let unit = getUnit(dmgInstance.pos);
-                                unit.hp = dmgInstance.hp;
-                            }
-                        } else {
-                            console.log("super other type found");
-                        }                
+                    if(action.list) {
+                        for (let superObj of action.list) {
+                            if(superObj.damage) {
+                                for (let dmgInstance of superObj.damage) {
+                                    let unit = getUnit(dmgInstance.pos);
+                                    unit.hp = dmgInstance.hp;
+                                }
+                            } else {
+                                console.log("super other type found1");
+                            }            
+                        }    
                     }     
+                    else {
+                        console.log("super other type found2");
+                    } 
                     break;
                 }
 
@@ -213,6 +140,7 @@ class DjeetaParser {
 
                 case "win": {                    
                     state.roundWon = true;
+                    state.notableEvents.push(action);
                     break;
                 }
             }
@@ -373,5 +301,42 @@ class DjeetaParser {
                 abilities.push(abilityObj);                
             }                
         }
+    }
+
+    getNavigationUrl(win, state) {        
+        // v.pJsnData.is_arcarum && T.bgm ? 
+        //     f = "#result/" + d.raid_id + "/" + (u.currentFps / 6 - 1) + "/1" 
+        //     : "" != T.next_url ? 
+        //         f = T.next_url 
+        //         : T.is_last_raid ? 
+        //             T.is_endless_quest ? 
+        //                 f = "#quest/index" 
+        //                 : 1 == v.pJsnData.is_multi ? 
+        //                     (f = "#result_multi/" + d.raid_id + "/" + (u.currentFps / 6 - 1),
+        //                         ((v.pJsnData.bgm_setting || {}).is_change_bgm || Xb === !0) && (f += "/1")) : Jb ? 
+        //                             f = "#result_survival/" + d.raid_id + "/1" 
+        //                             : (f = "#result/" + d.raid_id + "/" + (u.currentFps / 6 - 1), ((v.pJsnData.bgm_setting || {}).is_change_bgm || Xb === !0 || v.pJsnData.is_sequence === !0) && (f += "/1")) 
+        //                         : (g = !0, f = "#raid/" + d.raid_id + "/" + (u.currentFps / 6 - 1) + "/" + v.gGameStatus.lock);
+
+
+        if(win.next_url != "") return win.next_url;
+        
+        let currentFPS = 24; // figure out how to get this
+        let fpsPath = currentFPS / 6 - 1;        
+        
+            switch(state.scenario) {
+                case Scenario.ARCANUM:
+                    return `#result/${win.raid_id}/${fpsPath}/1`;                     
+                case Scenario.RAID:
+                    return `#result_multi/${win.raid_id}/${fpsPath}`; // test                    
+                case Scenario.SINGLE:
+                    if(win.is_last_raid) {
+                        return `#result/${win.raid_id}/${fpsPath}`                        
+                    } else {
+                        return `#raid/${win.raid_id}/${fpsPath}/${state.isHoldingCA? "1" : "0"}`
+                    }                
+                default:
+                    throw new Error(`unhandled win condition ${win}`);
+            }
     }
 }
