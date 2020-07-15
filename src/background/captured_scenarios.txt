@@ -65,3 +65,24 @@ next: "3040039000.png"
 npc: 4
 pos: 2
 voice: null
+
+when[condition] useAbility[0, 1]
+when[condition] useAbility[1]
+when[condition] useAbility[Ground Zero, MC]
+when(condition) useAbility(Bounty Hunt)
+when(condition) useSummon(0)
+
+
+Request URL: http://game.granbluefantasy.jp/rest/quest/decks_info/12123736/754661/1/0/1/0/0/0?_=1592665398824&t=1592671029835&uid=12489513
+
+{popup: {element_name: "pop-c-a-i", title: "Access Verification",…}}
+popup: {element_name: "pop-c-a-i", title: "Access Verification",…}
+body: "<div class="">↵	<div class="txt-message orange">↵		Players who have continuously accessed the game<br>↵		for long periods of time will sometimes<br>↵		be required to verify access.<br>↵		 ↵	</div>↵	<div class="txt-message">Enter the verification below.</div>↵	<img class="image" src="c/i?t=1592671028">↵↵	<div class="prt-c-a-i-input">↵		<div class="txt-c-a-i-message"></div>↵		<div id="c-a-i-frm-group" class="frm-group">↵			<textarea class="frm-message" cols="14" rows="1" wrap="soft" placeholder="Enter verification here."></textarea>↵			<div class="btn-talk-message">Send</div>↵		</div>↵	</div>↵</div>"
+cancelCallBackName: null
+className: null
+element_name: "pop-c-a-i"
+exceptionFlag: false
+okCallBackName: null
+title: "Access Verification"
+tpl: "%3Cdiv%20class%3D%22pop-usual%20%3C%25%3D%20className%20%25%3E%22%20data-token%3D%22%22%3E%0A%09%3Cdiv%20class%3D%22prt-popup-header%3C%25%20if%28typeof%20maskSubMenu%20%21%3D%3D%20%27undefined%27%20%26%26%20maskSubMenu%29%7B%20%25%3E-sm%3C%25%20%7D%20%25%3E%22%3E%3C%25%3D%20title%20%25%3E%3C%2Fdiv%3E%0A%09%3Cdiv%20class%3D%22prt-popup-body%3C%25%20if%28typeof%20maskSubMenu%20%21%3D%3D%20%27undefined%27%20%26%26%20maskSubMenu%29%7B%20%25%3E-sm%3C%25%20%7D%20%25%3E%22%3E%0A%09%09%3Cdiv%20class%3D%22txt-popup-body%3C%25%20if%28typeof%20maskSubMenu%20%21%3D%3D%20%27undefined%27%20%26%26%20maskSubMenu%29%7B%20%25%3E-sm%3C%25%20%7D%20%25%3E%22%3E%3C%25%3D%20body%20%25%3E%3C%2Fdiv%3E%0A%09%09%3C%25%20if%20%28btnTreasure%20%3D%3D%3D%201%29%20%7B%20%25%3E%0A%09%09%09%3Cdiv%20class%3D%22prt-treasure-registration%22%3E%0A%09%09%09%09%3Cdiv%20class%3D%22txt-treasure-registration%22%3E%7B%25%20%27%E3%81%8A%E6%B0%97%E3%81%AB%E5%85%A5%E3%82%8A%E7%99%BB%E9%8C%B2%E3%81%AF%E3%81%93%E3%82%8C%E4%BB%A5%E4%B8%8A%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%9B%E3%82%93%27%7C_%20%25%7D%3C%2Fdiv%3E%0A%09%09%09%09%3Cdiv%20class%3D%22btn-treasure-registration%22%3E%3C%2Fdiv%3E%0A%09%09%09%3C%2Fdiv%3E%0A%09%09%3C%25%20%7D%20%25%3E%0A%09%3C%2Fdiv%3E%0A%09%3Cdiv%20class%3D%22prt-popup-footer%3C%25%20if%28typeof%20maskSubMenu%20%21%3D%3D%20%27undefined%27%20%26%26%20maskSubMenu%29%7B%20%25%3E-sm%3C%25%20%7D%20%25%3E%22%3E%0A%09%09%3C%25%20if%28flagBtnCancel%3D%3D1%29%7B%20print%28%22%3Cdiv%20class%3D%27btn-usual-cancel%22%20%2B%20%28btnCancelClassName%20%3F%20%22%20%22%2BbtnCancelClassName%20%3A%20%22%22%29%20%20%2B%20%22%27%3E%3C%2Fdiv%3E%22%29%20%7D%20%25%3E%0A%09%09%3C%25%20if%28flagBtnClose%3D%3D1%29%7B%20print%28%22%3Cdiv%20class%3D%27btn-usual-close%22%20%2B%20%28btnCloseClassName%20%3F%20%22%20%22%2BbtnCloseClassName%20%3A%20%22%22%29%20%20%2B%20%22%27%3E%3C%2Fdiv%3E%22%29%20%7D%20%25%3E%0A%09%09%3C%25%20if%28flagBtnOk%3D%3D1%29%7B%20print%28%22%3Cdiv%20class%3D%27btn-usual-ok%22%20%2B%20%28btnOkClassName%20%3F%20%22%20%22%2BbtnOkClassName%20%3A%20%22%22%29%20%20%2B%20%22%27%3E%3C%2Fdiv%3E%22%29%20%7D%20%25%3E%0A%09%3C%2Fdiv%3E%0A%3C%2Fdiv%3E%0A"
+url: null

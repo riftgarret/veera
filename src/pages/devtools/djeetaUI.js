@@ -37,16 +37,8 @@ UI.djeeta = {
             // let script = getScriptAsText($("#script-editor")[0]);            
             let script = $("#script-editor").val();
 
-            BackgroundPage.query("djeetaScriptLoad", script)
-                .then(data => {
-                    if(data.error) {
-                        UI.djeeta.consoleUI("<span style='color: red'>" + data.error.desc + "</span>");
-                    } else {
-                        UI.djeeta.consoleUI("Loaded Script Successfully.");
-                        UI.djeeta.runner.loadScriptRunner(data.result);
-                        $(".nav-tab[data-navpage=\"script-runner-container\"]").trigger("click");
-                    }
-                });
+            BackgroundPage.send("djeetaScriptLoad", script);    
+            $(".nav-tab[data-navpage=\"script-runner-container\"]").trigger("click");            
         });
 
         $("#editor-file-menu .menu-new").click((e) => {
@@ -115,8 +107,7 @@ UI.djeeta = {
 
         $('#toggle-combat-script > input').change((e) => {
             let enable = $(e.target).prop('checked');
-            BackgroundPage.query("djeetaCombatScriptEnabled", enable)
-                .then(UI.djeeta.updateCombatScriptToggle);
+            BackgroundPage.send("djeetaCombatScriptEnabled", enable)                
         });
         
         // $("#btn-enable-script").addEventListener("click", (ev) => {
@@ -290,8 +281,8 @@ UI.djeeta = {
                 break;
 
             case "scriptEvaluation":
-                this.updateActionQueue(msg.data.queue);
-                this.runner.applyScriptEvaluation(msg.data.results);
+                this.updateActionQueue(msg.data.evaluation.queue);
+                this.runner.applyScriptEvaluation(msg.data);
                 break;
                 
             case "toggleCombatScriptUI":
@@ -300,6 +291,20 @@ UI.djeeta = {
 
             case "consoleMessage":
                 this.consoleUI(msg.data);
+                break;
+
+            case "combatScriptValidation":
+                let data = msg.data;
+                if(data.error) {
+                    UI.djeeta.consoleUI("<span style='color: red'>" + data.error.desc + "</span>");
+                } else {
+                    UI.djeeta.consoleUI("Loaded Script Successfully.");
+                    UI.djeeta.runner.loadScriptRunner(data.result);                    
+                }
+                break;
+
+            case "masterScriptValidation":
+                $("#script-runner").text(msg.data);
                 break;
         }
     },

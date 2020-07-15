@@ -1,6 +1,7 @@
 "use strict";
 class Djeeta {    
     state = new DjeetaState();
+    pageMeta = new PageMeta();
     currentPage = Page.UNKNOWN;
     parse = new DjeetaParser();
     scriptRunner = new ScriptController(this);
@@ -56,12 +57,12 @@ class Djeeta {
         
         this.parse.startJson(json, this.state);
         
-        if(!this.state.isNewBattle(oldToken)) {
+        if(this.state.isNewBattle(oldToken)) {
             this.reset();
         }
 
-        this.pushDevState();
-        ContentTab.send("djeetaCombatInit");            
+        this.pushDevState();        
+        this.postActionScriptCheck();
     }
 
 
@@ -93,12 +94,12 @@ class Djeeta {
             action: "skill",
             name: abilityName
         };
-        this.scriptRunner.preProcessAction(actionMeta);
+        this.scriptRunner.preProcessCombatAction(actionMeta);
 
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
 
-        this.scriptRunner.postProcessAction(actionMeta);
+        this.scriptRunner.postProcessCombatAction(actionMeta);
 
         this.pushDevState();
         this.postActionScriptCheck();
@@ -108,7 +109,7 @@ class Djeeta {
     recordSummon(postData, json) {            
         let summonId = postData.summon_id;       
 
-        let summonName = this.state.getSummonNameByPos(summonId);                                    
+        let summonName = this.state.getSummonByPos(summonId).name;                                    
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "summon",
@@ -120,12 +121,12 @@ class Djeeta {
             action: "summon",
             name: summonName
         };
-        this.scriptRunner.preProcessAction(actionMeta);
+        this.scriptRunner.preProcessCombatAction(actionMeta);
 
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
 
-        this.scriptRunner.postProcessAction(actionMeta);
+        this.scriptRunner.postProcessCombatAction(actionMeta);
 
         this.pushDevState();
         this.postActionScriptCheck();
@@ -134,15 +135,43 @@ class Djeeta {
 
     recordAttack(postData, json) {    
         let actionMeta = { action: "attack" };
-        this.scriptRunner.preProcessAction(actionMeta);        
+        this.scriptRunner.preProcessCombatAction(actionMeta);        
         this.processHoldCA(postData);                          
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);            
-        this.scriptRunner.postProcessAction(actionMeta);
+        this.scriptRunner.postProcessCombatAction(actionMeta);
         this.pushDevState();
         this.postActionScriptCheck();
     }
 
+    onRewardPage(json) {        
+        this.parse.rewards(json, this.pageMeta.meta);     
+        this.postActionScriptCheck();   
+    }
+
+    reportNewQuestMeta(json) {
+        /*
+episode: [{quest_id: "500101", quest_type: "5", use_action_point: "30", is_half: false, synopsis: "",…}]
+0: {quest_id: "500101", quest_type: "5", use_action_point: "30", is_half: false, synopsis: "",…}
+extra_flag: null
+is_half: false
+is_only_scene_scenario: false
+ng_attribute_names: ""
+ng_npc_names: ""
+quest_id: "500101"
+quest_type: "5"
+riddle_type: null
+scene_id: ""
+start_at_once: ""
+start_attribute_names: ""
+start_npc_names: ""
+start_rarity_names: ""
+synopsis: ""
+use_action_point: "30"
+without_summon: 0
+quest_name: "Level 50 Vohu Manah"
+        */
+    }
 
     processHoldCA(attackPost) {
         let isHoldingCA = attackPost.lock == 1;
@@ -173,10 +202,10 @@ class Djeeta {
                         action: "holdCA", 
                         value: holdCA
                     };
-                    this.scriptRunner.preProcessAction(actionMeta);
+                    this.scriptRunner.preProcessCombatAction(actionMeta);
                     this.state.isHoldingCA = holdCA;
                     // ignore this we will compare to previous action                                                
-                    this.scriptRunner.postProcessAction(actionMeta);
+                    this.scriptRunner.postProcessCombatAction(actionMeta);
                 }
             }
         }
@@ -202,65 +231,37 @@ class Djeeta {
     }
 
     // script calls
-    loadScript(script) {
-        let result = {};
-        try {
-            // TODO disable runner before loading
-            result.result = this.scriptRunner.loadCombatScript(script);
-        } catch (e) {
-            result.error = e;
-            console.error(e);
+    loadScript(script) {        
+        if(ScriptReader.isCombatScript(script)) {
+            let result = {};
+            try {                        
+                let evaluator = new DjeetaScriptEvaluator();
+                evaluator.read(script);                
+                result.result = evaluator;
+            } catch (e) {
+                result.error = e;
+                console.error(e);
+            }
+            updateUI("djeeta", {type: "combatScriptValidation", data: result}); 
+        } else {                
+            // todo.. convert into metadata that can be displayed
+            updateUI("djeeta", {type: "masterScriptValidation", data: script}); 
         }
-        return result;
+        this.scriptRunner.loadScript(script);    
     }
 
-    get isCombatScriptEnabled() {
+    get isScriptEnabled() {
         return this.scriptRunner.isRunning;
     }
 
 
-    enableCombatScript(enable) {            
-        let changed = false;
-        if(enable) {                
-            if(this.scriptRunner.isRunning) {
-                // do nothing we are running
-            } else if(this.currentPage !== Page.COMBAT) {
-                this.djeetaUI.sendConsoleMessage(`<span class="error">Cannot enable script while from non-battle screen.</span>`);
-            } else {
-                this.scriptRunner.isRunning = true; 
-                ContentTab.send("djeetaCombatScriptEnabled");
-                changed = true;
-            }                
-        } else {
-            if(this.scriptRunner.isRunning) {
-                this.scriptRunner.isRunning = false;
-                changed = true;
-            }
-        }            
-
-        if(changed) {
-            
-        }
-        
-        return this.isCombatScriptEnabled;
+    enableScript(enable) {  
+        this.scriptRunner.isRunning = enable;                  
     }
 
-    requestAction() { 
-        console.log("Djeeta Requesting Action.");
-        
-        let result = {
-            isRunning: this.scriptRunner.isRunning
-        };
-                    
-        if(result.isRunning) {
-            let evaluation = this.scriptRunner.evaluate();                
-
-            if(evaluation.queue.length > 0) {                    
-                updateUI("djeeta", {type: "scriptEvaluation", data: evaluation})
-                result.actionMeta = evaluation.queue[0].actionMeta(this.state);
-            }                
-        }
-
+    onContentRequestAction(data) {                    
+        let result = this.scriptRunner.onActionRequested(data);
+        console.log(`Djeeta Requesting Action. ${JSON.stringify(data)}\n\tResult: ${JSON.stringify(result)}`); 
         return result;
     }    
 
@@ -296,17 +297,23 @@ class Djeeta {
         if(newPage !== oldPage) {
             console.log(`New page detected ${oldPage} -> ${this.currentPage}`);
         }
+
+        this.pageMeta.newPage(newPage, hash);        
+        this.scriptRunner.requestDelayedContentPing(1000);       
     }
 
     onPageRefresh() {
         this.scriptRunner.processRefresh(this);
-    }
+        console.log(`page refresh detected.`);
+    }    
 
     postActionScriptCheck() {
-        if(this.scriptRunner.isRunning) {
-            ContentTab.send("djeetaCombatScriptPing");
-        }
+        this.scriptRunner.requestContentPing();
     }
+}
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 window.DjeetaMind = new Djeeta();

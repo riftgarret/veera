@@ -131,3 +131,85 @@ Object.defineProperties(Queue.prototype, {
         }
     }
 });
+
+String.prototype.splitEx = function(separator, limit) {
+    let str = this.split(separator);
+
+    if(str.length > limit) {
+        var ret = str.splice(0, limit);
+        ret.push(str.join(separator));
+
+        return ret;
+    }
+
+    return str;
+}
+
+// vargs
+function waitForVisible(...args) {
+    let promises = [];
+    args.forEach(selector => 
+        promises.push(createMutationPromise(
+            selector, 
+            (e) => e.is(":visible"), 
+            { attributes: true, attributeFilter: ['class', 'style'] }
+    )));
+
+    return Promise.race(promises);
+}
+
+function createMutationPromise(jquery, isReadyFunc, config, key) {    
+    if(!key) key = jquery;
+    let ensure;
+    let e = $(jquery);     
+    if(e.length == 0) {
+        ensure = _mutatePromise(
+            '.contents',
+            (e, muts) => {                
+                return $(jquery).length > 0;
+            },
+            {childList: true, subtree: true, attributes: false },
+            key)
+    }
+
+    let promise = () => _mutatePromise(jquery, isReadyFunc, config, key);
+    
+    return ensure? ensure.then(promise) : promise();    
+}
+
+var promiseCounter = 0;
+
+var knownObservers = {};
+function _mutatePromise(jquery, isReadyFunc, config, key) {
+    if(knownObservers[key]) {
+        console.log("disconnecting old observer");
+        knownObservers[key].disconnect();        
+    }
+    
+    const pc = promiseCounter++;       
+    let p = new Promise((r) => {                
+        let e = $(jquery);        
+        console.log(`starting ${jquery} : ${pc}`)
+        if(e.length == 0) {
+            throw Error("failed to create proper mutation, element dooesnt exist");
+        }
+        if(isReadyFunc(e)) {
+            console.log(`resolved immediately ${jquery} : ${pc}`);
+            r(e);
+        } else {            
+            knownObservers[key] = new MutationObserver(function (muts) {                
+                console.log(`checking for ${jquery} : ${pc} -> `);
+                console.log(e);                               
+                if(isReadyFunc(e, muts)) {        
+                    console.log(`resolved ${jquery} : ${pc}`);                                    
+                    knownObservers[key].disconnect();
+                    r(e);                    
+                }                    
+            
+            });
+            console.log(`observing ${jquery} ${JSON.stringify(config)}`);
+            knownObservers[key].observe(e[0], config || {})
+        }
+    });
+     return p;
+}

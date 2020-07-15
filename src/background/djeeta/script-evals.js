@@ -276,7 +276,7 @@ function HoldCAAction(rawClip) {
         } 
     }
 
-    this.isValid = (state) => state.holdCA != shouldHoldCA();
+    this.isValid = (state) => state.isHoldingCA != shouldHoldCA();
 }
 
 

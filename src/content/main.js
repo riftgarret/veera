@@ -4,30 +4,31 @@ if(chrome.runtime) {
     BackgroundPage.connect();
 }
 
-var roundReadyObserver = null;
-function waitForBattleReady() {                
-    var target = document.querySelector("div.btn-attack-start");
-    var isReady = () => target.classList.contains("display-on");        
-    var onReady = () => {
-        console.log("Djeeta > Reporting in!");
-        BackgroundPage.query("djeetaRequestAction")
-            .then((res) => DjeetaHandler.onActionReceived(res));
-    }
+var observeObj = {};
 
-    if(isReady()) {
-        onReady();
-    } else if(roundReadyObserver == null) {        
-        roundReadyObserver = new MutationObserver(function (muts) {
-            for(let rec of muts) {
-                if(rec.type === 'attributes') {
-                    if(isReady()) {                    
-                        onReady();
-                        roundReadyObserver.disconnect();
-                        break;
-                    }
-                }
-            }
-        });
-        roundReadyObserver.observe(target, { attributes: true, attributeFilter: ['class'] });
-    }        
+// $(document).ready(() => hookForEvents());
+$(window).on('hashchange', () => {   
+    observeObj = {}   
+});
+
+function hookForEvents() {
+    const hash = window.location.hash;
+    switch(true) {        
+        case hash.startsWith("#raid/"):
+        case hash.startsWith("#raid_multi/"):
+        case hash.startsWith("#raid_semi/"):
+            hookBattlePage(observeObj);            
+            break;
+        case hash.startsWith("/#quest/assist"):
+            
+            break;
+        case hash.startsWith("#quest/supporter_raid/"):
+        case hash.startsWith("#quest/supporter/"):
+            hookSupporterPage(observeObj);
+            break;
+        case hash.startsWith("#result/"):
+        case hash.startsWith("#result_multi/"):
+            hookRewardPage(observeObj);
+            break;
+    }
 }

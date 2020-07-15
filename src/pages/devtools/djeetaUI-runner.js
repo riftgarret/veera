@@ -3,14 +3,13 @@
 UI.djeeta.runner = {
     
     loadScriptRunner: function(scriptSyntax) {                
-        console.log("load syntax");
-        this.scriptSyntax = scriptSyntax;                
+        console.log("load syntax");        
         this.inflateScriptRunnerHtml(scriptSyntax);
     },
 
-    applyScriptEvaluation: function(scriptResult) {
+    applyScriptEvaluation: function({evaluation, evaluator}) {
         console.log("load script result");
-        this.inflateScriptRunnerHtml(this.scriptSyntax, scriptResult);
+        this.inflateScriptRunnerHtml(evaluator, evaluation.results);
     },
 
     inflateScriptRunnerHtml: function(scriptSyntax, scriptResults) {        

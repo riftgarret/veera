@@ -20,11 +20,9 @@ window.BackgroundPage = {
     hear: function(msg) {    
         var action = msg.action;
         console.log("received type: " + action);
-        switch(action) {
-            case "djeetaCombatScriptEnabled":
-            case "djeetaCombatScriptPing":
-            case "djeetaCombatInit":            
-                waitForBattleReady();
+        switch(action) {            
+            case "djeetaScriptPing":            
+                hookForEvents();
                 break;  
                             
         }        

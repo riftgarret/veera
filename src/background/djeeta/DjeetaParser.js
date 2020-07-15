@@ -162,18 +162,19 @@ class DjeetaParser {
         state.raidId = id;   
     }  
 
-    uniqueBattleId(json, state) {
-        
-
-    }
-
     conditions(conditionNode, isBuffs) {            
         let result = [];  
+        const addIconId = function(iconId) {
+            if(!result.includes(iconId)) {
+                result.push(iconId);
+            }
+        };
+        
         if(conditionNode) {                                
             if(conditionNode.debuff && !isBuffs) 
-                conditionNode.debuff.forEach((e) => result.push(e.status));
+                conditionNode.debuff.forEach((e) => addIconId(e.status));
             if (conditionNode.buff && isBuffs) 
-                conditionNode.buff.forEach((e) => result.push(e.status));
+                conditionNode.buff.forEach((e) => addIconId(e.status));
         }
         return result;
     }
@@ -338,5 +339,11 @@ class DjeetaParser {
                 default:
                     throw new Error(`unhandled win condition ${win}`);
             }
+    }
+
+    rewards(json, rewardObj = {}) {
+        rewardObj.isNightmareTriggered = !!(json.appearance && json.appearance.is_quest);
+
+        return rewardObj;
     }
 }

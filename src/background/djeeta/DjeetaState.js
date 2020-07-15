@@ -68,9 +68,9 @@ class DjeetaState {
 
     isNewBattle(token) {
         if(this.stageCurrent > 1) {
-            return token.questId == this.questId;
+            return token.questId != this.questId;
         } else {
-            return token.raid == this.raidId;
+            return token.raid != this.raidId;
         }
     }
 };

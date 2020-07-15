@@ -128,6 +128,7 @@ function hear(msg, sender) {
                         Battle.checkResultScreen(msg.data);
                         Raids.checkNextQuest(msg.data.json);
                         Tools.logSupportUser(msg.data.json);
+                        DjeetaMind.onRewardPage(msg.data.json);
                         // eslint-disable-next-line no-fallthrough
                     case path.ismatch("arcarum/open_chest"):
                     case path.ismatch("result/stage_only_data/"):
@@ -193,6 +194,9 @@ function hear(msg, sender) {
                         break;
                     case path.ismatch("rest/raid/setting"):
                         DjeetaMind.recordSetting(msg.data.postData, msg.data.json);
+                        break;
+                    case path.ismatch("quest/cleared_list/10000/"):
+                        DjeetaMind.questStartMeta(msg.data.json);
                         break;
                     case path.ismatch("quest/treasure_raid"):
                     case path.ismatch("top/multi_quest_list"):
@@ -364,6 +368,14 @@ function hear(msg, sender) {
             Tools.sparkProgress.reset();
             Tools.sparkProgress.evhSuppliesChange();
             break;
+
+        case "djeetaScriptLoad":
+            DjeetaMind.loadScript(msg.data);
+            break;
+            
+        case "djeetaCombatScriptEnabled":
+            DjeetaMind.enableScript(msg.data);
+            break;
     }
 }
 
@@ -382,16 +394,9 @@ function hearQuery(data, sender, respond) {
                     break;
 
                 case "djeetaIsCombatScriptEnabled":
-                    retValue = DjeetaMind.isCombatScriptEnabled;
+                    retValue = DjeetaMind.isScriptEnabled;
                     break;
 
-                case "djeetaCombatScriptEnabled":
-                    retValue = DjeetaMind.enableCombatScript(data.val);
-                    break;
-
-                case "djeetaScriptLoad":
-                    retValue = DjeetaMind.loadScript(data.val)
-                    break;
                 case "xxx":
                     retValue = null;
                     break;
@@ -400,9 +405,9 @@ function hearQuery(data, sender, respond) {
         break;
         
         case "content": {            
-            switch (data.query) {
+            switch (data.query) {                
                 case "djeetaRequestAction":
-                    retValue = DjeetaMind.requestAction();
+                    retValue = DjeetaMind.onContentRequestAction(data.val);
                     break;
             }            
         }

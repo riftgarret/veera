@@ -23,11 +23,13 @@
          "src/content/message.js", 
          "src/content/utils.js", 
          "src/content/djeeta_bot.js",
+         "src/content/content-hooks.js",
          "src/content/main.js"          
       ],
       "matches": [ "*://game.granbluefantasy.jp/*", "*://gbf.game.mbga.jp/*" ],
       "run_at": "document_start"
    } ],
+   
 
    "background": {
      "scripts": ["src/background/message.js",
@@ -46,14 +48,21 @@
                  "src/background/unf.js",
                  "src/background/tools.js",                       
                  "src/background/djeeta/constants.js",
-                 "src/background/djeeta/CombatController.js",
-                 "src/background/djeeta/ProcessController.js",
+                 "src/background/djeeta/processes/BaseModule.js",                 
+                 "src/background/djeeta/processes/RepeatModule.js",                 
+                 "src/background/djeeta/processes/CombatModule.js",
+                 "src/background/djeeta/processes/RewardModule.js",
+                 "src/background/djeeta/processes/SupportModule.js",
+                 "src/background/djeeta/processes/MasterProcess.js",
+                 "src/background/djeeta/processes/ModularProcess.js",
+                 "src/background/djeeta/processes/QuestProcess.js",
                  "src/background/djeeta/ScriptController.js",
+                 "src/background/djeeta/ScriptReader.js",
                  "src/background/djeeta/DjeetaParser.js",
                  "src/background/djeeta/DjeetaState.js",
-                 "src/background/djeeta/script-evals.js",
-                 "src/background/djeeta/script-master-env.js",
-                 "src/background/djeeta/main.js"
+                 "src/background/djeeta/PageMeta.js",
+                 "src/background/djeeta/script-evals.js",                 
+                 "src/background/djeeta/Djeeta.js"
                ]
    },
 
@@ -67,5 +76,6 @@
      "activeTab" ],
 
 
-   "devtools_page": "src/pages/devtools/devtools.html"
+   "devtools_page": "src/pages/devtools/devtools.html",
+   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

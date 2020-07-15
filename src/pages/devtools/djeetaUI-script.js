@@ -13,7 +13,7 @@ UI.djeeta.scripts = {
     },
 
     debugLoad: function() {
-        let name = "first";
+        let name = "master1";
         let script = UI.djeeta.scripts.findMeta(name);
         if(!script) {
             console.warn(`failed to find script ${name}`);
