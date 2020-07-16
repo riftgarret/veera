@@ -10,9 +10,14 @@ class ModularProcess {
         this.options = options;
     }
 
+    addModule(module) {
+        this.modules.push(module);
+    }
+
     // load modules if needed
     start() {
         this.repeat.reset();
+        this.modules.forEach((mod) => mod.onStart());
     }
 
     loadResources() {
@@ -21,11 +26,8 @@ class ModularProcess {
 
     beginRound() {        
         this.repeat.onNewRound();
-    }
-
-    addModule(module) {
-        this.modules.push(module);
-    }
+        this.modules.forEach((mod) => mod.onNewRound());
+    }    
 
     getScriptMeta() {
         let moduleMetas = this.modules.map(m => m.getScriptMeta());        
@@ -67,18 +69,10 @@ class ModularProcess {
     }
 
     preProcessCombatAction(actionMeta) {
-        this.modules.forEach((mod) => {
-            if(mod.preProcessCombatAction) {
-                mod.preProcessCombatAction(actionMeta);
-            }
-        });
+        this.modules.forEach((mod) => mod.preProcessCombatAction(actionMeta));
     }
 
     postProcessCombatAction(actionMeta) {
-        this.modules.forEach((mod) => {
-            if(mod.postProcessCombatAction) {
-                mod.postProcessCombatAction(actionMeta);
-            }
-        });
+        this.modules.forEach((mod) => mod.postProcessCombatAction(actionMeta));
     }
 }

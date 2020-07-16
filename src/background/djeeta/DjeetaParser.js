@@ -15,6 +15,7 @@ class DjeetaParser {
         this.startSummons(json, state);
         this.startParty(json, state);
         this.startBosses(json, state);
+        this.startBackupRequest(json, state);
         state.questId = json.quest_id;
         state.raidId = json.raid_id;
     }
@@ -339,6 +340,23 @@ class DjeetaParser {
                 default:
                     throw new Error(`unhandled win condition ${win}`);
             }
+    }
+
+    startBackupRequest(json, state) {                
+        for(let i=0; i < 3; i++) {
+            if(!json.assist[`${i+1}`]) break;
+            state.assistable[i] = json.assist[`${i+1}`].is_enable;    
+        }        
+    }
+
+    backupRequest(postData, state) {                
+        let requestArray = [postData.is_all, postData.is_friend, postData.is_guild];
+        
+        for(let i=0; i < requestArray; i++) {
+            if(state.assistable.length > i && requestArray[i]) {
+                state.assistable[i] = 0; // we requested, no longer requestable.
+            }
+        }        
     }
 
     rewards(json, rewardObj = {}) {

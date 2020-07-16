@@ -37,7 +37,7 @@ function hearQuery(data, sender, respond) {
                 retValue = chrome.devtools.inspectedWindow.tabId;
                 break;
             case "djeetaExecuteAction":
-                retValue = DjeetaHandler.onActionRequested(data.data);
+                retValue = djeetaHandler.onActionRequested(data.data);
                 break;
         }
 

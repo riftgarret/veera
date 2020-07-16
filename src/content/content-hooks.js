@@ -9,7 +9,7 @@ function hookBattlePage(observeObj) {
         ).then(() => {
             console.log("Djeeta > Reporting in!");
             return BackgroundPage.query("djeetaRequestAction", { page: "battle", event: "init" })                
-        }).then((res) => DjeetaHandler.onActionReceived(res));
+        }).then((res) => djeetaHandler.onActionReceived(res));
 
     
 }
@@ -23,7 +23,7 @@ function hookSupporterPage(observeObj) {
     ).then(() => {            
         console.log("Djeeta > Support Page Ready");
         return BackgroundPage.query("djeetaRequestAction", { page: "support", event: "init" })            
-    }).then((res) => DjeetaHandler.onActionReceived(res));            
+    }).then((res) => djeetaHandler.onActionReceived(res));            
 
 }
 
@@ -40,5 +40,5 @@ function hookRewardPage(observeObj) {
     )).then(() => {            
         console.log("Djeeta > Reward Page Ready");
         return BackgroundPage.query("djeetaRequestAction", { page: "reward", event: "init" })         
-    }).then((res) => DjeetaHandler.onActionReceived(res));            
+    }).then((res) => djeetaHandler.onActionReceived(res));            
 }

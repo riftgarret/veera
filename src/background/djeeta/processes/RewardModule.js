@@ -9,8 +9,9 @@ class RewardModule extends BaseModule {
         switch(data.event) {
             case "init": 
                 if(this.hasClaimNightmareEnabled) {
-                    return {
-                        // http://game.granbluefantasy.jp/#result_hell_skip/850949960
+                    // http://game.granbluefantasy.jp/#result_hell_skip/850949960                        
+                    this.prepareGameNavigation((e) => e.event == "navigate" && e.hash.startsWith("result_hell_skip"));
+                    return {                        
                         actionMeta: {
                             action: "claimNightmareReward"
                         }

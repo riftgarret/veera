@@ -212,6 +212,27 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    recordBackupRequest(postData) {
+        // this will yield [1, 0, 1] where 1 is selected.
+        let requestArray = [postData.is_all, postData.is_friend, postData.is_guild];
+        let actionMeta = {
+            action: "requestBackup", 
+            value: requestArray
+        };
+
+        this.djeetaUI.appendAction({
+            when: this.whenCurrentTurn,
+            action: "requestBackup",
+            params: requestArray
+        });
+
+        this.scriptRunner.preProcessCombatAction(actionMeta);
+        this.parse.backupRequest(postData, this.state);
+        this.scriptRunner.postProcessCombatAction(actionMeta);            
+        
+        this.postActionScriptCheck();
+    }
+
     get whenCurrentTurn() {            
         let ret = "turn = " + this.state.turn;
         if(this.state.stageMax > 1) {

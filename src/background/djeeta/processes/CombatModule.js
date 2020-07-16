@@ -8,7 +8,8 @@ class CombatModule extends BaseModule {
     get state() { return this.combatState; }
 
     loadScript(script) {
-        this.evaluator.read(script);
+        this.reset();
+        this.evaluator.read(script);        
     }
 
     loadScriptName(scriptName) {
@@ -20,6 +21,14 @@ class CombatModule extends BaseModule {
                     if(!meta) throw Error(`Missing script: ${scriptName}`);
                     me.loadScript(meta.script);
                 });
+    }
+
+    onNewRound() {
+        this.reset();   
+    }   
+    
+    reset() {
+        this.actionHistory = {};
     }
 
     handlesPage(page) {
@@ -111,6 +120,9 @@ class CombatModule extends BaseModule {
             case "summon":
                 foundAction = queue.find(a => a.actionMeta(this.state).name == actionMeta.name);
                 break;
+            case "requestBackup":
+                foundAction = queue.find(a => true);
+                break;
         }
 
         if(foundAction) {
@@ -136,9 +148,5 @@ class CombatModule extends BaseModule {
         if(actionMeta.action == "attack" && !wonFight && this.config.refreshOnAttack) {
             this.requestGameRefresh();            
         }        
-    }
-
-    reset() {
-        this.actionHistory = {};
-    }
+    }    
 }

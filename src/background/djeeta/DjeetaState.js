@@ -5,6 +5,7 @@ class DjeetaState {
     constructor() {
         this.party = [];    
         this.bosses = [];    
+        this.assistable = [];
         this.abilities = [];
         this.summons = [];
         this.formation = [];

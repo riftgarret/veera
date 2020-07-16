@@ -114,6 +114,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "skill": return new AbilityAction(paramsClip);
         case "summon": return new SummonAction(paramsClip);        
         case "holdCA": return new HoldCAAction(paramsClip);
+        case "requestBackup": return new RequestBackupAction(paramsClip);
         
         default:             
             throw new ScriptError(`unknown method ${methodClip.raw}`, methodClip);
@@ -279,7 +280,28 @@ function HoldCAAction(rawClip) {
     this.isValid = (state) => state.isHoldingCA != shouldHoldCA();
 }
 
+function RequestBackupAction(rawClip) {
+    this.rawClip = rawClip;
+    
+    let backupArray = rawClip.raw.split(",").map(x => Number(x.trim()));
 
+    this.actionMeta = function(state) {
+        // for now ignore
+        return {
+            action: "requestBackup",
+            value: backupArray
+        }
+    }
+
+    this.isValid = function(state) {
+        for(let i = 0; i < backupArray.length; i++) {
+            if(backupArray[i] && state.assistable[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
 
 function TurnExpression(rawClip) {
     this.rawClip = rawClip;        

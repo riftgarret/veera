@@ -2,6 +2,8 @@
 
 class BaseModule {
     
+    // empty methods allow parents to override implementation
+
     handlesPage(page) {
         return false;
     }
@@ -12,7 +14,10 @@ class BaseModule {
         }
     }        
 
-    onActionRequested(data) {
-        // to be implemented
-    }
+    onStart() {}
+    onNewRound() {}
+    onActionRequested(data) {}
+    preProcessCombatAction(actionMeta) {}
+    postProcessCombatAction(actionMeta) {}
+
 }

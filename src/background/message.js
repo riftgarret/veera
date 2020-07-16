@@ -195,6 +195,9 @@ function hear(msg, sender) {
                     case path.ismatch("rest/raid/setting"):
                         DjeetaMind.recordSetting(msg.data.postData, msg.data.json);
                         break;
+                    case path.ismatch("rest/multiraid/assist.json"):
+                        DjeetaMind.recordBackupRequest(msg.data.postData);
+                        break;
                     case path.ismatch("quest/cleared_list/10000/"):
                         DjeetaMind.questStartMeta(msg.data.json);
                         break;
