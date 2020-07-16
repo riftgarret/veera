@@ -18,6 +18,7 @@ class ModularProcess {
     start() {
         this.repeat.reset();
         this.modules.forEach((mod) => mod.onStart());
+        this.beginRound();
     }
 
     loadResources() {

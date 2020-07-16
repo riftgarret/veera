@@ -11,12 +11,7 @@ class QuestProcess extends ModularProcess {
         this.addModule(this.combat = new CombatModule());
         this.addModule(this.summon = new SupportModule(summons));
         this.addModule(new RewardModule());
-    }    
-
-    start() {        
-        super.start();
-        this.beginRound();        
-    }
+    }        
     
     loadResources() {
         const me = this;
