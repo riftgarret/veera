@@ -256,7 +256,7 @@ quest_name: "Level 50 Vohu Manah"
         if(ScriptReader.isCombatScript(script)) {
             let result = {};
             try {                        
-                let evaluator = new DjeetaScriptEvaluator();
+                let evaluator = new ScriptEvaluator();
                 evaluator.read(script);                
                 result.result = evaluator;
             } catch (e) {

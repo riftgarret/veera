@@ -1,7 +1,7 @@
 "use strict";
 class ScriptReader {
   static isCombatScript(rawScript) {
-    return rawScript.startsWith("when");
+    return rawScript.startsWith("when") || rawScript.startsWith("find");
   }
 
   static readScript(rawScript) {
@@ -13,12 +13,7 @@ class ScriptReader {
   }
 
   static readCombatScript(rawScript) {
-    let combat = new CombatModule();
-    combat.loadScript(rawScript);
-    let process = new ModularProcess({claimNightmare: true});
-    process.addModule(combat);
-    process.addModule(new RewardModule());
-    return process;
+    return new SimpleCombatProcess(rawScript);
   }
 
   static readMasterScript(script) {

@@ -50,6 +50,27 @@ class DjeetaState {
         return this.summons.findIndex(s => s.name === name);
     }
 
+    // alive, front row
+    getActiveCharacters() {
+        let found = [];
+        for(let x of this.formation) {
+            if(this.party[x].alive) {
+                found.push(this.party[x]);
+            }
+        }
+        return found;
+    }
+
+    getDeadCharacters() {
+        let found = [];
+        for(let x of this.party) {
+            if(!x.alive) {
+                found.push(x);
+            }
+        }
+        return found;
+    }
+
     getSummonByPos(pos) {        
         if(pos == "supporter") {
             return this.summons[5];

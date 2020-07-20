@@ -8,23 +8,26 @@ UI.djeeta.scripts = {
         Storage.get({djeeta_scripts: []}, (data) => {            
             this.scriptMetas = data.djeeta_scripts;
             console.log("Scripts loaded");
-            UI.djeeta.scripts.debugLoad();
+            UI.djeeta.scripts.loadLast();
         });
     },
 
-    debugLoad: function() {
-        let name = "master1";
-        let script = UI.djeeta.scripts.findMeta(name);
-        if(!script) {
-            console.warn(`failed to find script ${name}`);
-            return;
-        }
+    loadLast: function() {
+        Storage.get({djeeta_last_script: ""}, (data) => {
+            let name = data.djeeta_last_script;
+            if(name == "") return;
+            let script = UI.djeeta.scripts.findMeta(name);
+            if(!script) {
+                console.warn(`failed to find script ${name}`);
+                return;
+            }
 
-        UI.djeeta.scripts.currentScriptMeta = script;
+            UI.djeeta.scripts.currentScriptMeta = script;
 
-        // TODO populate meta info UI portions.
-        $('#script-editor').val(script.script);
-        $('#btn-execute-script').trigger("click");
+            // TODO populate meta info UI portions.
+            $('#script-editor').val(script.script);
+            $('#btn-execute-script').trigger("click");
+        });        
     },
 
     saveScript: function(meta, callback) {                            
@@ -34,11 +37,12 @@ UI.djeeta.scripts = {
             saveScripts.push(meta);
         }        
 
-        Storage.set({djeeta_scripts: saveScripts}, () => {
+        Storage.set({djeeta_scripts: saveScripts, 
+                    djeeta_last_script: meta.name}, () => {
             this.scriptMetas = saveScripts;
             console.log("scripts updated.");
             callback();
-        });        
+        });                
     },
 
     findMeta: function(name) {

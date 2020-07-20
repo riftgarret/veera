@@ -16,12 +16,7 @@ class ScriptController {
         let oldVal = this._isRunning;
         this._isRunning = val;        
         if(!oldVal && val && this.process) {        
-            // for now lets keep it simple, ping if combat, start if not
-            if(this.pageMeta.page == Page.COMBAT) {
-                this.requestContentPing();
-            } else {
-                this.process.start();    
-            }                                    
+            this.process.start();                                 
         }
         this.mind.djeetaUI.updateScriptToggle(val);
      }

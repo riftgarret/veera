@@ -1,7 +1,7 @@
 "use strict";
 
 class CombatModule extends BaseModule {
-    evaluator = new DjeetaScriptEvaluator();
+    evaluator = new ScriptEvaluator();
     actionHistory = {};
     defaultAttack = new AttackAction();    
 
@@ -64,12 +64,18 @@ class CombatModule extends BaseModule {
         }                      
 
         // converts found valid actions into single array.            
-        let actions = Array.from(Object.entries(evaluatedRules))
-            .flatMap(e => e[1].when.isValid? 
-                e[1].actions.flatMap(a => 
-                    a.isValid && !a.acted? [a.action] : []) : []);
-        
-
+        let actions = [];
+        for(let i in evaluatedRules) {
+            let lineResult = evaluatedRules[i];
+            if(lineResult.when && !lineResult.when.isValid) continue;
+            
+            for(let actionMeta of lineResult.actions) {
+                if(actionMeta.isValid && !actionMeta.acted) {
+                    actions.push(actionMeta.action);
+                }
+            }
+        }
+            
         if(actions.length == 0 && this.state.roundLost) {
             console.log("Round lost, we should abandon actions, disable script");                
             this.disableScriptAndNotifyUI(`Script aborted loss scenario.`);

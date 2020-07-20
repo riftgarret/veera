@@ -47,15 +47,31 @@ UI.djeeta.runner = {
             if(scriptResults && scriptResults[lineNumber]) {
                 let lineResult = scriptResults[lineNumber];
                 
-                let isValid = lineResult.when.isValid;
+                let isValid = true;
+
+                if(lineResult.when) {
+                    isValid = lineResult.when.isValid;
+                }
+
+                if(lineResult.find) {
+                    isValid &= lineResult.find.isValid;
+                }
 
                 if(!isValid) {
                     lineDecorator.className = "invalid";
                     continue; // skip processing line and go to next.
                 }
-
+                
                 let whenDecor = lineDecorator.createInlineDecorator(lineResult.when.exp.rawClip);                                
                 whenDecor.className = "valid when-exp";                                
+
+                if(lineResult.find) {
+                    let findDecor = lineDecorator.createInlineDecorator(lineResult.find.exp.rawClip);
+                    findDecor.className = `${find.capture? "valid" : "invalid"} find-exp`;
+                    if(find.capture) {
+                        findDecor.attr = { "name" : find.capture };
+                    }
+                }
                 
                 for(let action of lineResult.actions) {
                     let actionDecor = lineDecorator.createInlineDecorator(action.action.rawClip);                    
