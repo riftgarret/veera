@@ -30,7 +30,7 @@ class FindClause {
                     let chars = state.getActiveCharacters().map(c => { return {char: c, value: c.hp}});
                     if(chars.length == 0) return undefined;
                     sort(chars);
-                    return chars[0].c;                    
+                    return chars[0].char;                    
                 }
                 break;
             case prop.startsWith("isdead"):                

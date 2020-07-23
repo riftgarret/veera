@@ -1,7 +1,15 @@
 "use strict";
 
+const Behavior = {
+    DEFAULT: "default",
+    PROVING_GROUND: "proving_grounds"
+}
+
 class BaseModule {
-    
+    constructor(behavior = Behavior.DEFAULT) {
+        this.behavior = behavior;
+    }
+
     // empty methods allow parents to override implementation
 
     handlesPage(page) {

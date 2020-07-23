@@ -1,34 +1,43 @@
 "use strict";
 
+
+var context = window;
+var externalChannel;
+var initSandbox = false;
+var ee;
+var knownObservers = {};
+
+
 if(chrome.runtime) {
     BackgroundPage.connect();
 }
 
-var observeObj = {};
-
 // $(document).ready(() => hookForEvents());
-$(window).on('hashchange', () => {   
-    observeObj = {}   
+$(window).on('hashchange', () => {       
+    for(let prop in knownObservers) {
+        knownObservers[prop].disconnect();
+        delete knownObservers[prop];
+    }
 });
 
-function hookForEvents() {
-    const hash = window.location.hash;
-    switch(true) {        
-        case hash.startsWith("#raid/"):
-        case hash.startsWith("#raid_multi/"):
-        case hash.startsWith("#raid_semi/"):
-            hookBattlePage(observeObj);            
-            break;
-        case hash.startsWith("/#quest/assist"):
-            
-            break;
-        case hash.startsWith("#quest/supporter_raid/"):
-        case hash.startsWith("#quest/supporter/"):
-            hookSupporterPage(observeObj);
-            break;
-        case hash.startsWith("#result/"):
-        case hash.startsWith("#result_multi/"):
-            hookRewardPage(observeObj);
-            break;
-    }
+
+var step1 = function(_ee, token, readyToDetatch) {
+    ee = _ee;
+    externalChannel = ee.channel;
+    console.log("sandbox created");
+    ee.evalInContext(jsFromClosure(_injectedScript), step2);
 }
+
+var step2 = function() {
+    console.log("sandbox initialized");
+}
+
+// $(window).ready(() => initExternalSandbox(step1, {}, onMessageFromSandbox));
+initExternalSandbox(step1, {}, onMessageFromSandbox);
+
+function onMessageFromSandbox(evt) {
+    console.log(evt);
+}
+
+
+

@@ -172,31 +172,31 @@ function hear(msg, sender) {
                     case path.ismatch("rest/raid/ability_result.json"):
                     case path.ismatch("rest/multiraid/ability_result.json"):
                         battleUseAbility(msg.data.json, msg.data.postData);
-                        DjeetaMind.recordAbility(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatSkill(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/normal_attack_result.json"):
                     case path.ismatch("rest/multiraid/normal_attack_result.json"):
                         battleAttack(msg.data.json);
-                        DjeetaMind.recordAttack(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatAttack(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/summon_result"):
                     case path.ismatch("rest/multiraid/summon_result"):
                         battleUseSummon(msg.data.json);
-                        DjeetaMind.recordSummon(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatSummonCall(msg.data.postData, msg.data.json);                        
                         break;
                     case path.ismatch("rest/raid/start"):
                     case path.ismatch("rest/multiraid/start"):
                         Battle.reset(msg.data.json);
-                        DjeetaMind.parseFightData(msg.data.json);                        
+                        DjeetaMind.onCombatStart(msg.data.json);                        
                         break;
                     case path.ismatch("rest/multiraid/chat_result"):
-                        DjeetaMind.recordChat(msg.data.json);
+                        DjeetaMind.onCombatChat(msg.data.json);
                         break;
                     case path.ismatch("rest/raid/setting"):
-                        DjeetaMind.recordSetting(msg.data.postData, msg.data.json);
+                        DjeetaMind.onCombatSettingChanged(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("rest/multiraid/assist.json"):
-                        DjeetaMind.recordBackupRequest(msg.data.postData);
+                        DjeetaMind.onCombatRequestBackup(msg.data.postData);
                         break;
                     case path.ismatch("quest/cleared_list/10000/"):
                         DjeetaMind.questStartMeta(msg.data.json);
@@ -232,7 +232,10 @@ function hear(msg, sender) {
                     case path.ismatch("quest/user_item"):
                     case path.ismatch("item/use_normal_item"):
                         useRecoveryItem(msg.data.json);
-                        break;                    
+                        break; 
+                    case path.ismatch("/temporary_item_result"):
+                        DjeetaMind.onItemUse(msg.data.postData, msg.data.json);
+                        break;                   
                     case path.ismatch("casino/exchange"):
                     case path.ismatch("shop_exchange/purchase"):
                     case path.ismatch("rest/sidestory/purchase"):

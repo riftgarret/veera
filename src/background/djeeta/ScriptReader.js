@@ -73,6 +73,10 @@ class ScriptEnv {
     this.processes.push(new QuestProcess(script, url, summons, options));
   }
 
+  provingGrounds(script, url, summons, options) {
+    this.processes.push(new ProvingGroundProcess(script, url, summons, options));
+  }
+
   hostRaid(script, url, summons, options) {
     console.log(`called hostRaid: ${script}, ${url}, ${summons}, ${options}`);
   }

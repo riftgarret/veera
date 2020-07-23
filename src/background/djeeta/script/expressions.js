@@ -8,6 +8,14 @@ class TurnExpression {
     }
 };
 
+class PGRoundExpression {
+    constructor(rawClip) {
+        this.rawClip = rawClip;        
+
+        this.eval = (state) => state.pgSequence;
+    }
+};
+
 class StageExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;        
@@ -139,12 +147,13 @@ class ComparativeExpression {
 class GroupExpression {
     constructor(rawClip) {
         // search for multiple statements
+        this.rawClip = rawClip;
         let split = rawClip.raw.split(" AND ");
         
         let pos = 0;
         let evals = this.evals = [];
         for(let subraw of split) {
-            evals.push(createExpressionEval(rawClip.subClip(subraw, pos)));
+            evals.push(createExpression(rawClip.subClip(subraw, pos)));
             pos += subraw.length;
         }
         
@@ -203,6 +212,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "find": return new FindClause(paramsClip);
         case "summon": return new SummonAction(paramsClip);        
         case "holdCA": return new HoldCAAction(paramsClip);
+        case "useItem": return new UseItemAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
         
         default:             
@@ -218,7 +228,8 @@ function createInnerExpression(rawClip) {
 
     switch(params[0].toLowerCase()) {
         case "always":  return new AlwaysExpression(rawClip);
-        case "turn":    return new TurnExpression(rawClip);                    
+        case "turn":    return new TurnExpression(rawClip); 
+        case "pground": return new PGRoundExpression(rawClip);                   
         case "stage":   return new StageExpression(rawClip);        
         case "boss": 
         case "char":    return new UnitExpression(rawClip, params);        

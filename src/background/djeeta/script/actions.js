@@ -131,6 +131,78 @@ class AbilityAction {
     }    
 };
 
+class UseItemAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;        
+
+        let split = rawClip.raw.split(",");
+        this.itemType = split[0];        
+        switch(split.length) {
+            case 2:            
+                let target = split[1];
+                let targetEval = new CharacterEval(rawClip.subClip(target, this.itemType.length));
+                this.findTarget = (state) => targetEval.eval(state);
+                break;
+        }
+    }
+    
+
+    actionMeta(state) {        
+        let ret = {
+            action: "useItem",
+            value: this.itemType
+        }
+
+        if(this.findTarget) {
+            let target = this.findTarget(state);
+            ret.targetAim = target.charIndex;
+            ret.charPos = state.formation.indexOf(`${target.charIndex}`);
+        }
+
+        return ret;
+    }
+
+    isFullLife(char) {
+        return char.hp >= char.hpMax;
+    }
+
+    isPartyFullLife(state) {        
+        for(let i = 0; i < 4; i++) {
+            let char = state.getCharAtPos(i);
+            if(char.alive && !this.isFullLife(char)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isPartyDead(state) {
+        for(let i = 0; i < 4; i++) {
+            let char = state.getCharAtPos(i);
+            if(char.alive) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isValid(state) {
+        switch(this.itemType) {
+            case "green":
+                if(!state.items.greenPotions) return false;
+                let target = this.findTarget(state);
+                let targetInFront = target? state.formation.includes("" + target.charIndex) : false;
+                if(!target || !target.alive || !targetInFront) return false;
+                return !this.isFullLife(target);
+            case "blue":
+                if(!state.items.bluePotions) return false;
+                return !this.isPartyFullLife(state) && !this.isPartyDead(state);
+            default: 
+                return false;
+        }        
+    }
+}
+
 class HoldCAAction {
     constructor(rawClip) {
         this.rawClip = rawClip;

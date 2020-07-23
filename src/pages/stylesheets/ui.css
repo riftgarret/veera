@@ -823,6 +823,10 @@ input:checked + .slider:before {
     flex-flow: row;
 }
 
+.data-row > div {
+    display: inline-block;
+}
+
 #script-console {    
     position: absolute;
     bottom: 2px;

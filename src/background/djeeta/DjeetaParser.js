@@ -4,24 +4,26 @@
 class DjeetaParser {
     startJson(json, state) {        
         state.isHoldingCA = json.special_skill_flag == "1";
-        state.summonsEnabled = json.summon_enable == 1;
+        state.summonsEnabled = Number(json.summon_enable) > 0;
         state.turn = json.turn;
         state.stageCurrent = Number(json.battle.count);
         state.stageMax = Number(json.battle.total);
         state.roundWon = false; // can never load a round we won
         state.notableEvents.length = 0; 
         state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
+        state.pgSequence = json.sequence? json.sequence.type : undefined;
         this.abilities(json, state);
         this.startSummons(json, state);
         this.startParty(json, state);
         this.startBosses(json, state);
         this.startBackupRequest(json, state);
+        this.startItems(json, state);
         state.questId = json.quest_id;
         state.raidId = json.raid_id;
     }
     
     status(status, state) {
-        state.summonsEnabled = status.summon_enable === 1;
+        state.summonsEnabled = Number(status.summon_enable) > 0;
         state.turn = status.turn;
         this.statusSummons(status, state);
         this.abilities(status, state);
@@ -144,6 +146,12 @@ class DjeetaParser {
                     state.notableEvents.push(action);
                     break;
                 }
+
+                case "temporary": {
+                    state.items.greenPotions = Number(action.small);
+                    state.items.bluePotions = Number(action.large);
+                    break;
+                }
             }
         }
     }
@@ -250,7 +258,7 @@ class DjeetaParser {
             };
             party.push(playerObj);
         }
-    }   
+    }        
     
     startSummons(json, state) {        
         let rawSummons = json.summon.concat([json.supporter]);
@@ -351,6 +359,17 @@ class DjeetaParser {
         }        
     }
 
+    startItems(json, state) {
+        if(!json.temporary) return;
+        let it = json.temporary;
+        state.items.greenPotions = Number(it.small);
+        state.items.bluePotions = Number(it.large);
+    }
+
+    chat(json, state) {
+        this.scenario(json.scenario);
+    }
+
     backupRequest(postData, state) {                
         let requestArray = [postData.is_all, postData.is_friend, postData.is_guild];
         
@@ -363,6 +382,7 @@ class DjeetaParser {
 
     rewards(json, rewardObj = {}) {
         rewardObj.isNightmareTriggered = !!(json.appearance && json.appearance.is_quest);
+        rewardObj.nextUrl = json.url;
 
         return rewardObj;
     }

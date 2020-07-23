@@ -37,6 +37,20 @@ UI.djeeta = {
             // let script = getScriptAsText($("#script-editor")[0]);            
             let script = $("#script-editor").val();
 
+            if(script.trim() != "") {
+                let name = UI.djeeta.scripts.currentScriptMeta? UI.djeeta.scripts.currentScriptMeta.name : "#last executed";
+                
+                let meta = {
+                    name,
+                    script,
+                    updated: new Date()
+                }
+                UI.djeeta.scripts.saveScript(meta, () => {
+                    this.consoleUI(`${meta.name} Saved.`)
+                    UI.djeeta.scripts.currentScriptMeta = meta;
+                });
+            }        
+
             BackgroundPage.send("djeetaScriptLoad", script);    
             $(".nav-tab[data-navpage=\"script-runner-container\"]").trigger("click");            
         });
@@ -252,7 +266,7 @@ UI.djeeta = {
             dialog.removeClass("show");
         });
 
-        close.onclick = (e) => dialog.removeClass("show");        
+        close.unbind().click((e) => dialog.removeClass("show"));        
         
         dialog.addClass("show");
         
@@ -367,6 +381,10 @@ UI.djeeta = {
         if(!state.bosses) return;        
 
         $("#battle-turn").html(state.turn);
+        $("#stage-container").toggle(state.stageMax > 1);
+        $("#stage-num").html(state.stageCurrent);
+        $("#sequence-container").toggle(!!state.pgSequence);
+        $("#sequence-num").html(state.pgSequence);
 
         // bosses
         for(let i = 0; i < this.bossMetaElements.length; i++) {

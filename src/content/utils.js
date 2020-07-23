@@ -1,7 +1,5 @@
 "use strict";
 
-var context = window;
-
 jQuery.fn.gbfClick = async function() {
     await generateClick(this[0], djeetaConfig.buttonDownInterval);
     return this;
@@ -149,7 +147,7 @@ String.prototype.splitEx = function(separator, limit) {
 function waitForVisible(...args) {
     let promises = [];
     args.forEach(selector => 
-        promises.push(createMutationPromise(
+        promises.push(createAwaitPromise(
             selector, 
             (e) => e.is(":visible"), 
             { attributes: true, attributeFilter: ['class', 'style'] }
@@ -158,58 +156,103 @@ function waitForVisible(...args) {
     return Promise.race(promises);
 }
 
-function createMutationPromise(jquery, isReadyFunc, config, key) {    
-    if(!key) key = jquery;
-    let ensure;
-    let e = $(jquery);     
-    if(e.length == 0) {
-        ensure = _mutatePromise(
-            '.contents',
-            (e, muts) => {                
-                return $(jquery).length > 0;
-            },
-            {childList: true, subtree: true, attributes: false },
-            key)
-    }
-
-    let promise = () => _mutatePromise(jquery, isReadyFunc, config, key);
-    
-    return ensure? ensure.then(promise) : promise();    
-}
-
 var promiseCounter = 0;
 
-var knownObservers = {};
-function _mutatePromise(jquery, isReadyFunc, config, key) {
+function createAwaitPromise(jquery, predicate, config = {}, timeout = 500, key = jquery) {
     if(knownObservers[key]) {
         console.log("disconnecting old observer");
         knownObservers[key].disconnect();        
+        delete knownObservers[key];        
     }
     
-    const pc = promiseCounter++;       
-    let p = new Promise((r) => {                
-        let e = $(jquery);        
-        console.log(`starting ${jquery} : ${pc}`)
-        if(e.length == 0) {
-            throw Error("failed to create proper mutation, element dooesnt exist");
-        }
-        if(isReadyFunc(e)) {
-            console.log(`resolved immediately ${jquery} : ${pc}`);
-            r(e);
-        } else {            
-            knownObservers[key] = new MutationObserver(function (muts) {                
-                console.log(`checking for ${jquery} : ${pc} -> `);
-                console.log(e);                               
-                if(isReadyFunc(e, muts)) {        
-                    console.log(`resolved ${jquery} : ${pc}`);                                    
-                    knownObservers[key].disconnect();
-                    r(e);                    
-                }                    
-            
-            });
-            console.log(`observing ${jquery} ${JSON.stringify(config)}`);
-            knownObservers[key].observe(e[0], config || {})
-        }
-    });
-     return p;
+    knownObservers[key] = new AwaitPromiser(jquery, predicate, config, timeout);
+    return knownObservers[key].promise();
 }
+;
+
+class AwaitPromiser {
+    isComplete = false;
+    timeoutHandle = undefined;
+    observer = undefined;
+    pc = promiseCounter++;
+    
+    constructor(jquery, predicate, mutObsConfig = {}, timeoutTime = 500) {        
+        this.jquery = jquery;
+        this.predicate = () => predicate($(jquery));
+        this.mutObsConfig = mutObsConfig;
+        this.timeoutTime = timeoutTime;
+    }
+
+    promise() {
+        const self = this;
+        return new Promise((r) => {
+            self.r = r;                        
+            console.log(`starting ${self.jquery} : ${self.pc}`)            
+            if(self.predicate()) {
+                console.log(`resolved immediately ${self.jquery} : ${self.pc}`);
+                self.resolved();
+            } else {                            
+                self.startObserver();             
+                self.startTimer();                
+            }
+        });        
+    }
+
+    startTimer() {
+        if(this.timeoutTime == 0) return;
+
+        const self = this;        
+        self.timeoutHandle = function() {            
+            if(!self.timeoutHandle) return;
+
+            if(self.predicate()) {
+                self.resolved();                
+            } else {
+                timeout(self.timeoutTime).then(self.timeoutHandle)
+            }
+        };
+        self.timeoutHandle();        
+    }
+
+    startObserver() {
+        let e = $(this.jquery);
+        if(e.length == 0) return;
+
+        const element = e[0];
+        const self = this;
+        self.observer = new MutationObserver(() => {                
+            console.log(`checking for ${self.jquery} : ${self.pc} -> `);
+            console.log(element);                               
+            if(self.predicate()) {        
+                console.log(`resolved ${self.jquery} : ${self.pc}`);                                    
+                self.resolved();                           
+            }                    
+        
+        });
+        console.log(`observing ${self.jquery} ${JSON.stringify(self.mutObsConfig)}`);
+        self.observer.observe(element, self.mutObsConfig || {})
+    }
+
+    resolved() {
+        this.disconnect();
+        this.r($(this.jquery));
+    }
+
+    disconnect() {
+        if(this.observer) {
+            this.observer.disconnect();
+            this.observer = undefined;
+        }
+        
+        this.timeoutHandle = undefined;        
+    }    
+}
+function sendExternalMessage(msg) {
+    if (!externalChannel) {
+        console.log("channel is not ready yet..");
+    }
+    else {
+        externalChannel.postMessage(msg);
+    }
+}
+;

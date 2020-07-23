@@ -62,8 +62,10 @@ UI.djeeta.runner = {
                     continue; // skip processing line and go to next.
                 }
                 
-                let whenDecor = lineDecorator.createInlineDecorator(lineResult.when.exp.rawClip);                                
-                whenDecor.className = "valid when-exp";                                
+                if(lineResult.when) {
+                    let whenDecor = lineDecorator.createInlineDecorator(lineResult.when.exp.rawClip);                                
+                    whenDecor.className = "valid when-exp";                                
+                }                
 
                 if(lineResult.find) {
                     let findDecor = lineDecorator.createInlineDecorator(lineResult.find.exp.rawClip);

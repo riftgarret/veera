@@ -112,6 +112,27 @@ class CombatBot {
     get isLogBlockingUi() {   
         return $(`div.prt-raid-log`).is(":visible");            
     }
+
+    async clickBlockingBattleUi() {
+        return await $(`div.prt-raid-log`).gbfClick();
+    }
+
+    async clickOpenHealButton() {
+        return await $('div.btn-temporary').gbfClick();
+    }
+    
+    async clickHealOption(optionName) {
+        switch(optionName) {
+            case "green":
+                return await $(".item-small.btn-temporary-small").gbfClick();
+            case "blue":
+                return await $(".item-large.btn-temporary-large").gbfClick();
+            case "elixer":
+                return await $(".item-potion.btn-temporary-large").gbfClick();
+        }
+    }
+
+    
 }
 
 class SupportBot {
@@ -138,7 +159,7 @@ class SupportBot {
 
     getCostMeta() {
         // returns "AP", "134", "103"
-        let split = $('.prt-stamina .txt-stamina').text().match(/\w+|-?[0-9]+/g);
+        let split = $('.prt-stamina .txt-stamina, .txt-confirm-ap').text().match(/\w+|-?[0-9]+/g);
         return {
             type: split[0],
             current: Number(split[1]),
@@ -147,7 +168,7 @@ class SupportBot {
     }
 
     async clickStartSummonFight() {
-        return await $(".prt-btn-deck .btn-usual-ok").gbfClick();
+        return await $(".prt-btn-deck .btn-usual-ok, #pop-confirm-sequence .btn-usual-ok").gbfClick();
     }
 }
 
@@ -158,91 +179,126 @@ function SkillOperation(charSelector, skillIndex) {
 
 
 class CombatExecutor {    
-    vb = new CombatBot();
+    bot = new CombatBot();
 
     async goToRoot() {
-        let vb = this.vb;
-        if(vb.isPopupVisible) {
-            await vb.clickCancelPopup();
+        let bot = this.bot;
+        if(bot.isPopupVisible) {
+            await bot.clickCancelPopup();
             await waitButtonInterval();
+        }
+    }
+
+    async ensureNoBattleLogOverlay() {
+        if(this.bot.isLogBlockingUi) {
+            return await this.bot.clickBlockingBattleUi();
         }
     }
     
     async skill(action) {
-        let vb = this.vb;            
+        let bot = this.bot;            
         // new Promise((r) => {                
-        if(!vb.isRootScreen && !vb.isCharacterPortraitOpen(action.charPos)) {                
-            await vb.clickBack();
+        if(!bot.isRootScreen && !bot.isCharacterPortraitOpen(action.charPos)) {                
+            await bot.clickBack();
             await waitButtonInterval()                
         }
 
-        if(vb.isRootScreen) {
-            await vb.clickCharacterPortrait(action.charPos);
+        if(bot.isRootScreen) {
+            await this.ensureNoBattleLogOverlay();
+            await bot.clickCharacterPortrait(action.charPos);
             await waitButtonInterval();        
         }
 
-        let ret = vb.clickSkillIcon(action.id);
+        await this.ensureNoBattleLogOverlay();
+        let ret = bot.clickSkillIcon(action.id);
 
         if(action.targetAim != undefined) {
             await waitButtonInterval();
-            ret = await vb.clickPopupOption([action.targetAim]);
+            ret = await bot.clickPopupOption([action.targetAim]);
         } else if(action.subParams != undefined) {
             await waitButtonInterval();
-            ret = await vb.clickPopupOption(action.subParams);
+            ret = await bot.clickPopupOption(action.subParams);
         }
         
         return ret;
     }
 
     async summon(action) {   
-        let vb = this.vb;        
-        if(!vb.isRootScreen && !vb.isSummonListShown) {                
-            await vb.clickBack();
+        let bot = this.bot;        
+        if(!bot.isRootScreen && !bot.isSummonListShown) {                
+            await bot.clickBack();
             await waitButtonInterval();          
         }
 
-        if(vb.isRootScreen) {
-            await vb.clickSummonPool();
+        if(bot.isRootScreen) {
+            await this.ensureNoBattleLogOverlay();
+            await bot.clickSummonPool();
             await waitButtonInterval();       
         }
 
-        await vb.clickSummon(action.pos);        
+        await this.ensureNoBattleLogOverlay();
+        await bot.clickSummon(action.pos);        
         await waitButtonInterval();       
-        return await vb.clickOkPopup();
+        await this.ensureNoBattleLogOverlay();
+        return await bot.clickOkPopup();
     }
     
     async attack(action) {   
-        let vb = this.vb;
-        return await vb.clickAttack(); 
+        let bot = this.bot;
+        return await bot.clickAttack(); 
     }
     
     async holdCA(action) {  
-        let vb = this.vb;
+        let bot = this.bot;
         
-        if(!vb.isRootScreen) {
-            await vb.clickBack();
+        if(!bot.isRootScreen) {
+            await bot.clickBack();
             await waitButtonInterval(); 
         }
 
-        return await vb.clickHoldCA();            
+        return await bot.clickHoldCA();            
     }
     
     async requestBackup(action) {
-        let vb = this.vb;
+        let bot = this.bot;
 
-        if(!vb.isRequestBackupClickable) {
+        if(!bot.isRequestBackupClickable) {
             return;
         }
 
-        await vb.clickRequestBackup();
+        await bot.clickRequestBackup();
         await waitForVisible(".pop-start-assist");
 
         await waitButtonInterval();
-        await vb.clickOkPopup();
+        await bot.clickOkPopup();
 
         await waitForVisible(".pop-raid-assist");
         await waitButtonInterval();
-        return await vb.clickOkPopup();
+        return await bot.clickOkPopup();
+    }
+
+    async useItem(action) {
+        let bot = this.bot;        
+        if(!bot.isRootScreen) {                
+            await bot.clickBack();
+            await waitButtonInterval();          
+        }
+
+        await bot.clickOpenHealButton();
+        await waitButtonInterval();
+
+        switch(action.value) {
+            case "green":
+                await bot.clickHealOption("green");
+                await waitButtonInterval();
+                return await bot.clickCharacterPortrait(action.charPos);                            
+            case "blue":
+                await bot.clickOpenHealButton("blue");
+                await waitButtonInterval();
+                return await bot.clickOkPopup();                
+            default: 
+                throw new Error(`Unsupported item type: ${action.value}`);
+        }
     }
 }
 
@@ -290,7 +346,7 @@ class SupportExecutor {
 
         candidates[candidates.length - 1].e.gbfClick();
 
-        let ePopup = await waitForVisible(".pop-deck", ".prt-check-auth");
+        let ePopup = await waitForVisible(".pop-deck", ".prt-check-auth", "#pop-confirm-sequence");
         if(ePopup.hasClass("prt-check-auth")) {
             // abort!
             // TODO notify auth popup
@@ -391,6 +447,9 @@ class DjeetaHandler {
                 case "requestBackup":
                     this.combat.requestBackup(actionMeta);
                     break;
+                case "useItem":
+                    this.combat.useItem(actionMeta);
+                    break;
 
                 //supporter
                 case "selectSummon":
@@ -400,6 +459,11 @@ class DjeetaHandler {
                 // reward
                 case "claimNightmareReward":
                     this.reward.claimNightmareReward();                        
+                    break;
+
+                case "startPgFight":
+                    waitButtonInterval()
+                        .then(() => $('.btn-start-quest').gbfClick());
                     break;
             }
         }            

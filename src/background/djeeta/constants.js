@@ -5,6 +5,9 @@ const Page = {
     SUMMON_SELECT: "summon_select",
     REWARD: "reward",
     RAIDS: "raids",    
+    PG_LANDING: "proving_grounds_landing",
+    PG_FINAL_REWARD: "proving_grounds_final_reward",
+    STAGE_HANDLER: "stage_handler", // this is a page that manages auto stage select
     UNKNOWN: "unknown"
 };
 

@@ -17,8 +17,10 @@ class DjeetaState {
         this.summonsEnabled = true;
         this.notableEvents = [];
         this.scenario = null;
+        this.items = {};
         this.turn = 1;
         this.raidId = 0;    
+        this.pgSequence = undefined;
     }    
 
     getAbilityNameById(id) {
@@ -91,6 +93,10 @@ class DjeetaState {
     isNewBattle(token) {
         if(this.stageCurrent > 1) {
             return token.questId != this.questId;
+        } if(this.pgSequence && Number(this.pgSequence) > 1) {
+            // so far observed that the quest ids are sequential
+            // return token.questId != this.questId && Number(token.questId) + 1 != Number(this.questId);
+            return false;
         } else {
             return token.raid != this.raidId;
         }

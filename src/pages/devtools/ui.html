@@ -475,11 +475,15 @@
             </div>
             <div id="djeeta" class="tab">
                 <div id="current-fight" class="panel">
-                    <span class="panel-header" data-event="collapse">Current Fight</span>
+                    <span class="panel-header" data-event="collapse">Current Fight <span style="color: lightgreen">v1.2</span></span>
                     <div class="panel-content">                        
                         <div class="combat-state">
                             <div class="battle-stats">
-                                <div class="battle-meta">Turn: <span id="battle-turn"></span></div>
+                                <div class="data-row">
+                                    <div>Turn: <span id="battle-turn"></span></div>
+                                    <div id="stage-container">Stage: <span id="stage-num"></span></div>
+                                    <div id="sequence-container">PG Sequence: <span id="sequence-num"></span></div>
+                                </div>
                                 <div class="boss-meta-container">
                                     <div class="boss-meta" pos="0" style="display: none;">
                                         <img class="unit-icon" />
@@ -566,7 +570,7 @@
                                 <div class="script-dashboard">
                                     
                                     <div class="script-title">Editor</div>
-                                    <div class="dashboard-component">
+                                    <div class="data-row">
                                         <div id="editor-file-menu" class="menu">
                                             <button id="btn-editor-file-menu" class="menu-button">File</button>
                                             <div class="menu-content">
@@ -575,7 +579,7 @@
                                                 <a class="menu-save">Save</a>                                                
                                             </div>
                                         </div>
-                                        <button id="btn-execute-script">Execute</button>                                            
+                                        <button id="btn-execute-script" class="menu-button">Execute</button>                                            
                                     </div>                                    
                                     
                                 </div>                                

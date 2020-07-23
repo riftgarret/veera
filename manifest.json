@@ -20,11 +20,13 @@
       "css": [  ],
       "js": [          
          "src/content/jquery-3.5.1.min.js",
+         "src/content/sandbox.js",
+         "src/content/injected.js",
          "src/content/message.js", 
          "src/content/utils.js", 
          "src/content/djeeta_bot.js",
          "src/content/content-hooks.js",
-         "src/content/main.js"          
+         "src/content/main.js"              
       ],
       "matches": [ "*://game.granbluefantasy.jp/*", "*://gbf.game.mbga.jp/*" ],
       "run_at": "document_start"
@@ -57,6 +59,8 @@
                  "src/background/djeeta/processes/MasterProcess.js",
                  "src/background/djeeta/processes/ModularProcess.js",
                  "src/background/djeeta/processes/QuestProcess.js",
+                 "src/background/djeeta/processes/ProvingGroundProcess.js",
+                 "src/background/djeeta/processes/ProvingGroundModule.js",                 
                  "src/background/djeeta/processes/SimpleCombatProcess.js",
                  "src/background/djeeta/ScriptController.js",
                  "src/background/djeeta/ScriptReader.js",
@@ -78,7 +82,7 @@
      "notifications",
      "tabs",
      "clipboardWrite",
-     "activeTab" ],
+     "activeTab"],
 
 
    "devtools_page": "src/pages/devtools/devtools.html",

@@ -1,7 +1,7 @@
 "use strict";
+const FLAG_END_ROUND = "flag_end_round";
 // to subclass..
-class ModularProcess {    
-
+class ModularProcess {        
     modules = [];    
     options = {};    
 
@@ -59,14 +59,25 @@ class ModularProcess {
         this.lastMod = mod;
         if(!mod) return undefined;
         let result = mod.onActionRequested(data);
-        if(!result) {
+        if(result == FLAG_END_ROUND) {
             if(this.repeat.shouldRepeat) {
                 this.beginRound();                
             } else {
                 this.onProcessEnd();                
             }
+            return undefined
+        } else if(result == undefined) {
+            console.error(`Failed to find action from ${mod.__proto__}`);
         }
         return result;
+    }
+
+    shouldNavigateToStart() {
+        let mod = this.modules.find(mod => mod.handlesPage(this.pageMeta.page));        
+        this.lastMod = mod;
+        if(!mod) return true;
+        let result = mod.onActionRequested({event: "init"});
+        return result == FLAG_END_ROUND;
     }
 
     preProcessCombatAction(actionMeta) {

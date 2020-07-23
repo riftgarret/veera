@@ -52,7 +52,7 @@ class Djeeta {
         this.djeetaUI.updateState(this.state);
     }
     
-    parseFightData(json) {            
+    onCombatStart(json) {            
         let oldToken = this.state.createUniqueBattleToken();
         
         this.parse.startJson(json, this.state);
@@ -65,20 +65,19 @@ class Djeeta {
         this.postActionScriptCheck();
     }
 
+    safeCharName(idx) {
+        let char = this.state.party[idx];
+        return char.leader == 1? "MC" : char.name;
+    }
 
-    recordAbility(postData, json) {            
-        let skillTarget = postData.ability_aim_num;
-
-        let safeCharName = (idx) => {
-            let char = this.state.party[idx];
-            return char.leader == 1? "MC" : char.name;
-        }
+    onCombatSkill(postData, json) {            
+        let skillTarget = postData.ability_aim_num;        
     
         let abilityName = this.state.getAbilityNameById(postData.ability_id);
         let params = [abilityName];
 
         if(skillTarget) {
-            params.push(safeCharName(skillTarget));
+            params.push(this.safeCharName(skillTarget));
         }
         if(postData.ability_sub_param && postData.ability_sub_param.length) {
             Array.prototype.push.apply(params, postData.ability_sub_param);
@@ -106,7 +105,7 @@ class Djeeta {
     }
 
 
-    recordSummon(postData, json) {            
+    onCombatSummonCall(postData, json) {            
         let summonId = postData.summon_id;       
 
         let summonName = this.state.getSummonByPos(summonId).name;                                    
@@ -133,12 +132,35 @@ class Djeeta {
     }
 
 
-    recordAttack(postData, json) {    
+    onCombatAttack(postData, json) {    
         let actionMeta = { action: "attack" };
         this.scriptRunner.preProcessCombatAction(actionMeta);        
         this.processHoldCA(postData);                          
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);            
+        this.scriptRunner.postProcessCombatAction(actionMeta);
+        this.pushDevState();
+        this.postActionScriptCheck();
+    }
+
+    onItemUse(postData, json) {        
+        let itemType;
+        let params;
+        if(postData.character_num == undefined) {
+            itemType = params = "blue"
+        } else {
+            itemType = "green";
+            params = [itemType, this.safeCharName(Number(postData.character_num))];
+        }        
+        let actionMeta = { action: "useItem", value: itemType }
+        this.djeetaUI.appendAction({
+            when: this.whenCurrentTurn,
+            action: "useItem",
+            params
+        });
+        this.scriptRunner.preProcessCombatAction(actionMeta);        
+        this.parse.scenario(json.scenario, this.state);
+        this.parse.status(json.status, this.state);
         this.scriptRunner.postProcessCombatAction(actionMeta);
         this.pushDevState();
         this.postActionScriptCheck();
@@ -193,7 +215,7 @@ quest_name: "Level 50 Vohu Manah"
         }
     }    
 
-    recordSetting(postData, json) {
+    onCombatSettingChanged(postData, json) {
         if(!!json.success) {
             switch(postData.set) {
                 case "special_skill": {
@@ -212,7 +234,7 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
-    recordBackupRequest(postData) {
+    onCombatRequestBackup(postData) {
         // this will yield [1, 0, 1] where 1 is selected.
         let requestArray = [postData.is_all, postData.is_friend, postData.is_guild];
         let actionMeta = {
@@ -236,17 +258,21 @@ quest_name: "Level 50 Vohu Manah"
     get whenCurrentTurn() {            
         let ret = "turn = " + this.state.turn;
         if(this.state.stageMax > 1) {
-            ret += " AND stage = " + this.state.stageCurrent;
+            ret += ` AND stage = ${this.state.stageCurrent}`;
+        } else if(this.state.pgSequence) {
+            ret += ` AND pgRound = ${this.state.pgSequence}`;
         }
         return ret;
     }
 
-    recordChat(postData) {            
+    onCombatChat(postData, json) {            
         // no idea what is tracked here as it doesnt appear in data.
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "sticker"
         });    
+
+        this.parse.chat(json);
         
         this.postActionScriptCheck();
     }
@@ -301,11 +327,23 @@ quest_name: "Level 50 Vohu Manah"
                 break;
             case hash.startsWith("#quest/supporter_raid/"):
             case hash.startsWith("#quest/supporter/"):
+            case /sequenceraid\d+\/supporter\/\d+/.test(hash):
                 newPage = Page.SUMMON_SELECT;
                 break;
             case hash.startsWith("#result/"):
             case hash.startsWith("#result_multi/"):
+            case hash.startsWith("#result_hell_skip"):
+            case /sequenceraid\d+\/reward\/content\/index/.test(hash):
                 newPage = Page.REWARD;
+                break;
+            case /sequenceraid\d+\/sequence_reward/.test(hash):   
+                newPage = Page.PG_REWARD;
+                break;     
+            case /sequenceraid\d+\/quest\/\d+/.test(hash):
+                newPage = Page.PG_LANDING;
+                break;
+            case hash == "#quest/stage":
+                newPage = Page.STAGE_HANDLER;
                 break;
             default:
                 newPage = Page.UNKNOWN;                               
@@ -316,7 +354,7 @@ quest_name: "Level 50 Vohu Manah"
         this.currentPage = newPage;
 
         if(newPage !== oldPage) {
-            console.log(`New page detected ${oldPage} -> ${this.currentPage}`);
+            console.log(`New page detected ${oldPage} -> ${this.currentPage} ${hash}`);
         }
 
         this.pageMeta.newPage(newPage, hash);        

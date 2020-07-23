@@ -2,7 +2,7 @@
 
 class SimpleCombatProcess extends ModularProcess {
     constructor(script) {
-        super();
+        super({claimNightmare: true});
         let combat = new CombatModule();
         combat.loadScript(script);        
         this.addModule(combat);

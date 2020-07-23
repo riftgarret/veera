@@ -15,7 +15,8 @@ class ScriptController {
 
         let oldVal = this._isRunning;
         this._isRunning = val;        
-        if(!oldVal && val && this.process) {        
+        if(!oldVal && val && this.process) {    
+            this.reset();    
             this.process.start();                                 
         }
         this.mind.djeetaUI.updateScriptToggle(val);
@@ -49,6 +50,7 @@ class ScriptController {
     }    
 
     loadScript(rawScript) {
+        this.isRunning = false;
         this.process = ScriptReader.readScript(rawScript);                    
         this.process.attachAPI(this.sharedApi);
         this.process.loadResources();

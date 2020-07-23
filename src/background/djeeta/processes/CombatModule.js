@@ -32,7 +32,7 @@ class CombatModule extends BaseModule {
     }
 
     handlesPage(page) {
-        return page == "battle";
+        return page == Page.COMBAT;
     } 
 
     onActionRequested(data) {        
@@ -90,10 +90,11 @@ class CombatModule extends BaseModule {
     evaluateRules() {            
         let evals = this.evaluator.evalulateRules(this.state);
 
+        let turnHistory = this.getThisTurnHistory();
         // additionally we need to mark actions already processed as acted
         Array.from(Object.entries(evals)).forEach(e => {
             for(let action of e[1].actions) {
-                if (this.actionHistory[this.state.turn] && this.actionHistory[this.state.turn].includes(action.action)) {
+                if (turnHistory.includes(action.action)) {
                     action.acted = true;
                 }
             }                
@@ -102,14 +103,23 @@ class CombatModule extends BaseModule {
         return evals;
     }
 
-    actionExecuted(action) {
-        if(this.actionHistory[this.state.turn] == undefined) {
-            this.actionHistory[this.state.turn] = [];
+    getThisTurnHistory() {
+        let key = 't' + this.state.turn;
+        if(this.state.stageMax > 1) key += 's' + this.state.stageCurrent;        
+        if(this.state.pgSequence) key += 'p' + this.state.pgSequence;
+        
+        if(this.actionHistory[key] == undefined) {
+            this.actionHistory[key] = [];
         }
+        
+        return this.actionHistory[key];
+    }
 
-        if(!this.actionHistory[this.state.turn].includes(action)) {
-            this.actionHistory[this.state.turn].push(action);
-        }
+    actionExecuted(action) {
+        let turnHistory = this.getThisTurnHistory();
+        if(!turnHistory.includes(action)) {
+            turnHistory.push(action);
+        }        
     }
 
     preProcessCombatAction(actionMeta) {

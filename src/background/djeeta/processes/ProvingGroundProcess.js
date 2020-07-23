@@ -1,6 +1,6 @@
 "use strict";
 
-class QuestProcess extends ModularProcess {    
+class ProvingGroundProcess extends ModularProcess {    
     constructor(scriptName, url, summons, options = {}) {
         super(options);
         this.scriptName = scriptName;
@@ -9,8 +9,9 @@ class QuestProcess extends ModularProcess {
         this.summons = summons;        
 
         this.addModule(this.combat = new CombatModule());
-        this.addModule(this.summon = new SupportModule(summons));
-        this.addModule(new RewardModule());
+        this.addModule(this.summon = new SupportModule(summons, Behavior.PROVING_GROUND));
+        this.addModule(new RewardModule(Behavior.PROVING_GROUND));
+        this.addModule(new ProvingGroundModule());        
     }        
     
     loadResources() {
@@ -27,6 +28,6 @@ class QuestProcess extends ModularProcess {
             this.requestGameNavigation(hash);
         } else {
             this.requestContentPing();
-        }
+        }        
     }
 }
