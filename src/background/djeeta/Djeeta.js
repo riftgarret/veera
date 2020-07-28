@@ -166,11 +166,6 @@ class Djeeta {
         this.postActionScriptCheck();
     }
 
-    onRewardPage(json) {        
-        this.parse.rewards(json, this.pageMeta.meta);     
-        this.postActionScriptCheck();   
-    }
-
     reportNewQuestMeta(json) {
         /*
 episode: [{quest_id: "500101", quest_type: "5", use_action_point: "30", is_half: false, synopsis: "",…}]
@@ -277,6 +272,26 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    onRewardPage(json) {        
+        this.parse.rewards(json, this.pageMeta.meta);     
+        this.postActionScriptCheck();   
+    }
+
+    onArcDungeonList(json) {
+        this.parse.arcDungeon(json, this.pageMeta.meta);          
+        this.postActionScriptCheck();   
+    }
+
+    onArcStage(json) {
+        this.parse.arcStage(json, this.pageMeta.meta);
+        this.postActionScriptCheck();   
+    }
+
+    onPartyDeckShown(json) {
+        this.parse.partyDeck(json, this.pageMeta.meta);
+        this.postActionScriptCheck();   
+    }
+
     // script calls
     loadScript(script) {        
         if(ScriptReader.isCombatScript(script)) {
@@ -315,7 +330,8 @@ quest_name: "Level 50 Vohu Manah"
     onPageChanged(url) {           
         let oldPage = this.currentPage; 
         let hash = new URL(url).hash;
-        let newPage;            
+        let newPage;
+        let requiresPing = false;            
         switch(true) {
             case hash.startsWith("#raid/"):
             case hash.startsWith("#raid_multi/"):
@@ -328,7 +344,11 @@ quest_name: "Level 50 Vohu Manah"
             case hash.startsWith("#quest/supporter_raid/"):
             case hash.startsWith("#quest/supporter/"):
             case /sequenceraid\d+\/supporter\/\d+/.test(hash):
+                requiresPing = true;
                 newPage = Page.SUMMON_SELECT;
+                break;
+            case hash.startsWith("#arcarum2/supporter"):
+                newPage = Page.ARC_PARTY_SELECT;
                 break;
             case hash.startsWith("#result/"):
             case hash.startsWith("#result_multi/"):
@@ -337,13 +357,21 @@ quest_name: "Level 50 Vohu Manah"
                 newPage = Page.REWARD;
                 break;
             case /sequenceraid\d+\/sequence_reward/.test(hash):   
+                requiresPing = true;
                 newPage = Page.PG_REWARD;
                 break;     
             case /sequenceraid\d+\/quest\/\d+/.test(hash):
+                requiresPing = true;
                 newPage = Page.PG_LANDING;
                 break;
             case hash == "#quest/stage":
                 newPage = Page.STAGE_HANDLER;
+                break;
+            case hash == "#arcarum2":
+                newPage = Page.ARC_LANDING;
+                break;
+            case hash == "#arcarum2/stage":
+                newPage = Page.ARC_MAP;
                 break;
             default:
                 newPage = Page.UNKNOWN;                               
@@ -358,7 +386,9 @@ quest_name: "Level 50 Vohu Manah"
         }
 
         this.pageMeta.newPage(newPage, hash);        
-        this.scriptRunner.requestDelayedContentPing(1000);       
+        if(requiresPing) {
+            this.scriptRunner.requestDelayedContentPing(1000);       
+        }
     }
 
     onPageRefresh() {

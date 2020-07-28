@@ -1,12 +1,11 @@
 "use strict";
 
-
 var context = window;
 var externalChannel;
 var initSandbox = false;
 var ee;
 var knownObservers = {};
-
+window.djeetaHandler = new DjeetaHandler();
 
 if(chrome.runtime) {
     BackgroundPage.connect();
@@ -37,6 +36,13 @@ initExternalSandbox(step1, {}, onMessageFromSandbox);
 
 function onMessageFromSandbox(evt) {
     console.log(evt);
+
+    switch(evt.data.type) {
+        case "methodHook": {            
+            djeetaHandler.onInjectInterrupt(evt.data);
+            break;
+        }
+    }
 }
 
 

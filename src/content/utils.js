@@ -1,9 +1,25 @@
 "use strict";
 
-jQuery.fn.gbfClick = async function() {
+jQuery.fn.gbfClick = async function(skipWait) {
     await generateClick(this[0], djeetaConfig.buttonDownInterval);
+    if(!skipWait) {
+        await waitButtonInterval();
+    }
     return this;
 }
+
+jQuery.fn.isGbfVisible = function() {    
+    let ret = false;
+    this.each((i, el) => ret |= isVisibleElement(el));
+    return ret;
+}
+
+var djeetaConfig = {
+    buttonPressInterval: 700,
+    buttonDownInterval: 200,
+}
+
+function waitButtonInterval() { return timeout(djeetaConfig.buttonPressInterval) }
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(() => resolve(), ms));
@@ -146,12 +162,20 @@ String.prototype.splitEx = function(separator, limit) {
 // vargs
 function waitForVisible(...args) {
     let promises = [];
-    args.forEach(selector => 
-        promises.push(createAwaitPromise(
-            selector, 
-            (e) => e.is(":visible"), 
-            { attributes: true, attributeFilter: ['class', 'style'] }
-    )));
+    args.forEach(selector => {
+        switch(typeof(selector)) {
+            case "string":
+                promises.push(createAwaitPromise(
+                    selector, 
+                    (e) => e.is(":visible"), 
+                    { attributes: true, attributeFilter: ['class', 'style'] }
+                ));
+                break;
+            case "number":
+                promises.push(timeout(selector))
+                break;
+        }        
+    });
 
     return Promise.race(promises);
 }
@@ -178,7 +202,10 @@ class AwaitPromiser {
     
     constructor(jquery, predicate, mutObsConfig = {}, timeoutTime = 500) {        
         this.jquery = jquery;
-        this.predicate = () => predicate($(jquery));
+        this.predicate = () => {
+            let e = $(jquery);
+            return predicate(e);   
+        }
         this.mutObsConfig = mutObsConfig;
         this.timeoutTime = timeoutTime;
     }

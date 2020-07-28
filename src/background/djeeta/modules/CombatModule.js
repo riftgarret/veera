@@ -38,13 +38,13 @@ class CombatModule extends BaseModule {
     onActionRequested(data) {        
         let evaluation = this.evaluate();                
         let evaluator = this.evaluator;
-        let result = {};
+        
         if(evaluation.queue.length > 0) {                                
             updateUI("djeeta", {type: "scriptEvaluation", data: {evaluator, evaluation}});
-            result.actionMeta = evaluation.queue[0].actionMeta(this.state);
+            return evaluation.queue[0].actionMeta(this.state);
         }
     
-        return result;
+        return {};
     }
 
 

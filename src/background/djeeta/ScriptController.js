@@ -18,6 +18,10 @@ class ScriptController {
         if(!oldVal && val && this.process) {    
             this.reset();    
             this.process.start();                                 
+        } else if(oldVal && !val && this.process) {
+            this.requestGameAction({
+                action: "abortScript"
+            });
         }
         this.mind.djeetaUI.updateScriptToggle(val);
      }

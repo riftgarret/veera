@@ -4,10 +4,14 @@
 const Page = {
     COMBAT: "combat",
     SUMMON_SELECT: "summon_select",
+    ARC_PARTY_SELECT: "arc_party_select",
     REWARD: "reward",
     RAIDS: "raids",    
     PG_LANDING: "proving_grounds_landing",
     PG_FINAL_REWARD: "proving_grounds_final_reward",
+    STAGE_HANDLER: "stage_handler", // this is a page that manages auto stage select
+    ARC_LANDING: "arc_landing",
+    ARC_MAP: "arc_map",    
     UNKNOWN: "unknown"
 };
 
@@ -27,6 +31,9 @@ function hookForEvents() {
         case /sequenceraid\d+\/supporter\/\d+/.test(hash):
             hookSupporterPage();
             break;
+        case hash.startsWith("#arcarum2/supporter"):
+            hookArcSupportPage();
+            break;
         case hash.startsWith("#result/"):
         case hash.startsWith("#result_multi/"):
         case hash.startsWith("#result_hell_skip"):    
@@ -39,19 +46,30 @@ function hookForEvents() {
         case /sequenceraid\d+\/quest\/\d+/.test(hash):
             hookPgLandingPage();
             break;
+        case hash == "#arcarum2":
+            hookArcLandingPage();
+            break;
+        case hash == "#arcarum2/stage":
+            hookArcMapPage();
+            break;
     }
 }
 
 function hookBattlePage() {                    
     console.log("hooking for battle..");
-    createAwaitPromise(
-        "div.btn-attack-start", 
-        (e) => e.hasClass("display-on"),
-        { attributeFilter: ['class'] }
-        ).then(() => {
+    Promise.race([
+        createAwaitPromise(
+            "div.btn-attack-start", 
+            (e) => e.hasClass("display-on"),
+            { attributeFilter: ['class'] }),
+        createAwaitPromise(
+            "div.prt-battle-condition",
+            (e) => e.is(":visible"),
+            { attributeFilter: ["class"] })
+    ]).then(() => {
             console.log("Djeeta > Reporting in!");
-            return BackgroundPage.query("djeetaRequestAction", { page: Page.COMBAT, event: "init" })                
-        }).then((res) => djeetaHandler.onActionReceived(res));    
+            return djeetaHandler.requestCombatAction()
+    });
 }
 
 function hookSupporterPage() {    
@@ -61,8 +79,8 @@ function hookSupporterPage() {
         (e) => e.length > 0        
     ).then(() => {            
         console.log("Djeeta > Support Page Ready");
-        return BackgroundPage.query("djeetaRequestAction", { page: Page.SUMMON_SELECT, event: "init" })            
-    }).then((res) => djeetaHandler.onActionReceived(res));            
+        return djeetaHandler.requestSupportAction()
+    });
 
 }
 
@@ -74,8 +92,8 @@ function hookRewardPage() {
         { attributeFilter: ["class"], subtree: true }    
     ).then(() => {            
         console.log("Djeeta > Reward Page Ready");
-        return BackgroundPage.query("djeetaRequestAction", { page: Page.REWARD, event: "init" })         
-    }).then((res) => djeetaHandler.onActionReceived(res));            
+        return djeetaHandler.requestRewardAction()
+    });         
 }
 
 function hookPgLandingPage() {
@@ -86,18 +104,54 @@ function hookPgLandingPage() {
         { attributeFilter: ["class"] }    
     ).then(() => {            
         console.log("Djeeta > Landing Page Ready");
-        return BackgroundPage.query("djeetaRequestAction", { page: Page.PG_LANDING, event: "init" })         
-    }).then((res) => djeetaHandler.onActionReceived(res));            
+        return djeetaHandler.requestPgLandingAction()
+    });          
 }
 
 function hookPgFinalRewardPage() {
-    console.log("hooking for PG Landing..");
+    console.log("hooking for PG Final Reward..");
     createAwaitPromise(
         "div.contents",
         (e) => e.is(":visible"),
         { attributeFilter: ["style"] }
     ).then(() => {            
         console.log("Djeeta > PG Reward Page Ready");
-        return BackgroundPage.query("djeetaRequestAction", { page: Page.PG_FINAL_REWARD, event: "init" })         
-    }).then((res) => djeetaHandler.onActionReceived(res));            
+        return djeetaHandler.requestPgFinalAction()
+    });     
+}
+
+function hookArcLandingPage() {
+    console.log("hooking for hookArcLandingPage");
+    createAwaitPromise(
+        "div.prt-arcarum-frame",
+        (e) => e.is(":visible")
+    ).then(() => {            
+        console.log("Djeeta > hookArcLandingPage Ready");
+        return djeetaHandler.requestArcLandingAction()
+    });     
+}
+
+function hookArcMapPage() {
+    console.log("hooking for Arc Stage..");
+    createAwaitPromise(
+        "#cjs-arcarum_stage_effect_start",
+        (e) => e.length > 0 && !e.is(":visible"),
+        { attributeFilter: ["style"] }
+    ).then(() => timeout(1000)
+    ).then(() => {            
+        console.log("Djeeta > hookArcMapPage Ready");        
+        return djeetaHandler.requestArcMapAction()
+    });
+}
+
+function hookArcSupportPage() {
+    console.log("hooking for Arc Support..");
+    createAwaitPromise(
+        "div.prt-deck-select",
+        (e) => e.is(":visible"),
+        { attributeFilter: ["style"] }
+    ).then(() => {            
+        console.log("Djeeta > hookArcSupportPage Ready");
+        return djeetaHandler.requestArcSupportAction()
+    });
 }

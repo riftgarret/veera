@@ -380,10 +380,20 @@ class DjeetaParser {
         }        
     }
 
-    rewards(json, rewardObj = {}) {
-        rewardObj.isNightmareTriggered = !!(json.appearance && json.appearance.is_quest);
-        rewardObj.nextUrl = json.url;
+    rewards(json, metaObj) {
+        metaObj.isNightmareTriggered = !!(json.appearance && json.appearance.is_quest);
+        metaObj.nextUrl = json.url;
+    }
 
-        return rewardObj;
+    arcDungeon(json, metaObj) {
+        Object.assign(metaObj, json);
+    }
+
+    arcStage(json, metaObj) {
+        Object.assign(metaObj, json);
+    }
+
+    partyDeck(json, metaObj) {
+        Object.assign(metaObj, json);
     }
 }

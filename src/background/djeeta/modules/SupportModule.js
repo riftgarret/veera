@@ -24,11 +24,9 @@ class SupportModule extends BaseModule {
                         this.prepareGameNavigation([
                             (e) => e.event == "navigate" && e.page == Page.PG_LANDING,                            
                         ]);
-                        return {
-                            actionMeta: {
-                                action: "selectSummon",
-                                summons: this.summons,
-                            }
+                        return {                            
+                            action: "selectSummon",
+                            summons: this.summons,                            
                         }                        
                     }
                     default: {
@@ -37,10 +35,8 @@ class SupportModule extends BaseModule {
                             (e) => e.event == "refresh",
                         ]);
                         return {
-                            actionMeta: {
-                                action: "selectSummon",
-                                summons: this.summons,
-                            }
+                            action: "selectSummon",
+                            summons: this.summons,                        
                         }                        
                     }                    
                 }                

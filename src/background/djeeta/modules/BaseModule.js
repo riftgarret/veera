@@ -2,7 +2,8 @@
 
 const Behavior = {
     DEFAULT: "default",
-    PROVING_GROUND: "proving_grounds"
+    PROVING_GROUND: "proving_grounds",
+    ARCARUM: "arcarum"
 }
 
 class BaseModule {

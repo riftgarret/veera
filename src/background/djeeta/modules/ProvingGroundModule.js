@@ -15,10 +15,8 @@ class ProvingGroundModule extends BaseModule {
             (e) => e.event == "refresh",
             (e) => e.event == "navigate" && e.page == Page.COMBAT,
         ]);
-        return {
-            actionMeta: {
-                action: "startPgFight"                    
-            }
+        return {        
+            action: "startPgFight"                            
         }     
     }
 }

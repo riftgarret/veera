@@ -98,7 +98,7 @@ class DjeetaState {
             // return token.questId != this.questId && Number(token.questId) + 1 != Number(this.questId);
             return false;
         } else {
-            return token.raid != this.raidId;
+            return token.raidId != this.raidId;
         }
     }
 };

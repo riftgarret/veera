@@ -205,6 +205,7 @@ class ComparatorEval  {
     }    
 };
 
+// sync with ScriptReader.js
 function createMethodExpression(methodClip, paramsClip) {
     switch(methodClip.raw) {
         case "when": return new WhenCondition(paramsClip);

@@ -130,21 +130,28 @@ function hear(msg, sender) {
                         Tools.logSupportUser(msg.data.json);
                         DjeetaMind.onRewardPage(msg.data.json);
                         // eslint-disable-next-line no-fallthrough
+                    case path.ismatch("arcarum/dungeon_list"):
+                        DjeetaMind.onArcDungeonList(msg.data.json);
+                        break;
                     case path.ismatch("arcarum/open_chest"):
+                        DjeetaMind.onArcStage(msg.data.json); // fall through
                     case path.ismatch("result/stage_only_data/"):
                     case path.ismatch("rest/board/open_chest"):
                         gotQuestLoot(msg.data.json);
                         getPendantsRaid(msg.data.json);
                         break;
-                    case path.ismatch("rest/arcarum/stage"):
+                    case path.ismatch("rest/arcarum/stage"):                                                
                     case path.ismatch("rest/board/stage"):
                     case path.ismatch("rest/arcarum/open_gatepost"):
+                    case path.ismatch("rest/arcarum/move_division"):
+                    case path.ismatch("rest/arcarum/next_stage"):
                         if (msg.data.json.notice_effect && msg.data.json.notice_effect.show_open_red_chest) {
                             gotQuestLoot(msg.data.json.notice_effect.show_open_red_chest);
                         }
+                        DjeetaMind.onArcStage(msg.data.json); 
                         break;
                     case /sequenceraid\d+\/reward\/content\/index/.test(path):
-                        gotQuestLoot(msg.data.json);
+                        gotQuestLoot(msg.data.json);                        
                         break;
                     case path.ismatch("rest/arcarum/start_stage"):
                         startAcra(msg.data.json);
@@ -190,7 +197,7 @@ function hear(msg, sender) {
                         DjeetaMind.onCombatStart(msg.data.json);                        
                         break;
                     case path.ismatch("rest/multiraid/chat_result"):
-                        DjeetaMind.onCombatChat(msg.data.json);
+                        DjeetaMind.onCombatChat(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("rest/raid/setting"):
                         DjeetaMind.onCombatSettingChanged(msg.data.postData, msg.data.json);
@@ -233,6 +240,9 @@ function hear(msg, sender) {
                     case path.ismatch("item/use_normal_item"):
                         useRecoveryItem(msg.data.json);
                         break; 
+                    case path.ismatch("rest/quest/decks_info"):
+                        DjeetaMind.onPartyDeckShown(msg.data.json);
+                        break;
                     case path.ismatch("/temporary_item_result"):
                         DjeetaMind.onItemUse(msg.data.postData, msg.data.json);
                         break;                   

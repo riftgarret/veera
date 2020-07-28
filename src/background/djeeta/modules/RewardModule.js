@@ -16,21 +16,18 @@ class RewardModule extends BaseModule {
             case "init": 
                 switch(this.behavior) {
                     case Behavior.PROVING_GROUND:
+                    case Behavior.ARCARUM:
                         this.requestGameNavigation(this.pageMeta.meta.nextUrl);
                         return {
-                            actionMeta: {
-                                action: "idle"
-                            }
+                            action: "idle"
                         }
                     
                     default:
                         if(this.hasClaimNightmareEnabled) {
                             // http://game.granbluefantasy.jp/#result_hell_skip/850949960                        
                             this.prepareGameNavigation((e) => e.event == "navigate" && e.hash.startsWith("#result_hell_skip"));
-                            return {                        
-                                actionMeta: {
-                                    action: "claimNightmareReward"
-                                }
+                            return {                                                    
+                                action: "claimNightmareReward"                            
                             };
                         } else {
                             return FLAG_END_ROUND;
