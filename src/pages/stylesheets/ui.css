@@ -827,6 +827,14 @@ input:checked + .slider:before {
     display: inline-block;
 }
 
+#app-version {
+    display: inline-block;
+    margin-top: 0.25em;
+    padding: 0.3em;
+    color:lightgreen;
+    font-size: 1.2em;    
+}
+
 #script-console {    
     position: absolute;
     bottom: 2px;

@@ -23,6 +23,7 @@ class DjeetaParser {
     }
     
     status(status, state) {
+        if(!status) return console.warn("missing status");
         state.summonsEnabled = Number(status.summon_enable) > 0;
         state.turn = status.turn;
         this.statusSummons(status, state);
@@ -30,6 +31,7 @@ class DjeetaParser {
     }
 
     scenario(scenario, state) {
+        if(!scenario) return console.warn("missing scenario");
         state.notableEvents.length = 0; 
 
         for (let action of scenario) {
@@ -141,6 +143,7 @@ class DjeetaParser {
                     break;
                 }
 
+                case "finished":
                 case "win": {                    
                     state.roundWon = true;
                     state.notableEvents.push(action);
@@ -231,7 +234,7 @@ class DjeetaParser {
         let party = state.party;
         party.length = 0;
 
-        state.formation = json.formation;
+        state.formation = json.formation.map(x => isNaN(x)? x : Number(x));
 
         for (let i = 0, l = playerParam.length; i < l; i++) {
             let player = playerParam[i];
@@ -299,7 +302,7 @@ class DjeetaParser {
                 
                 let abilityObj = {
                     pick: props["ability-pick"] == ""? GBFC.PICK.NORMAL : Number(props["ability-pick"]),
-                    charIndex: props["ability-character-num"],
+                    charIndex: Number(props["ability-character-num"]),
                     abilityIndex: (Number(abilityKey) - 1),
                     name: props["ability-name"],
                     id: props["ability-id"],
@@ -394,6 +397,10 @@ class DjeetaParser {
     }
 
     partyDeck(json, metaObj) {
+        Object.assign(metaObj, json);
+    }
+
+    coopLanding(json, metaObj) {
         Object.assign(metaObj, json);
     }
 }

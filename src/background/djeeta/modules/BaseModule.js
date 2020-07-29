@@ -3,7 +3,8 @@
 const Behavior = {
     DEFAULT: "default",
     PROVING_GROUND: "proving_grounds",
-    ARCARUM: "arcarum"
+    ARCARUM: "arcarum",
+    COOP: "coop"
 }
 
 class BaseModule {

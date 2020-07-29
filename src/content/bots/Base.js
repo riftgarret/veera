@@ -1,4 +1,5 @@
 "use strict";
+
 class BaseBot {    
 
     get hasPopup() {
@@ -88,6 +89,20 @@ class Runner {
         } finally {
             this.isComplete = true;
         }
+    }
+
+    async tryNavigateAction(action) {
+        let hash = window.location.hash;
+        while(this.isValid) {            
+            await this.processInterrupt();
+            await action();
+            if(hash != window.location.hash) {
+                return true;
+            }
+            this.retryCount--;
+            await timeout(2000); 
+        }
+        return false;
     }
 
     async tryAction(action, confirm) {

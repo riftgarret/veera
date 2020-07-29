@@ -1,11 +1,46 @@
 "use strict";
 
+// for debugging to see whats happening at real time when we call methods.
+function wrapLogger(obj) {
+    let functionWrapper = function(func) {
+        return function() {
+            let result = func.apply(this, arguments)
+            if(result instanceof Promise) {
+                return result.then((result) => {
+                    logAction(func.name, Array.from(arguments), result);
+                    return result;
+                });                
+            } else {            
+                logAction(func.name, Array.from(arguments), result);
+                return result;
+            }
+        }
+    }
+
+    let logAction = function(funcName, args, result) {
+        console.log(`${obj.constructor.name} . ${funcName}: `, args, ` -> `, result);
+    }
+
+    let handler = {
+        get(target, propKey) {
+            let val = target[propKey];
+            if(typeof(val) == "function") {
+                val.bind(target);
+                return functionWrapper(val);
+            }
+            return val;
+        }
+    }
+
+    return new Proxy(obj, handler);
+}
+
 jQuery.fn.gbfClick = async function(skipWait) {
-    await generateClick(this[0], djeetaConfig.buttonDownInterval);
+    let clicked = await generateClick(this[0], djeetaConfig.buttonDownInterval);
     if(!skipWait) {
         await waitButtonInterval();
     }
-    return this;
+    return clicked;
 }
 
 jQuery.fn.isGbfVisible = function() {    

@@ -11,6 +11,7 @@ const Page = {
     PG_FINAL_REWARD: "proving_grounds_final_reward",
     STAGE_HANDLER: "stage_handler", // this is a page that manages auto stage select
     ARC_LANDING: "arc_landing",
+    COOP_LANDING: "coop_landing",
     ARC_MAP: "arc_map",    
     UNKNOWN: "unknown"
 };
@@ -28,11 +29,15 @@ function hookForEvents() {
             break;
         case hash.startsWith("#quest/supporter_raid/"):
         case hash.startsWith("#quest/supporter/"):
+        case hash.startsWith("#quest/supporter_lobby/"):
         case /sequenceraid\d+\/supporter\/\d+/.test(hash):
             hookSupporterPage();
             break;
         case hash.startsWith("#arcarum2/supporter"):
             hookArcSupportPage();
+            break;
+        case hash.startsWith("#lobby/room/"):
+            hookCoopLanding();
             break;
         case hash.startsWith("#result/"):
         case hash.startsWith("#result_multi/"):
@@ -153,5 +158,17 @@ function hookArcSupportPage() {
     ).then(() => {            
         console.log("Djeeta > hookArcSupportPage Ready");
         return djeetaHandler.requestArcSupportAction()
+    });
+}
+
+function hookCoopLanding() {
+    console.log("hooking for Coop Landing..");
+    createAwaitPromise(
+        "div.prt-quest-info",
+        (e) => e.is(":visible"),
+        { attributeFilter: ["style", "class"] }
+    ).then(() => {            
+        console.log("Djeeta > hookCoopLanding Ready");
+        return djeetaHandler.requestCoopLandingAction()
     });
 }

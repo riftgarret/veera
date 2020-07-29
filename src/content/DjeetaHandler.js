@@ -5,13 +5,14 @@ class DjeetaHandler {
     support = new SupportExecutor();
     reward = new RewardExecutor();
     arcarum = new ArcarumExecutor();
+    coop = new CoopExecutor();
 
     onActionReceived(actionMeta) {    
         if(actionMeta == undefined) {
             console.log("No action.");
             return;
         }        
-        console.log(actionMeta);            
+        console.log("Received Action", actionMeta);        
         
         if(actionMeta.isRunning) {
             // battle
@@ -76,21 +77,40 @@ class DjeetaHandler {
                 case "arcSelectPartyGroup":
                     this.arcarum.selectPartyGroup(actionMeta);
                     break;
+
+                // coop
+                case "selectCoopParty":
+                    this.coop.selectCoopParty(actionMeta);
+                    break;
+
+                case "startCoopQuest":
+                    this.coop.startCoopFight(actionMeta);
+                    break;
+                
+                case "maybeRefresh":
+                    this.coop.waitForBattleOrRequestRefresh(actionMeta);
+                    break;
             }
         }            
     }
 
     onInjectInterrupt(data) {
+        console.log(`received inject: `, data);
         switch(data.key) {
             case "battleErrorPop":
                 this.abortExecutors();
                 timeout(500).then(() => this.requestCombatAction());
                 break;
+            case "battleEnded":
+                this.abortExecutors();                
+                break;
+            case "onPopup":                                
+                break;
         }
     }
     
     onActionRequested(request) {
-        console.log(`action requested: ${request.action}`);
+        console.log(`action requested: `, request);
 
         switch(request.action) {
             case "abortScript":
@@ -110,6 +130,7 @@ class DjeetaHandler {
     }    
 
     abortExecutors() {
+        this.coop.abort();
         this.combat.abort();
         this.arcarum.abort();
         this.support.abort();
@@ -123,6 +144,10 @@ class DjeetaHandler {
 
     requestCombatAction() {
         return this.requestAction(Page.COMBAT, "init");
+    }
+
+    requestCoopLandingAction() {
+        return this.requestAction(Page.COOP_LANDING, "init");
     }
 
     requestSupportAction() {

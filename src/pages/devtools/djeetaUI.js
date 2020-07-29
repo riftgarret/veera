@@ -9,9 +9,9 @@ UI.djeeta = {
     playerMetaElements: [],    
 
     init: function() {
-        window.addEventListener("bg-connected", (p) => {    
-            BackgroundPage.query("djeetaIsCombatScriptEnabled", {}).then(UI.djeeta.updateEnableScriptButton);
-            console.log("port connection event found");    
+        window.addEventListener("bg-connected", (p) => {                
+            BackgroundPage.query("djeetaIsCombatScriptEnabled", {}).then(UI.djeeta.updateCombatScriptToggle);            
+            BackgroundPage.query("version", {}).then((version) => $("#app-version").html(`v${version}`));
         });       
         
         // menu click listener removal
@@ -19,8 +19,7 @@ UI.djeeta = {
             if(!$(e.target).hasClass("menu-button")) {
                 $(".menu-content").removeClass("show");                
             }
-        });
-        
+        });                
 
         let getScriptAsText = (e) => e.children.map(x => x.innerText.trim()).join("\n");                    
 
@@ -28,6 +27,7 @@ UI.djeeta = {
         
         // initial load listeners
         $("#btn-copy-script").click((ev) => {
+            $("#editor-file-menu .menu-new").trigger("click"); // run new script
             $("#script-editor").val(getScriptAsText($("#script-tracker")[0]));
             $(".nav-tab[data-navpage=\"script-editor-container\"]").trigger("click");
         });

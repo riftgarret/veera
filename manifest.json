@@ -3,7 +3,7 @@
 
    "name": "Veera",
    "description": "The GBF Companion that keeps a close watch.",
-   "version": "1.4.1",
+   "version": "2.0.4",
 
    "icons": {
       "128": "src/assets/images/veera128.png",
@@ -27,6 +27,7 @@
          "src/content/bots/Base.js",
          "src/content/bots/Arcarum.js",
          "src/content/bots/Combat.js",
+         "src/content/bots/Coop.js",
          "src/content/bots/ProvingGround.js",
          "src/content/bots/Reward.js",
          "src/content/bots/Support.js",         
@@ -64,9 +65,11 @@
                  "src/background/djeeta/modules/SupportModule.js",
                  "src/background/djeeta/modules/ProvingGroundModule.js",                 
                  "src/background/djeeta/modules/ArcarumModule.js",                 
+                 "src/background/djeeta/modules/CoopModule.js",                 
                  "src/background/djeeta/processes/MasterProcess.js",
                  "src/background/djeeta/processes/ModularProcess.js",
                  "src/background/djeeta/processes/QuestProcess.js",
+                 "src/background/djeeta/processes/CoopProcess.js",
                  "src/background/djeeta/processes/ProvingGroundProcess.js",
                  "src/background/djeeta/processes/ArcarumProcess.js",                 
                  "src/background/djeeta/processes/SimpleCombatProcess.js",

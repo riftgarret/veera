@@ -11,6 +11,7 @@ const Page = {
     STAGE_HANDLER: "stage_handler", // this is a page that manages auto stage select
     ARC_LANDING: "arc_landing",
     ARC_MAP: "arc_map",    
+    COOP_LANDING: "coop_landing",
     UNKNOWN: "unknown"
 };
 

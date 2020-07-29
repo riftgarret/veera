@@ -17,7 +17,8 @@ class RewardModule extends BaseModule {
                 switch(this.behavior) {
                     case Behavior.PROVING_GROUND:
                     case Behavior.ARCARUM:
-                        this.requestGameNavigation(this.pageMeta.meta.nextUrl);
+                    case Behavior.COOP:
+                        this.requestGameNavigation(this.pageMeta.meta.nextUrl || this.pageMeta.meta.url);
                         return {
                             action: "idle"
                         }

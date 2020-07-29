@@ -208,6 +208,13 @@ function hear(msg, sender) {
                     case path.ismatch("quest/cleared_list/10000/"):
                         DjeetaMind.questStartMeta(msg.data.json);
                         break;
+
+                    case /lobby\/content\/room\/\d+\/0/.test(path):
+                        DjeetaMind.onCoopLanding(msg.data.json.option);
+                        break;         
+                    case path.ismatch("rest/lobby/refresh_data"):
+                        DjeetaMind.onCoopLanding(msg.data.json);
+                        break;
                     case path.ismatch("quest/treasure_raid"):
                     case path.ismatch("top/multi_quest_list"):
                     case /treasureraid\d+\/top\/content\/newindex/.test(path):
@@ -405,6 +412,10 @@ function hearQuery(data, sender, respond) {
     switch(data.source) {
         case "ui": {            
             switch (data.query) {
+                case "version": 
+                    retValue = chrome.app.getDetails().version;
+                    break;
+
                 case "archivedBattle":
                     retValue = Battle.load(data.val);
                     break;

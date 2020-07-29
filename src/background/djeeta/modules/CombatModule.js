@@ -151,6 +151,7 @@ class CombatModule extends BaseModule {
 
         for(let e of this.state.notableEvents) {
             switch(e.cmd) {
+                case "finished":
                 case "win":
                     if(this.config.refreshOnVictory) {
                         let hash = this.parser.getNavigationUrl(e, this.state);

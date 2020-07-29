@@ -79,7 +79,7 @@ class AbilityAction {
         let ret = {
             action: "skill",
             name: skill.name,
-            charPos: Number(state.formation[skill.charIndex]),
+            charPos: state.formation.indexOf(skill.charIndex),
             skillPos: skill.abilityIndex,
             pickCode: skill.pick,
             id: skill.id
@@ -103,7 +103,7 @@ class AbilityAction {
         if(!skill) return false;        
 
         let target = this.findTarget? this.findTarget(state) : undefined;
-        let targetInFront = target? state.formation.includes("" + target.charIndex) : false;
+        let targetInFront = target? state.formation.includes(target.charIndex) : false;
 
         // check to make sure we have valid parameters
         switch(skill.pick) {
@@ -191,7 +191,7 @@ class UseItemAction {
             case "green":
                 if(!state.items.greenPotions) return false;
                 let target = this.findTarget(state);
-                let targetInFront = target? state.formation.includes("" + target.charIndex) : false;
+                let targetInFront = target? state.formation.includes(target.charIndex) : false;
                 if(!target || !target.alive || !targetInFront) return false;
                 return !this.isFullLife(target);
             case "blue":
@@ -239,7 +239,7 @@ class RequestBackupAction {
     }
 
     isValid(state) {
-        for(let i = 0; i < backupArray.length; i++) {
+        for(let i = 0; i < this.backupArray.length; i++) {
             if(this.backupArray[i] && state.assistable[i]) {
                 return true;
             }

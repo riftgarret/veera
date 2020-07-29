@@ -19,21 +19,27 @@ class RewardBot extends BaseBot  {
 }
 
 class RewardExecutor extends BaseExecutor {
-    bot = new RewardBot();
+    bot = wrapLogger(new RewardBot());
 
-    async claimNightmareReward() {
+    async claimNightmareReward() {        
         let bot = this.bot;
-        while(bot.hasPopup) {
-            await bot.clickOkPopup();
-            await timeout(2000);            
-        }
 
-        await bot.clickPlayAgain();        
+        this.queue(async (runner) => {
+            
+            while(bot.hasPopup) {
+                await bot.clickOkPopup();
+                await timeout(2000);            
+            }
 
-        if(!bot.hasSkipEnabled) {
-            await bot.clickSkipSetting();            
-        }        
+            await bot.clickPlayAgain();        
 
-        await bot.clickClaimReward();
+            if(!bot.hasSkipEnabled) {
+                await bot.clickSkipSetting();            
+            }        
+
+            await runner.tryNavigateAction(
+                async () => await bot.clickClaimReward()
+            );
+        });
     }
 }

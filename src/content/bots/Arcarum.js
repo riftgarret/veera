@@ -96,7 +96,7 @@ class ArcarumBot extends BaseBot {
 }
 
 class ArcarumExecutor extends BaseExecutor {
-    bot = new ArcarumBot();
+    bot = wrapLogger(new ArcarumBot());
 
     // LANDING PAGE
     async selectDungeon(action) {

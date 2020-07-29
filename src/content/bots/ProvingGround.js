@@ -5,7 +5,7 @@ class ProvingGroundBot extends BaseBot {
 }
 
 class ProvingGroundExecutor extends BaseExecutor {
-    bot = new ProvingGroundBot();
+    bot = wrapLogger(new ProvingGroundBot());
 
     async startFight() {        
         let bot = this.bot;

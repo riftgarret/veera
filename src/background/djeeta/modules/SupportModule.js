@@ -20,6 +20,15 @@ class SupportModule extends BaseModule {
         switch(data.event) {
             case "init":
                 switch(this.behavior) {
+                    case Behavior.COOP: {
+                        this.prepareGameNavigation([
+                            (e) => e.event == "navigate" && e.page == Page.COOP_LANDING,                            
+                        ]);
+                        return {                            
+                            action: "selectSummon",
+                            summons: this.summons,                            
+                        }
+                    }
                     case Behavior.PROVING_GROUND: {
                         this.prepareGameNavigation([
                             (e) => e.event == "navigate" && e.page == Page.PG_LANDING,                            

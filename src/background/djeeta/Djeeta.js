@@ -131,7 +131,6 @@ class Djeeta {
         this.postActionScriptCheck();
     }
 
-
     onCombatAttack(postData, json) {    
         let actionMeta = { action: "attack" };
         this.scriptRunner.preProcessCombatAction(actionMeta);        
@@ -250,6 +249,11 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    onCoopLanding(json) {
+        this.parse.coopLanding(json, this.pageMeta.meta);
+        this.postActionScriptCheck();
+    }
+
     get whenCurrentTurn() {            
         let ret = "turn = " + this.state.turn;
         if(this.state.stageMax > 1) {
@@ -294,6 +298,15 @@ quest_name: "Level 50 Vohu Manah"
 
     // script calls
     loadScript(script) {        
+        let foundError;
+        try {
+            this.scriptRunner.loadScript(script);    
+        } catch(e) {
+            console.error(e);
+            foundError = e;            
+            this.djeetaUI.sendConsoleMessage(`Error in processing script: ${e}`);
+        }
+        
         if(ScriptReader.isCombatScript(script)) {
             let result = {};
             try {                        
@@ -308,8 +321,7 @@ quest_name: "Level 50 Vohu Manah"
         } else {                
             // todo.. convert into metadata that can be displayed
             updateUI("djeeta", {type: "masterScriptValidation", data: script}); 
-        }
-        this.scriptRunner.loadScript(script);    
+        }        
     }
 
     get isScriptEnabled() {
@@ -343,12 +355,16 @@ quest_name: "Level 50 Vohu Manah"
                 break;
             case hash.startsWith("#quest/supporter_raid/"):
             case hash.startsWith("#quest/supporter/"):
-            case /sequenceraid\d+\/supporter\/\d+/.test(hash):
+            case hash.startsWith("#quest/supporter_lobby/"):
+            case /sequenceraid\d+\/supporter\/\d+/.test(hash):        
                 requiresPing = true;
                 newPage = Page.SUMMON_SELECT;
                 break;
             case hash.startsWith("#arcarum2/supporter"):
                 newPage = Page.ARC_PARTY_SELECT;
+                break;
+            case hash.startsWith("#lobby/room/"):
+                newPage = Page.COOP_LANDING;
                 break;
             case hash.startsWith("#result/"):
             case hash.startsWith("#result_multi/"):
@@ -365,6 +381,7 @@ quest_name: "Level 50 Vohu Manah"
                 newPage = Page.PG_LANDING;
                 break;
             case hash == "#quest/stage":
+            case /\#quest\/index\/\d+/.test(hash):
                 newPage = Page.STAGE_HANDLER;
                 break;
             case hash == "#arcarum2":

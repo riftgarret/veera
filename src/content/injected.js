@@ -90,8 +90,8 @@ var _injectedScript = function injected(state) {
                 this.hooks.push(methodName);
             }            
 
-            hookMethodToMessage(key, obj, methodName, captureParams = true) {
-                this.hookMethod(obj, key, (args) => {
+            hookMethodToMessage(obj, methodName, key, captureParams = true) {
+                this.hookMethod(obj, methodName, (args) => {
                     let event = {
                         key,
                         type: "methodHook",
@@ -213,7 +213,7 @@ var _injectedScript = function injected(state) {
                     
                     // when a popup shows, lets bump a msg
                     this.hookForProp(view, "popView", (pop) => {
-                        self.hookMethodToMessage("popup", pop, "popShow", true);
+                        self.hookMethodToMessage(pop, "popShow", "onPopup");
                     });
 
                     log(`hooked arcarum map`);
@@ -224,7 +224,8 @@ var _injectedScript = function injected(state) {
                         self.hookView(v);                        
                     });                    
                 } else if(view.popShowAbilityRailError) {
-                    this.hookMethodToMessage("battleErrorPop", view, "popShowAbilityRailError");
+                    this.hookMethodToMessage(view, "popShowAbilityRailError", "battleErrorPop");
+                    this.hookMethodToMessage(view, "popShowRematchFail", "battleEnded");
                     log(`hooked battle`);
                 }    
             }

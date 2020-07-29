@@ -37,67 +37,73 @@ class SupportBot extends BaseBot {
 }
 
 
-class SupportExecutor {
-    bot = new SupportBot();
+class SupportExecutor extends BaseExecutor {
+    bot = wrapLogger(new SupportBot());
 
     async selectSummon(actionMeta) {
         let bot = this.bot;
 
-        let supportArrayMeta = bot.getSummonMeta();
+        this.queue(async (runner) => {
+            let supportArrayMeta = bot.getSummonMeta();
 
-        let candidates = [];
-        const ANY_STAR = -1;
-        let targetSummons = actionMeta.summons.map(summon => summon.toLowerCase());
-        
-        // create candiates by bringing over and assigning them priority based on index of array of support summons to use.
-        for(let meta of supportArrayMeta) {            
-            for(let i=0; i < targetSummons.length; i++) {
-                if(meta.name.toLowerCase().indexOf(targetSummons[i]) > -1) {
-                    meta.priority = targetSummons.length - i;
-                    if(meta.star < 3) {
-                        meta.priority -= 99;
+            let candidates = [];
+            const ANY_STAR = -1;
+            let targetSummons = actionMeta.summons.map(summon => summon.toLowerCase());
+            
+            // create candiates by bringing over and assigning them priority based on index of array of support summons to use.
+            for(let meta of supportArrayMeta) {            
+                for(let i=0; i < targetSummons.length; i++) {
+                    if(meta.name.toLowerCase().indexOf(targetSummons[i]) > -1) {
+                        meta.priority = targetSummons.length - i;
+                        if(meta.star < 3) {
+                            meta.priority -= 99;
+                        }
+                        candidates.push(meta);
+                        break;
                     }
-                    candidates.push(meta);
-                    break;
-                }
-            }            
-        }
+                }            
+            }
 
-        if(candidates.length == 0) {
-            // TODO notify can't continue
-            console.log("no candidates found.");
-            return false;
-        }
+            if(candidates.length == 0) {
+                // TODO notify can't continue
+                console.log("no candidates found.");
+                return false;
+            }
 
-        candidates.sort((a, b) => {
-            // sort priority:
-            // star, name (priority), friend, isTop         
-            if(a.priority - b.priority != 0) return a.priority - b.priority;    
-            if(a.star - b.star != 0) return a.star - b.star;            
-            if(a.isFriend != b.isFriend) return a.isFriend? 1 : -1;
-            if(a.isTopFriend != b.isTopFriend) return a.isTopFriend? 1 : -1;
-            return 0;
+            candidates.sort((a, b) => {
+                // sort priority:
+                // star, name (priority), friend, isTop         
+                if(a.priority - b.priority != 0) return a.priority - b.priority;    
+                if(a.star - b.star != 0) return a.star - b.star;            
+                if(a.isFriend != b.isFriend) return a.isFriend? 1 : -1;
+                if(a.isTopFriend != b.isTopFriend) return a.isTopFriend? 1 : -1;
+                return 0;
+            });
+
+            await runner.tryAction(
+                async () => await candidates[candidates.length - 1].e.gbfClick(),
+                () => $(".pop-deck, .prt-check-auth, #pop-confirm-sequence").is(":visible")
+            );
+
+            let ePopup = await waitForVisible(".pop-deck", ".prt-check-auth", "#pop-confirm-sequence");
+            if(ePopup.hasClass("prt-check-auth")) {
+                // abort!
+                // TODO notify auth popup
+                console.log("auth found.");
+                return;
+            }
+
+            // assume pop-deck is ready
+            let costMeta = bot.getCostMeta();
+            if(costMeta.after < 0) {
+                // TODO notify to redirect to get AP / EP
+                console.log("not enough stamina.");
+                return;
+            }
+
+            await runner.tryNavigateAction(
+                async () => await bot.clickStartSummonFight()
+            );
         });
-
-        candidates[candidates.length - 1].e.gbfClick();
-
-        let ePopup = await waitForVisible(".pop-deck", ".prt-check-auth", "#pop-confirm-sequence");
-        if(ePopup.hasClass("prt-check-auth")) {
-            // abort!
-            // TODO notify auth popup
-            console.log("auth found.");
-            return;
-        }
-
-        // assume pop-deck is ready
-        let costMeta = bot.getCostMeta();
-        if(costMeta.after < 0) {
-            // TODO notify to redirect to get AP / EP
-            console.log("not enough stamina.");
-            return;
-        }
-
-        await waitButtonInterval();
-        return await bot.clickStartSummonFight();
     }
 }

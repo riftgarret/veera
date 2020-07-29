@@ -17,6 +17,9 @@ class CombatBot extends BaseBot {
         return $('div.btn-command-character').is(":visible");
     }
 
+    get isAttackButtonVisible() {
+        return $('div.btn-attack-start.display-off').length > 0;
+    }
           
     async clickAttack() {
         return await $('div.btn-attack-start').gbfClick();
@@ -32,6 +35,11 @@ class CombatBot extends BaseBot {
     
     async clickSkillIcon(skillId) {
         return await $(`.lis-ability > div[ability-id="${skillId}"]`).gbfClick()
+    }
+
+    isSkillIconAvailable(skillId) {
+        let button = $(`.lis-ability > div[ability-id="${skillId}"]`);
+        return button.hasClass("btn-ability-available") && !button.hasClass("tmp-mask");
     }
     
     async clickRequestBackup() {
@@ -125,7 +133,7 @@ class CombatBot extends BaseBot {
 }
 
 class CombatExecutor extends BaseExecutor {    
-    bot = new CombatBot();
+    bot = wrapLogger(new CombatBot());
 
     async clearStageOverlays() {
         let bot = this.bot;
@@ -172,16 +180,25 @@ class CombatExecutor extends BaseExecutor {
                     () => bot.isCharacterPortraitOpen(action.charPos)
                 )                
             }
-    
-            if(!runner.isValid) return;            
-            await this.ensureNoBattleLogOverlay();
-            let ret = await bot.clickSkillIcon(action.id);
+                
+            await runner.tryAction(            
+                async () => {
+                    await this.ensureNoBattleLogOverlay();
+                    if(!await bot.clickSkillIcon(action.id)) {
+                        // a weird scenario in which switching users
+                        // will reset the UI in this phase. lets requeue.
+                        this.skill(action);
+                        runner.abort();
+                    };
+                },
+                () => !bot.isSkillIconAvailable(action.id)
+            );
     
             if(!runner.isValid) return;
             if(action.targetAim != undefined) {            
-                ret = await bot.clickPopupOption([action.targetAim]);
+                await bot.clickPopupOption([action.targetAim]);
             } else if(action.subParams != undefined) {            
-                ret = await bot.clickPopupOption(action.subParams);
+                await bot.clickPopupOption(action.subParams);
             }                        
         });
     }
@@ -223,7 +240,11 @@ class CombatExecutor extends BaseExecutor {
         let bot = this.bot;
         this.queue(async (runner) => {
             await this.clearStageOverlays();
-            return await bot.clickAttack(); 
+            await runner.tryAction(
+                async () => await bot.clickAttack(),
+                () => !bot.isAttackButtonVisible
+            )
+            
         });
     }
     
