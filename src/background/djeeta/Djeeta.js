@@ -1,7 +1,6 @@
 "use strict";
-class Djeeta {    
+class Djeeta {
     state = new DjeetaState();
-    scriptManager = new DjeetaScriptManager();
     pageMeta = new PageMeta();
     currentPage = Page.UNKNOWN;
     parse = new DjeetaParser();
@@ -36,34 +35,34 @@ class Djeeta {
             updateUI("djeeta", { type: "append", data: text});
         },
 
-        reset: function() {           
-            updateUI("djeeta", { type: "clear"});           
+        reset: function() {
+            updateUI("djeeta", { type: "clear"});
         }
     }
 
     // state updating / parsing calls
     reset() {
-        this.djeetaUI.reset();                
+        this.djeetaUI.reset();
         this.scriptRunner.reset();
         this.previousCA = undefined;
     }
-    
+
 
     pushDevState() {
         this.djeetaUI.updateState(this.state);
     }
-    
-    onCombatStart(json) {            
+
+    onCombatStart(json) {
         let oldToken = this.state.createUniqueBattleToken();
-        
+
         this.parse.startJson(json, this.state);
-        
+
         if(this.state.isNewBattle(oldToken)) {
             this.reset();
             this.scriptRunner.onNewBattle();
         }
 
-        this.pushDevState();        
+        this.pushDevState();
         this.postActionScriptCheck();
     }
 
@@ -72,9 +71,9 @@ class Djeeta {
         return char.leader == 1? "MC" : char.name;
     }
 
-    onCombatSkill(postData, json) {            
-        let skillTarget = postData.ability_aim_num;        
-    
+    onCombatSkill(postData, json) {
+        let skillTarget = postData.ability_aim_num;
+
         let abilityName = this.state.getAbilityNameById(postData.ability_id);
         let params = [abilityName];
 
@@ -84,7 +83,7 @@ class Djeeta {
         if(postData.ability_sub_param && postData.ability_sub_param.length) {
             Array.prototype.push.apply(params, postData.ability_sub_param);
         }
-                                
+
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "skill",
@@ -107,16 +106,16 @@ class Djeeta {
     }
 
 
-    onCombatSummonCall(postData, json) {            
-        let summonId = postData.summon_id;       
+    onCombatSummonCall(postData, json) {
+        let summonId = postData.summon_id;
 
-        let summonName = this.state.getSummonByPos(summonId).name;                                    
+        let summonName = this.state.getSummonByPos(summonId).name;
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "summon",
             params: [summonName]
         });
-        
+
 
         let actionMeta = {
             action: "summon",
@@ -133,18 +132,18 @@ class Djeeta {
         this.postActionScriptCheck();
     }
 
-    onCombatAttack(postData, json) {    
+    onCombatAttack(postData, json) {
         let actionMeta = { action: "attack" };
-        this.scriptRunner.preProcessCombatAction(actionMeta);        
-        this.processHoldCA(postData);                          
+        this.scriptRunner.preProcessCombatAction(actionMeta);
+        this.processHoldCA(postData);
         this.parse.scenario(json.scenario, this.state);
-        this.parse.status(json.status, this.state);            
+        this.parse.status(json.status, this.state);
         this.scriptRunner.postProcessCombatAction(actionMeta);
         this.pushDevState();
         this.postActionScriptCheck();
     }
 
-    onItemUse(postData, json) {        
+    onItemUse(postData, json) {
         let itemType;
         let params;
         if(postData.character_num == undefined) {
@@ -152,14 +151,14 @@ class Djeeta {
         } else {
             itemType = "green";
             params = [itemType, this.safeCharName(Number(postData.character_num))];
-        }        
+        }
         let actionMeta = { action: "useItem", value: itemType }
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "useItem",
             params
         });
-        this.scriptRunner.preProcessCombatAction(actionMeta);        
+        this.scriptRunner.preProcessCombatAction(actionMeta);
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
         this.scriptRunner.postProcessCombatAction(actionMeta);
@@ -193,23 +192,23 @@ quest_name: "Level 50 Vohu Manah"
 
     processHoldCA(attackPost) {
         let isHoldingCA = attackPost.lock == 1;
-                
-        let notifyCA = false;            
+
+        let notifyCA = false;
         if(this.previousCA == undefined) {
-            notifyCA = true;                                
-        } else {                
+            notifyCA = true;
+        } else {
             notifyCA = this.previousCA != isHoldingCA;
         }
 
         this.previousCA = isHoldingCA;
-        if(notifyCA) {                
+        if(notifyCA) {
             this.djeetaUI.appendAction({
                 action: `holdCA`,
                 params: isHoldingCA,
-                when: this.whenCurrentTurn              
-            });                
+                when: this.whenCurrentTurn
+            });
         }
-    }    
+    }
 
     onCombatSettingChanged(postData, json) {
         if(!!json.success) {
@@ -217,12 +216,12 @@ quest_name: "Level 50 Vohu Manah"
                 case "special_skill": {
                     let holdCA = (postData.value == 1);
                     let actionMeta = {
-                        action: "holdCA", 
+                        action: "holdCA",
                         value: holdCA
                     };
                     this.scriptRunner.preProcessCombatAction(actionMeta);
                     this.state.isHoldingCA = holdCA;
-                    // ignore this we will compare to previous action                                                
+                    // ignore this we will compare to previous action
                     this.scriptRunner.postProcessCombatAction(actionMeta);
                 }
             }
@@ -234,7 +233,7 @@ quest_name: "Level 50 Vohu Manah"
         // this will yield [1, 0, 1] where 1 is selected.
         let requestArray = [postData.is_all, postData.is_friend, postData.is_guild];
         let actionMeta = {
-            action: "requestBackup", 
+            action: "requestBackup",
             value: requestArray
         };
 
@@ -246,8 +245,8 @@ quest_name: "Level 50 Vohu Manah"
 
         this.scriptRunner.preProcessCombatAction(actionMeta);
         this.parse.backupRequest(postData, this.state);
-        this.scriptRunner.postProcessCombatAction(actionMeta);            
-        
+        this.scriptRunner.postProcessCombatAction(actionMeta);
+
         this.postActionScriptCheck();
     }
 
@@ -256,7 +255,7 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
-    get whenCurrentTurn() {            
+    get whenCurrentTurn() {
         let ret = "turn = " + this.state.turn;
         if(this.state.stageMax > 1) {
             ret += ` AND stage = ${this.state.stageCurrent}`;
@@ -266,64 +265,71 @@ quest_name: "Level 50 Vohu Manah"
         return ret;
     }
 
-    onCombatChat(postData, json) {            
+    onCombatChat(postData, json) {
         // no idea what is tracked here as it doesnt appear in data.
         this.djeetaUI.appendAction({
             when: this.whenCurrentTurn,
             action: "sticker"
-        });    
+        });
 
         this.parse.chat(json);
-        
+
         this.postActionScriptCheck();
     }
 
-    onRewardPage(json) {        
-        this.parse.rewards(json, this.pageMeta.meta);     
-        this.postActionScriptCheck();   
+    onRewardPage(json) {
+        this.parse.rewards(json, this.pageMeta.meta);
+        this.postActionScriptCheck();
     }
 
     onArcDungeonList(json) {
-        this.parse.arcDungeon(json, this.pageMeta.meta);          
-        this.postActionScriptCheck();   
+        this.parse.arcDungeon(json, this.pageMeta.meta);
+        this.postActionScriptCheck();
     }
 
     onArcStage(json) {
         this.parse.arcStage(json, this.pageMeta.meta);
-        this.postActionScriptCheck();   
+        this.postActionScriptCheck();
     }
 
     onPartyDeckShown(json) {
         this.parse.partyDeck(json, this.pageMeta.meta);
-        this.postActionScriptCheck();   
+        this.postActionScriptCheck();
     }
 
     // script calls
-    loadScript(scriptName) {        
+    loadScript(scriptName) {
         let foundError;
         try {
-            this.scriptRunner.loadScript(scriptName);    
+            this.scriptRunner.loadScript(scriptName);
         } catch(e) {
             console.error(e);
-            foundError = e;            
+            foundError = e;
             this.djeetaUI.sendConsoleMessage(`Error in processing script: ${e}`);
         }
-        
-        if(ScriptReader.isCombatScript(script)) {
-            let result = {};
-            try {                        
-                let evaluator = new ScriptEvaluator();
-                evaluator.read(script);                
-                result.result = evaluator;
-            } catch (e) {
-                result.error = e;
-                console.error(e);
+
+        ScriptManager.findScript(scriptName)
+        .then(meta => {
+            let script = meta.script;
+            let isCombat = ScriptReader.isCombatScript(script);
+            ScriptManager.saveScript(scriptName, {type: isCombat? "combat" : "master"})
+            if(isCombat) {
+                let result = {name: scriptName};
+                try {
+                    let evaluator = new ScriptEvaluator();
+                    evaluator.read(script);
+                    result.result = evaluator;
+                } catch (e) {
+                    result.error = e;
+                    console.error(e);
+                }
+                updateUI("djeeta", {type: "combatScriptValidation", data: result});
+            } else {
+                // todo.. convert into metadata that can be displayed
+                updateUI("djeeta", {type: "masterScriptValidation", data: script});
             }
-            updateUI("djeeta", {type: "combatScriptValidation", data: result}); 
-        } else {                
-            // todo.. convert into metadata that can be displayed
-            updateUI("djeeta", {type: "masterScriptValidation", data: script}); 
-        }        
+        });
+
     }
 
     get isScriptEnabled() {
@@ -331,21 +337,21 @@ quest_name: "Level 50 Vohu Manah"
     }
 
 
-    enableScript(enable) {  
-        this.scriptRunner.isRunning = enable;                  
+    enableScript(enable) {
+        this.scriptRunner.isRunning = enable;
     }
 
-    onContentRequestAction(data) {                    
+    onContentRequestAction(data) {
         let result = this.scriptRunner.onActionRequested(data);
-        console.log(`Djeeta Requesting Action. ${JSON.stringify(data)}\n\tResult: ${JSON.stringify(result)}`); 
+        console.log(`Djeeta Requesting Action. ${JSON.stringify(data)}\n\tResult: ${JSON.stringify(result)}`);
         return result;
-    }    
+    }
 
-    onPageChanged(url) {           
-        let oldPage = this.currentPage; 
+    onPageChanged(url) {
+        let oldPage = this.currentPage;
         let hash = new URL(url).hash;
         let newPage;
-        let requiresPing = false;            
+        let requiresPing = false;
         switch(true) {
             case hash.startsWith("#raid/"):
             case hash.startsWith("#raid_multi/"):
@@ -358,7 +364,7 @@ quest_name: "Level 50 Vohu Manah"
             case hash.startsWith("#quest/supporter_raid/"):
             case hash.startsWith("#quest/supporter/"):
             case hash.startsWith("#quest/supporter_lobby/"):
-            case /sequenceraid\d+\/supporter\/\d+/.test(hash):        
+            case /sequenceraid\d+\/supporter\/\d+/.test(hash):
                 requiresPing = true;
                 newPage = Page.SUMMON_SELECT;
                 break;
@@ -374,10 +380,10 @@ quest_name: "Level 50 Vohu Manah"
             case /sequenceraid\d+\/reward\/content\/index/.test(hash):
                 newPage = Page.REWARD;
                 break;
-            case /sequenceraid\d+\/sequence_reward/.test(hash):   
+            case /sequenceraid\d+\/sequence_reward/.test(hash):
                 requiresPing = true;
                 newPage = Page.PG_REWARD;
-                break;     
+                break;
             case /sequenceraid\d+\/quest\/\d+/.test(hash):
                 requiresPing = true;
                 newPage = Page.PG_LANDING;
@@ -393,7 +399,7 @@ quest_name: "Level 50 Vohu Manah"
                 newPage = Page.ARC_MAP;
                 break;
             default:
-                newPage = Page.UNKNOWN;                               
+                newPage = Page.UNKNOWN;
         }
 
         this.scriptRunner.processPageChange(newPage, hash);
@@ -404,16 +410,16 @@ quest_name: "Level 50 Vohu Manah"
             console.log(`New page detected ${oldPage} -> ${this.currentPage} ${hash}`);
         }
 
-        this.pageMeta.newPage(newPage, hash);        
+        this.pageMeta.newPage(newPage, hash);
         if(requiresPing) {
-            this.scriptRunner.requestDelayedContentPing(1000);       
+            this.scriptRunner.requestDelayedContentPing(1000);
         }
     }
 
     onPageRefresh() {
         this.scriptRunner.processRefresh(this);
         console.log(`page refresh detected.`);
-    }    
+    }
 
     postActionScriptCheck() {
         this.scriptRunner.requestContentPing();
@@ -424,9 +430,10 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
+window.ScriptManager = new DjeetaScriptManager();
 window.DjeetaMind = new Djeeta();
 window.addEventListener(EVENTS.pageChanged, (e) => DjeetaMind.onPageChanged(e.detail));
 window.addEventListener(EVENTS.pageRefresh, (e) => DjeetaMind.onPageRefresh());
-window.addEventListener(EVENTS.tabFound, 
-    () => chrome.tabs.get(State.game.tabId, 
+window.addEventListener(EVENTS.tabFound,
+    () => chrome.tabs.get(State.game.tabId,
         (tab) => DjeetaMind.onPageChanged(tab.url)));

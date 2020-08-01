@@ -3,7 +3,7 @@ class ScriptReader {
   static isCombatScript(rawScript) {
     // sync with expressions.js
     let knownMethods = ["when", "find", "skill", "summon", "holdCA", "useItem", "requestBackup"];
-    return !!knownMethods.find(keyword => rawScript.startsWith(keyword));    
+    return !!knownMethods.find(keyword => rawScript.startsWith(keyword));
   }
 
   static readScript(rawScript) {
@@ -81,7 +81,7 @@ class ScriptEnv {
 
   provingGrounds(script, url, summons, options) {
     this.processes.push(new ProvingGroundProcess(script, url, summons, options));
-  }  
+  }
 
   hostRaid(script, url, summons, options) {
     console.log(`called hostRaid: ${script}, ${url}, ${summons}, ${options}`);

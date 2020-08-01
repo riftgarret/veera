@@ -16,8 +16,10 @@
         <script  type="text/javascript" src="unfUI.js" defer></script>
         <script  type="text/javascript" src="battleUI.js" defer></script>
         <script  type="text/javascript" src="../../lib/djeeta-script-manager.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI-runner.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI.js" defer></script>                
+        <script  type="text/javascript" src="djeetaUI-battle.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI-editor.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI-engine.js" defer></script>
+        <script  type="text/javascript" src="djeetaUI.js" defer></script>
         <script type="text/javascript" src="main.js" defer></script>
     </head>
     <body>
@@ -479,7 +481,7 @@
             <div id="djeeta" class="tab">
                 <div id="current-fight" class="panel">
                     <span class="panel-header" data-event="collapse">Current Fight</span>
-                    <div class="panel-content">                        
+                    <div class="panel-content">
                         <div class="combat-state">
                             <div class="battle-stats">
                                 <div class="data-row">
@@ -491,24 +493,24 @@
                                     <div class="boss-meta" pos="0" style="display: none;">
                                         <img class="unit-icon" />
                                         <div class="meta-container">
-                                            <div>                                            
+                                            <div>
                                                 <div class="unit-element-icon"></div>
                                                 <div class="unit-name"></div>
-                                            </div>                
+                                            </div>
                                             <div>
-                                                <div class="unit-hp-progress-outer">                                                                                                
-                                                    <div class="unit-hp-progress-inner"></div>                                            
+                                                <div class="unit-hp-progress-outer">
+                                                    <div class="unit-hp-progress-inner"></div>
                                                     <div class="unit-hp"></div>
-                                                </div>                                                                                                                                                
+                                                </div>
                                             </div>
                                             <div style="justify-content: space-between;">
-                                                <div class="unit-diamonds"></div>                                                                                    
+                                                <div class="unit-diamonds"></div>
                                                 <div class="unit-mode"></div>
                                             </div>
-                                        </div>                                                
-                                        <div class="unit-conditions buffs"></div>                                        
-                                        <div class="unit-conditions debuffs"></div>  
-                                    </div>                                    
+                                        </div>
+                                        <div class="unit-conditions buffs"></div>
+                                        <div class="unit-conditions debuffs"></div>
+                                    </div>
                                 </div>
                                 <div class="player-meta-container">
                                     <div class="player-meta" pos="0" style="display: none;">
@@ -517,8 +519,8 @@
                                         <div class="unit-element"></div>
                                         <div class="text-hp-label" style="display: none;"></div>
                                         <div class="unit-hp" color="green"></div>
-                                        <div class="unit-hp-progress-outer">                                            
-                                            <div class="unit-hp-progress-inner" color="green"></div>                                            
+                                        <div class="unit-hp-progress-outer">
+                                            <div class="unit-hp-progress-inner" color="green"></div>
                                         </div>
                                         <div class="unit-ca-label" style="display: none;"></div>
                                         <div class="unit-ca-progress-outer">
@@ -536,14 +538,14 @@
                                             <div class="unit-skill-state" pos="2"></div>
                                             <div class="unit-skill-state" pos="3"></div>
                                         </div>
-                                        <div class="unit-conditions buffs"></div>                                        
-                                        <div class="unit-conditions debuffs"></div>                                        
-                                    </div>                                    
-                                </div>                                
-                            </div>                        
-                        </div>                        
-                        <div id="master-dashboard" class="script-dashboard">                                                        
-                            
+                                        <div class="unit-conditions buffs"></div>
+                                        <div class="unit-conditions debuffs"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="master-dashboard" class="script-dashboard">
+
                             <div id="action-queue"></div>
                             <div id="script-console"></div>
                         </div>
@@ -551,9 +553,9 @@
                             <li class="nav-tab active" data-navpage="script-tracker-container">Tracker</li>
                             <li class="nav-tab" data-navpage="script-editor-container">Editor</li>
                             <li class="nav-tab" data-navpage="script-runner-container">Engine</li>
-                        </ul>                                
+                        </ul>
                         <div id="table-dialog">
-                            <div><table></table></div>                                                                                    
+                            <div><table></table></div>
                             <input type="text" class="prompt"></input>
                         </div>
                         <div class="djeeta-code-container">
@@ -563,29 +565,29 @@
                                         <button id="btn-copy-script">🡆 Copy To Editor</button>
                                     </div>
                                 </div>
-                                <div id="script-tracker" class="djeeta-code"></div>                                
-                            </div>                                                    
+                                <div id="script-tracker" class="djeeta-code"></div>
+                            </div>
                             <div id="script-editor-container" class="code-tab">
-                                <div class="script-dashboard">                                                                        
+                                <div class="script-dashboard">
                                     <div class="data-row">
                                         <div id="editor-file-menu" class="menu">
                                             <button id="btn-editor-file-menu" class="menu-button">File</button>
                                             <div class="menu-content">
                                                 <a class="menu-new">New</a>
                                                 <a class="menu-open">Open</a>
-                                                <a class="menu-save">Save</a>                                                
+                                                <a class="menu-save">Save</a>
                                             </div>
                                         </div>
                                         <button id="btn-execute-script" class="menu-button">Load Engine</button>
                                         <div>Script: <span id="script-editor-scriptname"></span></div>
-                                    </div>                                    
-                                    
-                                </div>                                
+                                    </div>
+
+                                </div>
                                 <textarea id="script-editor" spellcheck="false" class="djeeta-code"></textarea>
-                            </div>                            
+                            </div>
                             <div id="script-runner-container" class="code-tab">
                                 <div class="script-dashboard column-table">
-                                    <div>                                        
+                                    <div>
                                         <div class="dashboard-component">
                                             <span>Enable Script:</span>
                                             <label id="toggle-combat-script" class="switch">
@@ -611,14 +613,15 @@
                                             <span>Skill delay</span>
                                             <input id="skill-delay" type="text" value="1.0"/>
                                         </div>
+                                        <div>Script: <span id="script-engine-scriptname"></span></div>
                                     </div>
-                                    
+
                                 </div>
-                                <div id="script-runner" class="djeeta-code"></div>                        
+                                <div id="script-runner" class="djeeta-code"></div>
                             </div>
-                        </div>                                                
+                        </div>
                     </div>
-                </div>                
+                </div>
             </div>
             <div id="settings" class="tab">
                 <!-- TODO: Improve layout -->

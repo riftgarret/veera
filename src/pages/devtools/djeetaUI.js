@@ -4,37 +4,32 @@ HTMLCollection.prototype.map = Array.prototype.map; // so we can map children
 
 
 // ui functions
-class DevToolDjeeta {    
-    scripts = new DjeetaScriptManager()
+class DevToolDjeeta {
     battle = new DjeetaBattleUI();
-    runner = new DjeetaScriptEngine(scripts)
-    editor = new DjeetaScriptEditor(scripts)    
+    runner = new DjeetaScriptEngine()
+    editor = new DjeetaScriptEditor()
 
     init() {
         const self = this;
-        window.addEventListener("bg-connected", (p) => {                
-            BackgroundPage.query("djeetaIsCombatScriptEnabled", {}).then(self.updateCombatScriptToggle);            
+        window.addEventListener("bg-connected", (p) => {
+            BackgroundPage.query("djeetaIsCombatScriptEnabled", {}).then(self.updateCombatScriptToggle);
             BackgroundPage.query("version", {}).then((version) => $("#app-version").html(`v${version}`));
 
-            self.scripts.getLastSaved()
+            ScriptManager.getLastSaved()
             .then((script) => {
                 self.editor.currentMeta = script;
                 if(script) {
                     $('#btn-execute-script').trigger("click");
                 }
             });
-        });                                            
-        
+        });
+
         this.editor.init();
-        this.runner.init();                             
-        this.battle.init();                
+        this.runner.init();
+        this.battle.init();
     }
 
-    consoleUI(html) {
-        $('#script-console').html(html);
-    }
-
-    handleMsg(msg) {        
+    handleMsg(msg) {
         switch(msg.type) {
             case "append":
                 var actionNode = this.battle.generateActionStateNode(msg.data);
@@ -53,29 +48,29 @@ class DevToolDjeeta {
 
             case "state":
                 this.battle.state = msg.data;
-                this.battle.updateStateUI(this.state);
+                this.battle.updateStateUI(this.battle.state);
                 break;
 
             case "scriptEvaluation":
                 this.updateActionQueue(msg.data.evaluation.queue);
                 this.runner.applyScriptEvaluation(msg.data);
                 break;
-                
+
             case "toggleCombatScriptUI":
                 this.runner.updateCombatScriptToggle(msg.data);
                 break;
 
             case "consoleMessage":
-                this.consoleUI(msg.data);
+                consoleUI(msg.data);
                 break;
 
             case "combatScriptValidation":
                 let data = msg.data;
                 if(data.error) {
-                    this.consoleUI("<span style='color: red'>" + data.error.desc + "</span>");
+                    consoleUI("<span style='color: red'>" + data.error.desc + "</span>");
                 } else {
-                    this.consoleUI("Loaded Script Successfully.");
-                    this.runner.loadScriptRunner(data.result);                    
+                    consoleUI("Loaded Script Successfully.");
+                    this.runner.loadScriptRunner(data.result, data.name);
                 }
                 break;
 
@@ -85,8 +80,8 @@ class DevToolDjeeta {
         }
     }
 
-    updateActionQueue(actionList) {        
-        let html = "";        
+    updateActionQueue(actionList) {
+        let html = "";
         for(let action of actionList) {
             html += "<span class=\"djeeta-action-meta\">";
             html += JSON.stringify(action);
@@ -94,9 +89,10 @@ class DevToolDjeeta {
         }
         $('#action-queue').html(html);
     }
-
-        
 };
 
+var $consoleUI = $('#script-console');
+window.consoleUI = (html) => $consoleUI.html(html);
+window.ScriptManager = new DjeetaScriptManager()
 UI.djeeta = new DevToolDjeeta();
 UI.djeeta.init();

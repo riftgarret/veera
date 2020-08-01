@@ -3,18 +3,20 @@
 class CombatModule extends BaseModule {
     evaluator = new ScriptEvaluator();
     actionHistory = {};
-    defaultAttack = new AttackAction();    
+    defaultAttack = new AttackAction();
 
     get state() { return this.combatState; }
 
-    loadScript(script) {
+    loadScript(script, name = "") {
         this.reset();
-        this.evaluator.read(script);        
+        this.scriptName = name;
+        this.evaluator.read(script);
     }
 
     loadScriptName(scriptName) {
         const me = this;
-        return new Promise((r) => 
+        this.scriptName = scriptName;
+        return new Promise((r) =>
             Storage.get({djeeta_scripts: []}, (data) => r(data.djeeta_scripts)))
                 .then(metas => metas.find(meta => meta.name == scriptName))
                 .then((meta) => {
@@ -24,26 +26,26 @@ class CombatModule extends BaseModule {
     }
 
     onNewRound() {
-        this.reset();   
-    }   
-    
+        this.reset();
+    }
+
     reset() {
         this.actionHistory = {};
     }
 
     handlesPage(page) {
         return page == Page.COMBAT;
-    } 
+    }
 
-    onActionRequested(data) {        
-        let evaluation = this.evaluate();                
+    onActionRequested(data) {
+        let evaluation = this.evaluate();
         let evaluator = this.evaluator;
-        
-        if(evaluation.queue.length > 0) {                                
-            updateUI("djeeta", {type: "scriptEvaluation", data: {evaluator, evaluation}});
+
+        if(evaluation.queue.length > 0) {
+            updateUI("djeeta", {type: "scriptEvaluation", data: {name: this.scriptName, evaluator, evaluation}});
             return evaluation.queue[0].actionMeta(this.state);
         }
-    
+
         return {};
     }
 
@@ -55,29 +57,29 @@ class CombatModule extends BaseModule {
             queue: this.buildActionQueue(evaluatedRules)
         }
     }
-    
+
     buildActionQueue(evaluatedRules) {
         if(this.state.roundWon) {
             // technically these are ignored.. because post processing navigates or ends the fight.
-            let action = this.state.stageCurrent == this.state.stageMax? "navigateToVictory" : "navigateNextStage";                
-            return [{ actionMeta: () => { return { action } } }];                
-        }                      
+            let action = this.state.stageCurrent == this.state.stageMax? "navigateToVictory" : "navigateNextStage";
+            return [{ actionMeta: () => { return { action } } }];
+        }
 
-        // converts found valid actions into single array.            
+        // converts found valid actions into single array.
         let actions = [];
         for(let i in evaluatedRules) {
             let lineResult = evaluatedRules[i];
             if(lineResult.when && !lineResult.when.isValid) continue;
-            
+
             for(let actionMeta of lineResult.actions) {
                 if(actionMeta.isValid && !actionMeta.acted) {
                     actions.push(actionMeta.action);
                 }
             }
         }
-            
+
         if(actions.length == 0 && this.state.roundLost) {
-            console.log("Round lost, we should abandon actions, disable script");                
+            console.log("Round lost, we should abandon actions, disable script");
             this.disableScriptAndNotifyUI(`Script aborted loss scenario.`);
             return actions;
         }
@@ -87,7 +89,7 @@ class CombatModule extends BaseModule {
         return actions;
     }
 
-    evaluateRules() {            
+    evaluateRules() {
         let evals = this.evaluator.evalulateRules(this.state);
 
         let turnHistory = this.getThisTurnHistory();
@@ -97,21 +99,21 @@ class CombatModule extends BaseModule {
                 if (turnHistory.includes(action.action)) {
                     action.acted = true;
                 }
-            }                
+            }
         });
-                    
+
         return evals;
     }
 
     getThisTurnHistory() {
         let key = 't' + this.state.turn;
-        if(this.state.stageMax > 1) key += 's' + this.state.stageCurrent;        
+        if(this.state.stageMax > 1) key += 's' + this.state.stageCurrent;
         if(this.state.pgSequence) key += 'p' + this.state.pgSequence;
-        
+
         if(this.actionHistory[key] == undefined) {
             this.actionHistory[key] = [];
         }
-        
+
         return this.actionHistory[key];
     }
 
@@ -119,7 +121,7 @@ class CombatModule extends BaseModule {
         let turnHistory = this.getThisTurnHistory();
         if(!turnHistory.includes(action)) {
             turnHistory.push(action);
-        }        
+        }
     }
 
     preProcessCombatAction(actionMeta) {
@@ -146,7 +148,7 @@ class CombatModule extends BaseModule {
         }
     }
 
-    postProcessCombatAction(actionMeta) {                
+    postProcessCombatAction(actionMeta) {
         let wonFight = false;
 
         for(let e of this.state.notableEvents) {
@@ -156,14 +158,14 @@ class CombatModule extends BaseModule {
                     if(this.config.refreshOnVictory) {
                         let hash = this.parser.getNavigationUrl(e, this.state);
                         this.requestGameNavigation(hash);
-                        wonFight = true;                        
+                        wonFight = true;
                     }
                     break;
             }
         }
 
         if(actionMeta.action == "attack" && !wonFight && this.config.refreshOnAttack) {
-            this.requestGameRefresh();            
-        }        
-    }    
+            this.requestGameRefresh();
+        }
+    }
 }

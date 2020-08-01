@@ -10,7 +10,7 @@ class CombatBot extends BaseBot {
     }
 
     async clickBack() {
-        return await $("div.btn-command-back").gbfClick();            
+        return await $("div.btn-command-back").gbfClick();
     }
 
     get isRootScreen() {
@@ -20,19 +20,19 @@ class CombatBot extends BaseBot {
     get isAttackButtonVisible() {
         return $('div.btn-attack-start.display-on').length > 0;
     }
-          
+
     async clickAttack() {
         return await $('div.btn-attack-start.display-on').gbfClick();
     }
-    
+
     async clickCharacterPortrait(charIndex) {
-        return await $(`div.prt-member>div[pos="${charIndex}"]>img.img-chara-command`).gbfClick();            
+        return await $(`div.prt-member>div[pos="${charIndex}"]>img.img-chara-command`).gbfClick();
     }
-    
-    isCharacterPortraitOpen(pos) {   
+
+    isCharacterPortraitOpen(pos) {
         return $(`.prt-command-chara[pos="${pos+1}"]`).is(":visible")
     }
-    
+
     async clickSkillIcon(skillId) {
         return await $(`.lis-ability > div[ability-id="${skillId}"]`).gbfClick()
     }
@@ -42,15 +42,15 @@ class CombatBot extends BaseBot {
         let parent = button.parent(".lis-ability");
         return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
-    
+
     async clickRequestBackup() {
         return await $(`.btn-assist`).gbfClick();
     }
-    
+
     get isRequestBackupClickable() {
         return $('.btn-assist').is(":visible");
     }
-    
+
     async clickPopupOption(options) {
         let popups = $('.pop-usual:visible');
         if(popups.length == 0) {
@@ -65,44 +65,44 @@ class CombatBot extends BaseBot {
         switch(true) {
             // select member
             case popups.hasClass('pop-select-member'):
-                return await popups.find(`.btn-command-character[pos="${options[0]}"]`).gbfClick();                    
+                return await popups.find(`.btn-command-character[pos="${options[0]}"]`).gbfClick();
             // runeslayer skill
             case popups.hasClass('pop-ability-mark'):
-                await popups.find(`.mark${options[0] + 1}`).gbfClick();                
-                await popups.find(`.mark${options[1] + 1}`).gbfClick();                
-                return popups.find(`.btn-usual-text`).gbfClick();                    
+                await popups.find(`.mark${options[0] + 1}`).gbfClick();
+                await popups.find(`.mark${options[1] + 1}`).gbfClick();
+                return popups.find(`.btn-usual-text`).gbfClick();
             default:
                 console.warn("missing popup skill option impl");
                 return false;
-        }            
-    }    
-    
+        }
+    }
+
     async clickHoldCA() {
         return await $(`div.btn-lock`).gbfClick();
     }
-    
+
     get isHoldCA() {
         return $(`div.btn-lock.lock1`).is(":visible");
     }
-    
+
     async clickSummonPool() {
-        return await $(`div.btn-command-summon`).gbfClick();            
+        return await $(`div.btn-command-summon`).gbfClick();
     }
-    
-    async clickSummon(summonIndex) {   
-        return await $(`div.lis-summon[pos="${summonIndex + 1}"]`).gbfClick();            
+
+    async clickSummon(summonIndex) {
+        return await $(`div.lis-summon[pos="${summonIndex + 1}"]`).gbfClick();
     }
-    
+
     isSummonAvailable(summonIndex) {
-        return $(`div.lis-summon[pos="${summonIndex + 1}"].btn-summon-available`).is(":visible");            
+        return $(`div.lis-summon[pos="${summonIndex + 1}"].btn-summon-available`).is(":visible");
     }
-    
-    get isSummonListShown() {   
-        return $(`div.prt-summon-list.opened`).is(":visible");            
+
+    get isSummonListShown() {
+        return $(`div.prt-summon-list.opened`).is(":visible");
     }
-    
-    get isLogBlockingUi() {   
-        return $(`div.prt-raid-log`).is(":visible");            
+
+    get isLogBlockingUi() {
+        return $(`div.prt-raid-log`).is(":visible");
     }
 
     async clickBlockingBattleUi() {
@@ -116,7 +116,7 @@ class CombatBot extends BaseBot {
     get isHealPanelOpen() {
         return $(".item-small.btn-temporary-small:visible").length > 0;
     }
-    
+
     async clickHealOption(optionName) {
         switch(optionName) {
             case "green":
@@ -126,10 +126,10 @@ class CombatBot extends BaseBot {
             case "elixer":
                 return await $(".item-potion.btn-temporary-large").gbfClick();
         }
-    }   
+    }
 }
 
-class CombatExecutor extends BaseExecutor {    
+class CombatExecutor extends BaseExecutor {
     bot = wrapLogger(new CombatBot());
 
     async clearStageOverlays() {
@@ -139,15 +139,15 @@ class CombatExecutor extends BaseExecutor {
         }
 
         if(bot.hasBattleConditionOverlay) {
-            await bot.clickRemoveConditionOverlay();            
+            await bot.clickRemoveConditionOverlay();
         }
-        
+
         return await this.ensureNoBattleLogOverlay();
     }
 
     async ensureNoBattleLogOverlay() {
         if(this.bot.isLogBlockingUi) {
-            await this.bot.clickBlockingBattleUi();            
+            await this.bot.clickBlockingBattleUi();
         }
     }
 
@@ -156,18 +156,18 @@ class CombatExecutor extends BaseExecutor {
         if(bot.isPopupVisible) {
             await bot.clickCancelPopup();
         }
-    }    
-    
+    }
+
     async skill(action) {
-        let bot = this.bot;  
+        let bot = this.bot;
         this.queue(async (runner) => {
             await this.clearStageOverlays();
-        
-            // new Promise((r) => {                
-            if(!bot.isRootScreen && !bot.isCharacterPortraitOpen(action.charPos)) {                
+
+            // new Promise((r) => {
+            if(!bot.isRootScreen && !bot.isCharacterPortraitOpen(action.charPos)) {
                 await bot.clickBack();
             }
-    
+
             if(bot.isRootScreen) {
                 await runner.tryAction(
                     async () => {
@@ -175,10 +175,10 @@ class CombatExecutor extends BaseExecutor {
                         await bot.clickCharacterPortrait(action.charPos);
                     },
                     () => bot.isCharacterPortraitOpen(action.charPos)
-                )                
+                )
             }
-                
-            await runner.tryAction(            
+
+            await runner.tryAction(
                 async () => {
                     await this.ensureNoBattleLogOverlay();
                     if(!await bot.clickSkillIcon(action.id)) {
@@ -186,33 +186,38 @@ class CombatExecutor extends BaseExecutor {
                         // will reset the UI in this phase. lets requeue.
                         this.skill(action);
                         runner.abort();
-                    };                    
+                    };
                 },
-                () => !bot.isSkillIconAvailable(action.id)
+                () => {
+                    if(action.targetAim != undefined || action.subParams != undefined) {
+                        return !bot.hasPopup;
+                    }
+                    return !bot.isSkillIconAvailable(action.id)
+                }
             );
-    
+
             if(!runner.isValid) return;
-            if(action.targetAim != undefined) {            
+            if(action.targetAim != undefined) {
                 await bot.clickPopupOption([action.targetAim]);
-            } else if(action.subParams != undefined) {            
+            } else if(action.subParams != undefined) {
                 await bot.clickPopupOption(action.subParams);
-            }                        
+            }
         });
     }
 
-    async summon(action) {   
-        let bot = this.bot;   
+    async summon(action) {
+        let bot = this.bot;
         this.queue(async (runner) => {
             await this.clearStageOverlays();
-            if(!bot.isRootScreen && !bot.isSummonListShown) {                
-                await bot.clickBack();            
+            if(!bot.isRootScreen && !bot.isSummonListShown) {
+                await bot.clickBack();
             }
 
             if(bot.isRootScreen) {
                 await runner.tryAction(
                     async () => {
                         await this.ensureNoBattleLogOverlay();
-                        await bot.clickSummonPool();                                    
+                        await bot.clickSummonPool();
                     },
                     () => bot.isSummonListShown
                 );
@@ -221,19 +226,19 @@ class CombatExecutor extends BaseExecutor {
             await runner.tryAction(
                 async () => {
                     await this.ensureNoBattleLogOverlay();
-                    await bot.clickSummon(action.pos);                  
+                    await bot.clickSummon(action.pos);
                 },
                 () => bot.hasPopup
             );
-            
+
             await runner.tryAction(
                 async () => await bot.clickOkPopup(),
                 () => !bot.hasPopup
             );
         });
     }
-    
-    async attack(action) {   
+
+    async attack(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
             await this.clearStageOverlays();
@@ -241,25 +246,25 @@ class CombatExecutor extends BaseExecutor {
                 async () => await bot.clickAttack(),
                 () => !bot.isAttackButtonVisible
             )
-            
+
         });
     }
-    
-    async holdCA(action) {  
+
+    async holdCA(action) {
         let bot = this.bot;
 
         this.queue(async (runner) => {
 
             await this.clearStageOverlays();
-            
+
             if(!bot.isRootScreen) {
-                await bot.clickBack();            
+                await bot.clickBack();
             }
 
-            return await bot.clickHoldCA();            
+            return await bot.clickHoldCA();
         });
     }
-    
+
     async requestBackup(action) {
         let bot = this.bot;
 
@@ -269,7 +274,7 @@ class CombatExecutor extends BaseExecutor {
             if(!bot.isRequestBackupClickable) {
                 return;
             }
-            
+
             await runner.tryAction(
                     async () => {
                     await bot.clickRequestBackup();
@@ -277,19 +282,19 @@ class CombatExecutor extends BaseExecutor {
                 },
                 () => bot.hasPopup
             );
-            
-            
+
+
             await runner.tryAction(
                 async () => {
-                    await bot.clickOkPopup();                    
+                    await bot.clickOkPopup();
                 },
                 () => !bot.isPopupVisible("pop-start-assist")
-            );            
+            );
 
 
             await runner.tryAction(
                 async () => await bot.clickOkPopup(),
-                () => !bot.isPopupVisible("pop-raid-assist")            
+                () => !bot.isPopupVisible("pop-raid-assist")
             );
         });
     }
@@ -297,26 +302,26 @@ class CombatExecutor extends BaseExecutor {
     async useItem(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
-        
+
             await this.clearStageOverlays();
 
-            if(!bot.isRootScreen) {                
-                await bot.clickBack();            
+            if(!bot.isRootScreen) {
+                await bot.clickBack();
             }
 
             await this.tryAction(
                 async () => await bot.clickOpenHealButton(),
                 () => bot.isHealPanelOpen
             );
-            
+
             switch(action.value) {
                 case "green":
-                    await bot.clickHealOption("green");                
-                    return await bot.clickCharacterPortrait(action.charPos);                            
+                    await bot.clickHealOption("green");
+                    return await bot.clickCharacterPortrait(action.charPos);
                 case "blue":
-                    await bot.clickOpenHealButton("blue");                
-                    return await bot.clickOkPopup();                
-                default: 
+                    await bot.clickOpenHealButton("blue");
+                    return await bot.clickOkPopup();
+                default:
                     throw new Error(`Unsupported item type: ${action.value}`);
             }
         });

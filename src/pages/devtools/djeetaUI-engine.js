@@ -1,37 +1,34 @@
 "use strict";
 
 class DjeetaScriptEngine {
-    scripts
-    constructor(scripts) {
-        this.scripts = scripts;
-    }
-
     init() {
         $('#toggle-combat-script > input').change((e) => {
             let enable = $(e.target).prop('checked');
-            BackgroundPage.send("djeetaCombatScriptEnabled", enable)                
+            BackgroundPage.send("djeetaCombatScriptEnabled", enable)
         });
     }
 
     updateCombatScriptToggle(enable) {
-        $('#toggle-combat-script > input').prop('checked', enable);    
+        $('#toggle-combat-script > input').prop('checked', enable);
     }
-    
-    loadScriptRunner(scriptSyntax) {                
-        console.log("load syntax");        
+
+    loadScriptRunner(scriptSyntax, name) {
+        console.log("load syntax");
+        $("#script-engine-scriptname").html(name);
         this.inflateScriptRunnerHtml(scriptSyntax);
     }
 
-    applyScriptEvaluation({evaluation, evaluator}) {
+    applyScriptEvaluation({name, evaluation, evaluator}) {
         console.log("load script result");
+        $("#script-engine-scriptname").html(name);
         this.inflateScriptRunnerHtml(evaluator, evaluation.results);
     }
 
-    inflateScriptRunnerHtml(scriptSyntax, scriptResults) {        
-        let decorators = this.generateDecorators(scriptSyntax, scriptResults);        
-        
+    inflateScriptRunnerHtml(scriptSyntax, scriptResults) {
+        let decorators = this.generateDecorators(scriptSyntax, scriptResults);
+
         let parent = $("#script-runner");
-        parent.empty();        
+        parent.empty();
         for(let i = 0; i < scriptSyntax.lines.length; i++) {
             let lineRaw = scriptSyntax.lines[i].raw;
             let decorator = decorators[i];
@@ -46,7 +43,7 @@ class DjeetaScriptEngine {
         let foundActionCounter = 1; // puts the attribute that CSS recognizes for highlighting
         let decorators = {};
         for(let i = 0; i < scriptSyntax.lines.length; i++) {
-            let line = scriptSyntax.lines[i];            
+            let line = scriptSyntax.lines[i];
             let lineNumber = i + 1;
 
             let lineDecorator = this.createLineDecorator();
@@ -58,10 +55,10 @@ class DjeetaScriptEngine {
                 let errorDecor = lineDecorator.createInlineDecorator(error.rawClip);
                 errorDecor.attr = {title: error.msg};
             }
-        
+
             if(scriptResults && scriptResults[lineNumber]) {
                 let lineResult = scriptResults[lineNumber];
-                
+
                 let isValid = true;
 
                 if(lineResult.when) {
@@ -76,11 +73,11 @@ class DjeetaScriptEngine {
                     lineDecorator.className = "invalid";
                     continue; // skip processing line and go to next.
                 }
-                
+
                 if(lineResult.when) {
-                    let whenDecor = lineDecorator.createInlineDecorator(lineResult.when.exp.rawClip);                                
-                    whenDecor.className = "valid when-exp";                                
-                }                
+                    let whenDecor = lineDecorator.createInlineDecorator(lineResult.when.exp.rawClip);
+                    whenDecor.className = "valid when-exp";
+                }
 
                 if(lineResult.find) {
                     let findDecor = lineDecorator.createInlineDecorator(lineResult.find.exp.rawClip);
@@ -89,22 +86,22 @@ class DjeetaScriptEngine {
                         findDecor.attr = { "name" : find.capture };
                     }
                 }
-                
+
                 for(let action of lineResult.actions) {
-                    let actionDecor = lineDecorator.createInlineDecorator(action.action.rawClip);                    
+                    let actionDecor = lineDecorator.createInlineDecorator(action.action.rawClip);
                     actionDecor.className = (action.isValid? "valid" : "invalid") + " action-exp";
                     if(action.isValid) {
                         actionDecor.attr = {"counter": foundActionCounter++};
                     }
                 }
-            }            
+            }
         }
         return decorators;
     }
 
     createLineDecorator() {
         let func = this.createInlineSyntaxDecorator;
-        return {            
+        return {
             inlines: [],
             createInlineDecorator: function(clip) {
                 let inline = func(clip);
@@ -113,19 +110,19 @@ class DjeetaScriptEngine {
             }
         }
     }
-    
+
     createInlineSyntaxDecorator(clip) {
         return  {
-            clip,            
+            clip,
             get pos() { return clip.pos },
             get length() { return clip.raw.length},
-            get end() { return clip.pos + this.length },        
+            get end() { return clip.pos + this.length },
         };
     }
 
     applyLineDecorator(rawLine, decorator) {
-        let div = $("<div></div>");        
-            
+        let div = $("<div></div>");
+
         if(decorator.className) {
             div.addClass(decorator.className);
         }
@@ -134,7 +131,7 @@ class DjeetaScriptEngine {
             div.attr(decorator.attr);
         }
 
-        this.applyInlineDecorators(div, rawLine, decorator.inlines);        
+        this.applyInlineDecorators(div, rawLine, decorator.inlines);
         return div;
     }
 
@@ -143,23 +140,23 @@ class DjeetaScriptEngine {
             parent.html(rawLine);
             return;
         }
-        
+
         decorators.sort((a, b) => a.pos - b.pos);
 
-        let lastEnd = 0;        
-        for(let i = 0; i < decorators.length; i++) {                        
-            let dec = decorators[i];            
+        let lastEnd = 0;
+        for(let i = 0; i < decorators.length; i++) {
+            let dec = decorators[i];
             if(lastEnd > dec.pos) {
                 console.log(`skipping decorator ${dec} due to overlapping positions`);
                 continue;
             }
             parent.append(document.createTextNode(rawLine.slice(lastEnd, dec.pos)));
-            let span  = $(`<span>${rawLine.slice(dec.pos, dec.end)}</span>`);            
+            let span  = $(`<span>${rawLine.slice(dec.pos, dec.end)}</span>`);
 
             if(dec.className) {
                 span.addClass(dec.className);
             }
-    
+
             if(dec.attr) {
                 span.attr(dec.attr);
             }
@@ -168,6 +165,6 @@ class DjeetaScriptEngine {
             lastEnd = dec.end;
         }
         parent.append(document.createTextNode(rawLine.slice(lastEnd, rawLine.length)));
-        
+
     }
 }
