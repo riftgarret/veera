@@ -77,7 +77,10 @@ function hookBattlePage() {
     });
 }
 
-function hookSupporterPage() {    
+function hookSupporterPage() {        
+    // this is because selecting a summon triggers this ping.
+    if(djeetaHandler.support.isRunning) return; 
+    
     console.log("hooking for support..");
     createAwaitPromise(
         ".btn-supporter",

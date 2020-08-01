@@ -11,19 +11,22 @@ class SummonAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        this.getSummon = (state) => {
+        this.getValidSummon = (state) => {
             return !isNaN(rawClip.raw)? state.getSummonByPos(Number(rawClip.raw)) 
-                        : state.getSummonByName(rawClip.raw);                    
+                        : state.summons.find(s => 
+                            s.name.toLowerCase().startsWith(rawClip.raw.toLowerCase())
+                            && s.isAvailable
+                        );
         }
 
         this.getSummonPosition = (state) => {
             return !isNaN(rawClip.raw)? Number(rawClip.raw)
-                        : state.getSummonByName(rawClip.raw).pos;
+                        : this.getValidSummon(state).pos;
         }
     }    
 
     actionMeta(state) {        
-        let summon =  this.getSummon(state) || {};
+        let summon =  this.getValidSummon(state) || {};
         
         return {
             action: "summon",
@@ -35,7 +38,7 @@ class SummonAction {
     
     isValid(state) {
         if(!state.summonsEnabled) return false;
-        let summon =  this.getSummon(state);
+        let summon =  this.getValidSummon(state);
         return summon && summon.isAvailable;        
     }
 }
@@ -65,11 +68,9 @@ class AbilityAction {
                 break;
         }    
     }
-
-
     
     findSkill(abilities) { 
-        return abilities.find(a => a.name.startsWith(this.abilityName)) 
+        return abilities.find(a => a.name.toLowerCase().startsWith(this.abilityName.toLowerCase())) 
     }    
     
 
