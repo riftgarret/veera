@@ -68,16 +68,15 @@ var _injectedScript = function injected(state) {
             hookMethod(obj, methodName, func) {
                 let orig = obj.__proto__[methodName];
 
-                if(this.hooks.includes(methodName)) {
-                    log(`already hooked ${methodName}`);
-                    return;
+                if(this.hooks.includes(methodName)) {                    
+                    return log(`already hooked ${methodName}`);
                 }
                 
                 let hooked = function() {                    
                     let result = orig.apply(this, arguments);                                                            
                     
                     try {
-                    func(Array.from(arguments), methodName, this);
+                        func(Array.from(arguments), methodName, this);
                     } catch(e) {
                         logError(`failed hookMethod: ${methodName}`, e);
                     }
@@ -149,7 +148,7 @@ var _injectedScript = function injected(state) {
                     log(`GameObj: ${game}`);
                     self.hookForProp(game, "view", (v) => self.hookView(v), false);                                
                     self.muteProp(game, "reportError");
-                });                
+                });
             }
 
             muteProp(obj, prop) {

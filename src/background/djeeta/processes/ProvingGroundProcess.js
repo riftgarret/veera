@@ -30,4 +30,12 @@ class ProvingGroundProcess extends ModularProcess {
             this.requestContentPing();
         }        
     }
+
+    onNewBattle() {
+        let boss = this.state.bosses[0];
+        this.updateScriptProps(this.scriptName, {
+            boss: boss.name,
+            element: boss.attr
+        });
+    }
 }

@@ -703,67 +703,56 @@ input:checked + .slider:before {
     display: block;
 }
 
-#dialog-container {
-    display: none;
-    position: absolute;
+#script-editor-scriptname {
+    color: lightgreen;
+    font-weight: bold;
+}
+
+#table-dialog {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;    
     background-color: #2c2c30;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);    
-    z-index: 1;    
-    grid-template-rows: auto 160px auto;
-    grid-template-columns: 1fr auto;
-    grid-template-areas: 
-        "title close"
-        "list list"
-        "prompt button";
-    column-gap: 6px;
-    row-gap: 4px;
+    z-index: 1;        
     padding: 4px;
     border: 1px solid white;
 }
 
-#dialog-container.show {
-    display: grid;
+#table-dialog ::-webkit-scrollbar {
+    display: block;    
+    background-color: lightslategrey;
 }
 
-#dialog-container .list {
-    overflow-y: scroll;      
-    grid-area: list;
+#table-dialog ::-webkit-scrollbar-thumb {
+    background: darkslategray;
+}
+
+#table-dialog div {
+    flex-grow: 1;
+    overflow-y: scroll;           
     padding: 2px;
     border: 0.5px dotted #bbb;
 }
 
-#dialog-container .button {
-    grid-area: button;
-    padding: 4px 10px;
+#table-dialog table {
+    width: 100%
 }
 
-#dialog-container .close {
-    grid-area: close;
-    padding: 2px 8px;    
-    justify-self: end;
-    align-self: center;
+#table-dialog th {
     cursor: pointer;
 }
 
-#dialog-container .title {
-    grid-area: title;
-}
-
-#dialog-container .prompt {
-    grid-area: prompt;    
-}
-
-#dialog-container .list > a {
-    float: none;
+#table-dialog tr {    
     padding: 4px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
+    text-decoration: none;    
+    color: antiquewhite;
 }
 
-#dialog-container .list > a:hover {
+#table-dialog tr:hover {
     background-color: #444;
+    cursor: pointer; 
 }
 
 /* Rounded sliders */

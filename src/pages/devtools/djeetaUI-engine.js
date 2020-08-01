@@ -1,18 +1,33 @@
 "use strict";
 
-UI.djeeta.runner = {
+class DjeetaScriptEngine {
+    scripts
+    constructor(scripts) {
+        this.scripts = scripts;
+    }
+
+    init() {
+        $('#toggle-combat-script > input').change((e) => {
+            let enable = $(e.target).prop('checked');
+            BackgroundPage.send("djeetaCombatScriptEnabled", enable)                
+        });
+    }
+
+    updateCombatScriptToggle(enable) {
+        $('#toggle-combat-script > input').prop('checked', enable);    
+    }
     
-    loadScriptRunner: function(scriptSyntax) {                
+    loadScriptRunner(scriptSyntax) {                
         console.log("load syntax");        
         this.inflateScriptRunnerHtml(scriptSyntax);
-    },
+    }
 
-    applyScriptEvaluation: function({evaluation, evaluator}) {
+    applyScriptEvaluation({evaluation, evaluator}) {
         console.log("load script result");
         this.inflateScriptRunnerHtml(evaluator, evaluation.results);
-    },
+    }
 
-    inflateScriptRunnerHtml: function(scriptSyntax, scriptResults) {        
+    inflateScriptRunnerHtml(scriptSyntax, scriptResults) {        
         let decorators = this.generateDecorators(scriptSyntax, scriptResults);        
         
         let parent = $("#script-runner");
@@ -25,9 +40,9 @@ UI.djeeta.runner = {
 
             parent.append(div);
         }
-    },
+    }
 
-    generateDecorators: function(scriptSyntax, scriptResults) {
+    generateDecorators(scriptSyntax, scriptResults) {
         let foundActionCounter = 1; // puts the attribute that CSS recognizes for highlighting
         let decorators = {};
         for(let i = 0; i < scriptSyntax.lines.length; i++) {
@@ -85,9 +100,9 @@ UI.djeeta.runner = {
             }            
         }
         return decorators;
-    },
+    }
 
-    createLineDecorator: function() {
+    createLineDecorator() {
         let func = this.createInlineSyntaxDecorator;
         return {            
             inlines: [],
@@ -97,18 +112,18 @@ UI.djeeta.runner = {
                 return inline;
             }
         }
-    },
+    }
     
-    createInlineSyntaxDecorator: function(clip) {
+    createInlineSyntaxDecorator(clip) {
         return  {
             clip,            
             get pos() { return clip.pos },
             get length() { return clip.raw.length},
             get end() { return clip.pos + this.length },        
         };
-    },
+    }
 
-    applyLineDecorator: function(rawLine, decorator) {
+    applyLineDecorator(rawLine, decorator) {
         let div = $("<div></div>");        
             
         if(decorator.className) {
@@ -121,9 +136,9 @@ UI.djeeta.runner = {
 
         this.applyInlineDecorators(div, rawLine, decorator.inlines);        
         return div;
-    },
+    }
 
-    applyInlineDecorators: function(parent, rawLine, decorators) {
+    applyInlineDecorators(parent, rawLine, decorators) {
         if(!decorators || decorators.length == 0) {
             parent.html(rawLine);
             return;
@@ -156,5 +171,3 @@ UI.djeeta.runner = {
         
     }
 }
-
-UI.djeeta.scripts.init();

@@ -58,6 +58,7 @@
                  "src/background/tools.js",                       
                  "src/background/djeeta/constants.js",
                  "src/background/djeeta/utils.js",
+                 "src/lib/djeeta-script-manager.js",
                  "src/background/djeeta/modules/BaseModule.js",                 
                  "src/background/djeeta/modules/RepeatModule.js",                 
                  "src/background/djeeta/modules/CombatModule.js",

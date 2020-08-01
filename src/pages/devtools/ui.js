@@ -59,6 +59,8 @@ window.UI = {
         document.getElementById("raids-panel").addEventListener("filter", evhRaidsFilter);
 
         document.addEventListener("change", evhGlobalSettingChange);
+        // select djeeta
+        $(`.nav-tab[data-navpage="djeeta"]`).trigger("click");
     },
 
     time: {

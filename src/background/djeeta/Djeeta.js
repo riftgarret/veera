@@ -1,6 +1,7 @@
 "use strict";
 class Djeeta {    
     state = new DjeetaState();
+    scriptManager = new DjeetaScriptManager();
     pageMeta = new PageMeta();
     currentPage = Page.UNKNOWN;
     parse = new DjeetaParser();
@@ -59,6 +60,7 @@ class Djeeta {
         
         if(this.state.isNewBattle(oldToken)) {
             this.reset();
+            this.scriptRunner.onNewBattle();
         }
 
         this.pushDevState();        
@@ -297,10 +299,10 @@ quest_name: "Level 50 Vohu Manah"
     }
 
     // script calls
-    loadScript(script) {        
+    loadScript(scriptName) {        
         let foundError;
         try {
-            this.scriptRunner.loadScript(script);    
+            this.scriptRunner.loadScript(scriptName);    
         } catch(e) {
             console.error(e);
             foundError = e;            

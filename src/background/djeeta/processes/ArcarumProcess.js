@@ -29,10 +29,19 @@ class ArcarumProcess extends ModularProcess {
 
         if(ret.action == "arcSelectParty") {
             const me = this;
+            this.currentScriptName = ret.script;
             this.combat.loadScriptName(ret.script)
                 .catch((e) => me.abort("failed to load combat script."));
         }
         
         return ret;
+    }
+
+    onNewBattle() {
+        let boss = this.state.bosses[0];
+        this.updateScriptProps(this.currentScriptName, {
+            boss: boss.name,
+            element: boss.attr
+        });
     }
 }

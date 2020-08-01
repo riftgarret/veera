@@ -67,4 +67,10 @@ class MasterProcess {
         if(this.hasEnded) return;        
         this.curProcess.postProcessCombatAction(actionMeta); 
     }
+
+    onNewBattle() {
+        if(this.hasEnded) return;     
+        if(!this.curProcess.onNewBattle) return;   
+        this.curProcess.onNewBattle(); 
+    }
 }

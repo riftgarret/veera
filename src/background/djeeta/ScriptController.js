@@ -26,6 +26,7 @@ class ScriptController {
         this.mind.djeetaUI.updateScriptToggle(val);
      }
     
+    scriptMeta = undefined;
     expectedNavigation = undefined;
     mind = undefined;
     sharedApi = undefined;       
@@ -53,11 +54,21 @@ class ScriptController {
         }
     }    
 
-    loadScript(rawScript) {
-        this.isRunning = false;
-        this.process = ScriptReader.readScript(rawScript);                    
-        this.process.attachAPI(this.sharedApi);
-        this.process.loadResources();
+    updateScriptProps(name, props) {        
+        return this.mind.scriptManager.updateScriptProps(name, props)
+            .then(() => updateUI("djeeta", {type: "refreshScript", data: name}))
+    }
+
+    loadScript(scriptName) {
+        this.isRunning = false;  
+        
+        this.mind.scriptManager.findScript(scriptName)
+            .then((meta) => {
+                this.scriptMeta = meta;
+                this.process = ScriptReader.readScript(meta.script);
+                this.process.attachAPI(this.sharedApi);
+                this.process.loadResources();
+            });        
     }
 
     disableScriptAndNotifyUI(uiConsoleMsg) {
@@ -84,7 +95,7 @@ class ScriptController {
     }
 
     onActionRequested(data) {
-        let process = this.process || {};
+        let process = this.process;
 
         let result = process.onActionRequested(data);
 
@@ -177,7 +188,22 @@ class ScriptController {
         if(!this.isRunning) return;
         if(!this.process.postProcessCombatAction) return;
 
-        this.process.postProcessCombatAction(actionMeta);
+        this.process.postProcessCombatAction(actionMeta);        
+    }
+
+    onNewBattle() {
+        if(!this.isRunning) return;
+        if(!this.scriptMeta) return;
+
+        let boss = this.state.bosses[0];
+        this.updateScriptProps(this.scriptMeta.name, {
+            boss: boss.name,
+            element: boss.attr
+        }).then(() => { // daisy chained to avoid script having race conditions.
+            if(this.process.onNewBattle) {
+                this.process.onNewBattle();
+            }
+        })                
     }
     
     reset() {
