@@ -14,15 +14,12 @@ class CombatModule extends BaseModule {
     }
 
     loadScriptName(scriptName) {
-        const me = this;
-        this.scriptName = scriptName;
-        return new Promise((r) =>
-            Storage.get({djeeta_scripts: []}, (data) => r(data.djeeta_scripts)))
-                .then(metas => metas.find(meta => meta.name == scriptName))
-                .then((meta) => {
-                    if(!meta) throw Error(`Missing script: ${scriptName}`);
-                    me.loadScript(meta.script);
-                });
+        const self = this;
+        return ScriptManager.findScript(scriptName)
+            .then(meta => {
+                if(!meta) throw Error(`Missing script: ${scriptName}`);
+                self.loadScript(meta.script, meta.name);
+            });
     }
 
     onNewRound() {
@@ -164,8 +161,18 @@ class CombatModule extends BaseModule {
             }
         }
 
+        let possibleRefreshNavigation = (e) =>
+            e.event == "refresh"
+            || (e.event == "navigate" && e.page == Page.REWARD)
+            || (e.event == "navigate" && e.page == Page.STAGE_HANDLER);
+
         if(actionMeta.action == "attack" && !wonFight && this.config.refreshOnAttack) {
             this.requestGameRefresh();
+            this.prepareGameNavigation([
+                possibleRefreshNavigation,
+                possibleRefreshNavigation,
+                possibleRefreshNavigation
+            ]);
         }
     }
 }

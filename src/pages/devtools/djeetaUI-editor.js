@@ -45,6 +45,9 @@ class DjeetaScriptEditor {
             .then(newMeta => {
                 consoleUI(`${newMeta.name} Updating script ${name}.`)
                 self.currentMeta = newMeta;
+                if(newMeta.type == "master") {
+                    $("#script-engine-master-scriptname").html(name);
+                }
             }).then(() => {
                 BackgroundPage.send("djeetaScriptLoad", name);
                 $(".nav-tab[data-navpage=\"script-runner-container\"]").trigger("click");
@@ -68,9 +71,10 @@ class DjeetaScriptEditor {
                     return;
                 }
 
-                ScriptManager.saveScript(name, { script }, true).then(() => {
+                ScriptManager.saveScript(name, { script }, true)
+                .then(newMeta => {
                     consoleUI(`${name} Saved.`)
-                    self.currentMeta = meta;
+                    self.currentMeta = newMeta;
                 });
             };
 

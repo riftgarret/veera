@@ -14,13 +14,13 @@ class DjeetaScriptEngine {
 
     loadScriptRunner(scriptSyntax, name) {
         console.log("load syntax");
-        $("#script-engine-scriptname").html(name);
+        $("#script-engine-combat-scriptname").html(name);
         this.inflateScriptRunnerHtml(scriptSyntax);
     }
 
     applyScriptEvaluation({name, evaluation, evaluator}) {
         console.log("load script result");
-        $("#script-engine-scriptname").html(name);
+        $("#script-engine-combat-scriptname").html(name);
         this.inflateScriptRunnerHtml(evaluator, evaluation.results);
     }
 

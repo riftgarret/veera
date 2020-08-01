@@ -703,7 +703,7 @@ input:checked + .slider:before {
     display: block;
 }
 
-#script-editor-scriptname, #script-engine-scriptname {
+#script-editor-scriptname, #script-engine-combat-scriptname, #script-engine-master-scriptname {
     color: lightgreen;
     font-weight: bold;
 }

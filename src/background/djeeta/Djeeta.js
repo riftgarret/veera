@@ -389,7 +389,7 @@ quest_name: "Level 50 Vohu Manah"
                 newPage = Page.PG_LANDING;
                 break;
             case hash == "#quest/stage":
-            case /\#quest\/index\/\d+/.test(hash):
+            case hash.startsWith("#quest/index"):
                 newPage = Page.STAGE_HANDLER;
                 break;
             case hash == "#arcarum2":

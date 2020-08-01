@@ -196,7 +196,7 @@ class ScriptController {
         if(!this.isRunning) return;
         if(!this.scriptMeta) return;
 
-        let boss = this.state.bosses[0];
+        let boss = this.mind.state.bosses[0];
         this.updateScriptProps(this.scriptMeta.name, {
             boss: boss.name,
             element: boss.attr
