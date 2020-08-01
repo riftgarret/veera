@@ -18,11 +18,11 @@ class CombatBot extends BaseBot {
     }
 
     get isAttackButtonVisible() {
-        return $('div.btn-attack-start.display-off').length > 0;
+        return $('div.btn-attack-start.display-on').length > 0;
     }
           
     async clickAttack() {
-        return await $('div.btn-attack-start').gbfClick();
+        return await $('div.btn-attack-start.display-on').gbfClick();
     }
     
     async clickCharacterPortrait(charIndex) {
@@ -39,7 +39,8 @@ class CombatBot extends BaseBot {
 
     isSkillIconAvailable(skillId) {
         let button = $(`.lis-ability > div[ability-id="${skillId}"]`);
-        return button.hasClass("btn-ability-available") && !button.hasClass("tmp-mask");
+        let parent = button.parent(".lis-ability");
+        return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
     
     async clickRequestBackup() {
@@ -74,11 +75,7 @@ class CombatBot extends BaseBot {
                 console.warn("missing popup skill option impl");
                 return false;
         }            
-    }
-    
-    isSkillAvailable(skillIndex, charIndex) {
-        return $(`div[pos="${charIndex + 1}"].prt-command-chara div.lis-ability:nth-of-type(${skillIndex + 1}).btn-ability-available`).is(":visible");
-    }
+    }    
     
     async clickHoldCA() {
         return await $(`div.btn-lock`).gbfClick();
@@ -189,7 +186,7 @@ class CombatExecutor extends BaseExecutor {
                         // will reset the UI in this phase. lets requeue.
                         this.skill(action);
                         runner.abort();
-                    };
+                    };                    
                 },
                 () => !bot.isSkillIconAvailable(action.id)
             );

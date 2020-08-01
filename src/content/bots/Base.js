@@ -28,7 +28,11 @@ class BaseBot {
 
 class BaseExecutor {    
     runnerQueue = [];
-    runner = undefined    
+    runner = undefined   
+    
+    get isRunning() {
+        return this.runner && !this.runner.isComplete;
+    }
 
     queue(func) {
         this.runnerQueue.push(new Runner(func));
