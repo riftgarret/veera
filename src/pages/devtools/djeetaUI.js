@@ -56,8 +56,8 @@ class DevToolDjeeta {
                 this.runner.applyScriptEvaluation(msg.data);
                 break;
 
-            case "toggleCombatScriptUI":
-                this.runner.updateCombatScriptToggle(msg.data);
+            case "updateValue":
+                this.updateUIValue(msg.data);
                 break;
 
             case "consoleMessage":
@@ -78,6 +78,20 @@ class DevToolDjeeta {
                 $("#script-runner").text(msg.data);
                 break;
         }
+    }
+
+    updateUIValue(props) {
+        for(let prop in props) {
+            let val = props[prop];
+            switch(prop) {
+                case "scriptToggle":
+                    this.runner.updateCombatScriptToggle(val);
+                    break;
+                case "autoLoadToggle":
+                    this.runner.updateAutoLoadToggle(val);
+            }
+        }
+
     }
 
     updateActionQueue(actionList) {

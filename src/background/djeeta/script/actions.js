@@ -1,19 +1,12 @@
 "use strict";
 
-class BaseAction {
-    
-    actionMeta() { throw Error(`${this.__proto__} Not implemented`) }
-
-    isValid() { throw Error(`${this.__proto__} Not implemented`) }
-}
-
 class SummonAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
         this.getValidSummon = (state) => {
-            return !isNaN(rawClip.raw)? state.getSummonByPos(Number(rawClip.raw)) 
-                        : state.summons.find(s => 
+            return !isNaN(rawClip.raw)? state.getSummonByPos(Number(rawClip.raw))
+                        : state.summons.find(s =>
                             s.name.toLowerCase().startsWith(rawClip.raw.toLowerCase())
                             && s.isAvailable
                         );
@@ -23,11 +16,11 @@ class SummonAction {
             return !isNaN(rawClip.raw)? Number(rawClip.raw)
                         : this.getValidSummon(state).pos;
         }
-    }    
+    }
 
-    actionMeta(state) {        
+    actionMeta(state) {
         let summon =  this.getValidSummon(state) || {};
-        
+
         return {
             action: "summon",
             name: summon.name,
@@ -35,11 +28,11 @@ class SummonAction {
             id: summon.id
         };
     }
-    
+
     isValid(state) {
         if(!state.summonsEnabled) return false;
         let summon =  this.getValidSummon(state);
-        return summon && summon.isAvailable;        
+        return summon && summon.isAvailable;
     }
 }
 
@@ -56,9 +49,9 @@ class AbilityAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
         let abilitySplit = rawClip.raw.split(",");
-        this.abilityName = abilitySplit[0];        
+        this.abilityName = abilitySplit[0];
         switch(abilitySplit.length) {
-            case 2:            
+            case 2:
                 let target = abilitySplit[1];
                 let targetEval = new CharacterEval(rawClip.subClip(target, this.abilityName.length));
                 this.findTarget = (state) => targetEval.eval(state);
@@ -66,13 +59,13 @@ class AbilityAction {
             case 3:
                 this.subParams = [Number(abilitySplit[1]), Number(abilitySplit[2])];
                 break;
-        }    
+        }
     }
-    
-    findSkill(abilities) { 
-        return abilities.find(a => a.name.toLowerCase().startsWith(this.abilityName.toLowerCase())) 
-    }    
-    
+
+    findSkill(abilities) {
+        return abilities.find(a => a.name.toLowerCase().startsWith(this.abilityName.toLowerCase()))
+    }
+
 
     actionMeta(state) {
         let skill = this.findSkill(state.abilities) || {};
@@ -101,7 +94,7 @@ class AbilityAction {
     isValid(state) {
         let skill = this.findSkill(state.abilities);
 
-        if(!skill) return false;        
+        if(!skill) return false;
 
         let target = this.findTarget? this.findTarget(state) : undefined;
         let targetInFront = target? state.formation.includes(target.charIndex) : false;
@@ -118,37 +111,37 @@ class AbilityAction {
                 if(!this.subParams) return false;
                 break;
             case GBFC.PICK.RESURRECTION:
-                if(!target || target.alive) return false;                                
+                if(!target || target.alive) return false;
                 break;
             case GBFC.PICK.ATTRIBUTE_SINGLE_EXCEPT_OWN:
                 if(!target || target.charIndex == skill.charIndex || !targetInFront) return false;
-                break;            
+                break;
             default: // all other cases should be picking single character, alive, and in formation
                 if(!target || !target.alive || !targetInFront) return false;
-                break;            
+                break;
         }
-        
-        return skill.recast == 0;        
-    }    
+
+        return skill.recast == 0;
+    }
 };
 
 class UseItemAction {
     constructor(rawClip) {
-        this.rawClip = rawClip;        
+        this.rawClip = rawClip;
 
         let split = rawClip.raw.split(",");
-        this.itemType = split[0];        
+        this.itemType = split[0];
         switch(split.length) {
-            case 2:            
+            case 2:
                 let target = split[1];
                 let targetEval = new CharacterEval(rawClip.subClip(target, this.itemType.length));
                 this.findTarget = (state) => targetEval.eval(state);
                 break;
         }
     }
-    
 
-    actionMeta(state) {        
+
+    actionMeta(state) {
         let ret = {
             action: "useItem",
             value: this.itemType
@@ -167,7 +160,7 @@ class UseItemAction {
         return char.hp >= char.hpMax;
     }
 
-    isPartyFullLife(state) {        
+    isPartyFullLife(state) {
         for(let i = 0; i < 4; i++) {
             let char = state.getCharAtPos(i);
             if(char.alive && !this.isFullLife(char)) {
@@ -198,9 +191,9 @@ class UseItemAction {
             case "blue":
                 if(!state.items.bluePotions) return false;
                 return !this.isPartyFullLife(state) && !this.isPartyDead(state);
-            default: 
+            default:
                 return false;
-        }        
+        }
     }
 }
 
@@ -209,17 +202,17 @@ class HoldCAAction {
         this.rawClip = rawClip;
 
         this.shouldHoldCA = () => rawClip.raw == "1" || rawClip.raw == "true";
-    }    
-
-    actionMeta(state) {        
-        return {
-            action: "holdCA",
-            value: this.shouldHoldCA()        
-        } 
     }
 
-    isValid(state) { 
-        return state.isHoldingCA != this.shouldHoldCA(); 
+    actionMeta(state) {
+        return {
+            action: "holdCA",
+            value: this.shouldHoldCA()
+        }
+    }
+
+    isValid(state) {
+        return state.isHoldingCA != this.shouldHoldCA();
     }
 }
 
@@ -229,7 +222,7 @@ class RequestBackupAction {
 
         this.backupArray = rawClip.raw.split(",").map(x => Number(x.trim()));
     }
-    
+
 
     actionMeta(state) {
         // for now ignore

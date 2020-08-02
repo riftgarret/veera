@@ -7,21 +7,21 @@ window.DevTools = {
     },
     connected(port) {
         let self = DevTools;
-        switch(port.name) {            
+        switch(port.name) {
             case "devtools-page": {
-                console.log("Onee-sama!", port);        
+                console.log("Onee-sama!", port);
                 self.connection = port;
                 port.onMessage.addListener(hear);
                 port.onDisconnect.addListener(self.deafen);
-                chrome.runtime.onMessage.addListener(hearQuery);                
+                chrome.runtime.onMessage.addListener(hearQuery);
                 window.dispatchEvent(new Event(EVENTS.connected));
                 break;
             }
             case "content-page": {
                 ContentTab.connected(port);
                 break;
-            }            
-        }                        
+            }
+        }
     },
     deafen() {
         let self = DevTools;
@@ -47,15 +47,15 @@ window.DevTools = {
     query(key) {
         return new Promise(r => chrome.runtime.sendMessage({source: "bg", query: key}, ret => r(ret.value)));
     }
-}; 
+};
 
 window.ContentTab = {
-    connection: null, 
-    connected(port) {            
-        console.log("Djeeta-sama!", port);        
+    connection: null,
+    connected(port) {
+        console.log("Djeeta-sama!", port);
         this.connection = port;
         port.onMessage.addListener(hearContent);
-        port.onDisconnect.addListener(self.deafen);                
+        port.onDisconnect.addListener(self.deafen);
     },
     deafen() {
         let self = ContentTab;
@@ -96,7 +96,7 @@ function hear(msg, sender) {
     if(sender.tab && sender.tab.id) {
         console.log("sender data: " + sender.tab.id);
     }
-    
+
     switch (msg.action) {
         case "request":
             // JSON
@@ -140,7 +140,7 @@ function hear(msg, sender) {
                         gotQuestLoot(msg.data.json);
                         getPendantsRaid(msg.data.json);
                         break;
-                    case path.ismatch("rest/arcarum/stage"):                                                
+                    case path.ismatch("rest/arcarum/stage"):
                     case path.ismatch("rest/board/stage"):
                     case path.ismatch("rest/arcarum/open_gatepost"):
                     case path.ismatch("rest/arcarum/move_division"):
@@ -148,10 +148,10 @@ function hear(msg, sender) {
                         if (msg.data.json.notice_effect && msg.data.json.notice_effect.show_open_red_chest) {
                             gotQuestLoot(msg.data.json.notice_effect.show_open_red_chest);
                         }
-                        DjeetaMind.onArcStage(msg.data.json); 
+                        DjeetaMind.onArcStage(msg.data.json);
                         break;
                     case /sequenceraid\d+\/reward\/content\/index/.test(path):
-                        gotQuestLoot(msg.data.json);                        
+                        gotQuestLoot(msg.data.json);
                         break;
                     case path.ismatch("rest/arcarum/start_stage"):
                         startAcra(msg.data.json);
@@ -179,22 +179,22 @@ function hear(msg, sender) {
                     case path.ismatch("rest/raid/ability_result.json"):
                     case path.ismatch("rest/multiraid/ability_result.json"):
                         battleUseAbility(msg.data.json, msg.data.postData);
-                        DjeetaMind.onCombatSkill(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatSkill(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("rest/raid/normal_attack_result.json"):
                     case path.ismatch("rest/multiraid/normal_attack_result.json"):
                         battleAttack(msg.data.json);
-                        DjeetaMind.onCombatAttack(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatAttack(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("rest/raid/summon_result"):
                     case path.ismatch("rest/multiraid/summon_result"):
                         battleUseSummon(msg.data.json);
-                        DjeetaMind.onCombatSummonCall(msg.data.postData, msg.data.json);                        
+                        DjeetaMind.onCombatSummonCall(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("rest/raid/start"):
                     case path.ismatch("rest/multiraid/start"):
                         Battle.reset(msg.data.json);
-                        DjeetaMind.onCombatStart(msg.data.json);                        
+                        DjeetaMind.onCombatStart(msg.data.json);
                         break;
                     case path.ismatch("rest/multiraid/chat_result"):
                         DjeetaMind.onCombatChat(msg.data.postData, msg.data.json);
@@ -211,7 +211,7 @@ function hear(msg, sender) {
 
                     case /lobby\/content\/room\/\d+\/0/.test(path):
                         DjeetaMind.onCoopLanding(msg.data.json.option);
-                        break;         
+                        break;
                     case path.ismatch("rest/lobby/refresh_data"):
                         DjeetaMind.onCoopLanding(msg.data.json);
                         break;
@@ -246,13 +246,13 @@ function hear(msg, sender) {
                     case path.ismatch("quest/user_item"):
                     case path.ismatch("item/use_normal_item"):
                         useRecoveryItem(msg.data.json);
-                        break; 
+                        break;
                     case path.ismatch("rest/quest/decks_info"):
                         DjeetaMind.onPartyDeckShown(msg.data.json);
                         break;
                     case path.ismatch("/temporary_item_result"):
                         DjeetaMind.onItemUse(msg.data.postData, msg.data.json);
-                        break;                   
+                        break;
                     case path.ismatch("casino/exchange"):
                     case path.ismatch("shop_exchange/purchase"):
                     case path.ismatch("rest/sidestory/purchase"):
@@ -395,24 +395,28 @@ function hear(msg, sender) {
         case "djeetaScriptLoad":
             DjeetaMind.loadScript(msg.data);
             break;
-            
+
         case "djeetaCombatScriptEnabled":
             DjeetaMind.enableScript(msg.data);
+            break;
+
+        case "djeetaAutoLoadEnabled":
+            DjeetaMind.enableDetectAutoLoad(msg.data);
             break;
     }
 }
 
 function hearContent(msg, sender) {
-    
+
 }
 
 function hearQuery(data, sender, respond) {
     devlog("Query rcv: ", data);
     let retValue;
     switch(data.source) {
-        case "ui": {            
+        case "ui": {
             switch (data.query) {
-                case "version": 
+                case "version":
                     retValue = chrome.app.getDetails().version;
                     break;
 
@@ -427,16 +431,16 @@ function hearQuery(data, sender, respond) {
                 case "xxx":
                     retValue = null;
                     break;
-            }                       
+            }
         }
         break;
-        
-        case "content": {            
-            switch (data.query) {                
+
+        case "content": {
+            switch (data.query) {
                 case "djeetaRequestAction":
                     retValue = DjeetaMind.onContentRequestAction(data.val);
                     break;
-            }            
+            }
         }
         break;
     }
@@ -446,5 +450,5 @@ function hearQuery(data, sender, respond) {
         query: data.query,
         value: retValue
     });
-    
+
 }

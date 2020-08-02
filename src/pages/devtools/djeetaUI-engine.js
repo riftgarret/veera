@@ -6,10 +6,19 @@ class DjeetaScriptEngine {
             let enable = $(e.target).prop('checked');
             BackgroundPage.send("djeetaCombatScriptEnabled", enable)
         });
+
+        $('#toggle-auto-detect-script > input').change((e) => {
+            let enable = $(e.target).prop('checked');
+            BackgroundPage.send("djeetaAutoLoadEnabled", enable)
+        });
     }
 
     updateCombatScriptToggle(enable) {
         $('#toggle-combat-script > input').prop('checked', enable);
+    }
+
+    updateAutoLoadToggle(enable) {
+        $('#toggle-auto-detect-script > input').prop('checked', enable);
     }
 
     loadScriptRunner(scriptSyntax, name) {

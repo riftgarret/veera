@@ -23,9 +23,20 @@ class ScriptController {
                 action: "abortScript"
             });
         }
-        this.mind.djeetaUI.updateScriptToggle(val);
-     }
+        this.mind.djeetaUI.updateValue({"scriptToggle": val});
+    }
 
+    _autoLoadCombat = false;
+    get autoLoadCombat() { return this._autoLoadCombat }
+    set autoLoadCombat(val) {
+        if(val == this._autoLoadCombat) return;
+        this._autoLoadCombat = val;
+        this.mind.djeetaUI.updateScriptToggle(val);
+        if(this.pageMeta.page == Page.COMBAT) {
+            this.findAndLoadCurrentCombatScript();
+        }
+        this.mind.djeetaUI.updateValue({"autoLoadToggle": val});
+    }
     scriptMeta = undefined;
     expectedNavigation = undefined;
     mind = undefined;
@@ -33,6 +44,10 @@ class ScriptController {
     process = undefined;
     get pageMeta() {
         return this.mind.pageMeta;
+    }
+
+    get state() {
+        return this.mind.state;
     }
 
     constructor(mind) {
@@ -59,17 +74,28 @@ class ScriptController {
         return ScriptManager.saveScript(name, props)
     }
 
-    loadScript(scriptName) {
+    loadScript(script) {
         this.isRunning = false;
 
-        ScriptManager.findScript(scriptName)
-            .then((meta) => {
-                this.scriptMeta = meta;
-                this.process = ScriptReader.readScript(meta.script);
-                this.process.name = meta.name;
-                this.process.attachAPI(this.sharedApi);
-                this.process.loadResources();
-            });
+        let processScript = (meta) => {
+            this.scriptMeta = meta;
+            this.process = ScriptReader.readScript(meta.script);
+            this.process.name = meta.name;
+            this.process.attachAPI(this.sharedApi);
+            this.process.loadResources();
+            if(meta.type == "master") {
+                this.autoLoadCombat = false;
+            }
+        }
+
+        switch(typeof(script)) {
+            case "string":
+                ScriptManager.findScript(script).then(processScript);
+                break;
+            case "object":
+                processScript(script);
+                break;
+        }
     }
 
     disableScriptAndNotifyUI(uiConsoleMsg) {
@@ -77,7 +103,6 @@ class ScriptController {
             this.mind.djeetaUI.sendConsoleMessage(uiConsoleMsg);
         }
         this.isRunning = false;
-        this.mind.djeetaUI.updateScriptToggle(false);
     }
 
     consumePing = false;
@@ -193,10 +218,14 @@ class ScriptController {
     }
 
     onNewBattle() {
-        if(!this.isRunning) return;
-        if(!this.scriptMeta) return;
+        if(!this.isRunning) {
+            if(this.autoLoadCombat) {
+                this.findAndLoadCurrentCombatScript();
+            }
+            return;
+        }
 
-        let boss = this.mind.state.bosses[0];
+        let boss = this.state.bosses[0];
         this.updateScriptProps(this.scriptMeta.name, {
             boss: boss.name,
             element: boss.attr
@@ -205,6 +234,23 @@ class ScriptController {
                 this.process.onNewBattle();
             }
         })
+    }
+
+    findAndLoadCurrentCombatScript() {
+        if(this.isRunning) return // notify cannot load while running;
+        if(this.pageMeta.page != Page.COMBAT) return;
+        let boss = this.state.bosses[0];
+        if(!boss) return;
+
+        ScriptManager.getScripts()
+            .then(metas => {
+                let scripts = metas.filter(meta => meta.boss == boss.name && meta.type == "combat");
+                if(scripts.length == 0) return;
+                let timestamps = scripts.map(meta => meta.used)
+                timestamps.sort();
+                let foundMeta = scripts.find(meta => meta.used == timestamps[timestamps.length - 1]);
+                this.loadScript(foundMeta);
+            });
     }
 
     reset() {
