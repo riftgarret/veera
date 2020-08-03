@@ -5,7 +5,7 @@ class SupportBot extends BaseBot {
         $(".btn-supporter").each((idx, el) => {
             let e = $(el);
             let nameMetaSplit = e.find('.prt-supporter-summon').text().trim().splitEx(" ", 2);
-            let meta = { 
+            let meta = {
                 e,
                 isTopFriend: e.index() == 0,    // easy assumption theres no way for 1st slot to not be friend
                 isFriend: e.find('.ico-friend').length > 0,
@@ -24,6 +24,10 @@ class SupportBot extends BaseBot {
     getCostMeta() {
         // returns "AP", "134", "103"
         let split = $('.prt-stamina .txt-stamina, .txt-confirm-ap').text().match(/\w+|-?[0-9]+/g);
+        if(!split || split.length < 3) {  // most likely coop situation
+            return {type: "coop", current: 0, after: 0}
+        }
+
         return {
             type: split[0],
             current: Number(split[1]),
@@ -49,9 +53,9 @@ class SupportExecutor extends BaseExecutor {
             let candidates = [];
             const ANY_STAR = -1;
             let targetSummons = actionMeta.summons.map(summon => summon.toLowerCase());
-            
+
             // create candiates by bringing over and assigning them priority based on index of array of support summons to use.
-            for(let meta of supportArrayMeta) {            
+            for(let meta of supportArrayMeta) {
                 for(let i=0; i < targetSummons.length; i++) {
                     if(meta.name.toLowerCase().indexOf(targetSummons[i]) > -1) {
                         meta.priority = targetSummons.length - i;
@@ -61,7 +65,7 @@ class SupportExecutor extends BaseExecutor {
                         candidates.push(meta);
                         break;
                     }
-                }            
+                }
             }
 
             if(candidates.length == 0) {
@@ -72,9 +76,9 @@ class SupportExecutor extends BaseExecutor {
 
             candidates.sort((a, b) => {
                 // sort priority:
-                // star, name (priority), friend, isTop         
-                if(a.priority - b.priority != 0) return a.priority - b.priority;    
-                if(a.star - b.star != 0) return a.star - b.star;            
+                // star, name (priority), friend, isTop
+                if(a.priority - b.priority != 0) return a.priority - b.priority;
+                if(a.star - b.star != 0) return a.star - b.star;
                 if(a.isFriend != b.isFriend) return a.isFriend? 1 : -1;
                 if(a.isTopFriend != b.isTopFriend) return a.isTopFriend? 1 : -1;
                 return 0;

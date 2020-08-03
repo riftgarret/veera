@@ -1,6 +1,6 @@
 "use strict";
 class CoopModule extends BaseModule {
-    
+
     constructor(behavior = Behavior.DEFAULT) {
         super();
         this.behavior = behavior;
@@ -14,7 +14,7 @@ class CoopModule extends BaseModule {
         return this.pageMeta.meta.room_quest_setting;
     }
 
-    onActionRequested(data) {        
+    onActionRequested(data) {
         switch(data.event) {
             case "init": {
                 return this.getInitialAction();
@@ -24,7 +24,7 @@ class CoopModule extends BaseModule {
                 this.prepareCoopNavigation();
                 return {action: "idle"}
             }
-        }        
+        }
     }
 
     prepareCoopNavigation() {
@@ -46,20 +46,21 @@ class CoopModule extends BaseModule {
         }
 
         if(!settings.is_set_supporter) {
+            this.prepareGameNavigation((e) => e.page == Page.SUMMON_SELECT);
             return {
                 action: "selectCoopParty"
             }
-        }            
+        }
 
         this.prepareCoopNavigation();
 
         // we're ready, lets go
-        if(settings.is_quest_user && settings.is_set_user) {                
+        if(settings.is_quest_user && settings.is_set_user) {
             return {
                 action: "startCoopQuest"
             }
-        }          
-        
+        }
+
         // coop hasnt started yet
         if(settings.can_quest_start_count == settings.max_quest_start_count) {
             return { action: "idle" }
