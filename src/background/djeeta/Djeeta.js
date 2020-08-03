@@ -12,8 +12,8 @@ class Djeeta {
             updateUI("djeeta", { type: "state", data: state});
         },
 
-        updateScriptToggle: function(enable) {
-            updateUI("djeeta", { type: "toggleCombatScriptUI", data: enable});
+        updateValue: function(props) {
+            updateUI("djeeta", { type: "updateValue", data: props});
         },
 
         sendConsoleMessage: function(msgHtml) {
@@ -336,9 +336,12 @@ quest_name: "Level 50 Vohu Manah"
         return this.scriptRunner.isRunning;
     }
 
-
     enableScript(enable) {
         this.scriptRunner.isRunning = enable;
+    }
+
+    enableDetectAutoLoad(enable) {
+        this.scriptRunner.autoLoadCombat = enable;
     }
 
     onContentRequestAction(data) {
