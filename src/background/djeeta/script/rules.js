@@ -18,23 +18,23 @@ class ScriptEvaluator {
         let lineCounter = 0;
 
         let lines = script.split(/\n/g);
-        for(let line of lines) {                                    
+        for(let line of lines) {
             let lineObj = {lineNumber: ++lineCounter, raw: line};
             this.lines.push(lineObj);
 
             if(line.trim() == "") continue; // empty just continue
 
-            try {                            
-                lineObj.rule = new Rule(line);                
+            try {
+                lineObj.rule = new Rule(line);
             } catch(e) {
-                e.syntaxLine = lineCounter;                
-                lineObj.error = e;                                
+                e.syntaxLine = lineCounter;
+                lineObj.error = e;
                 this.errorCount++;
 
-                console.warn("failed to parse: " + e);                
+                console.warn("failed to parse: ", e);
             }
         }
-    }    
+    }
 
     findActions(state) {
         let actionsFound = [];
@@ -46,11 +46,11 @@ class ScriptEvaluator {
                 actionsFound = actionsFound.filter(a => a.isValid(state));
             }
         }
-        
+
         return actionsFound;
     }
 
-    evalulateRules(state) {        
+    evalulateRules(state) {
         let results = {};
         for(let line of this.lines) {
             if(line.error || !line.rule) continue;    // skip lines with errors
@@ -58,19 +58,19 @@ class ScriptEvaluator {
             results[line.lineNumber] = line.rule.getResults(state);
         }
         return results;
-    } 
+    }
 }
 
 
 
-class Rule {    
+class Rule {
     when = undefined;
     find = undefined;
     actions = [];
 
     constructor(line) {
         let rawClip = new RawClip(() => this, line);
-        let results = line.matchAll(/(?<method>\w+)\((?<params>.*?)\)/g);                  
+        let results = line.matchAll(/(?<method>\w+)\((?<params>.*?)\)/g);
 
         for(let result of results) {
             let {method, params} = result.groups;
@@ -79,33 +79,33 @@ class Rule {
             switch(method) {
                 case "when":
                     this.when = evaluator;
-                    break;  
+                    break;
                 case "find":
                     this.find = evaluator;
                     break;
                 default:
                     this.actions.push(evaluator);
             }
-        } 
-    }    
+        }
+    }
 
     findCapture(state) {
         return this.find.capture(state);
     }
 
-    isValid(state) {                   
-        // if no when, assume always true        
+    isValid(state) {
+        // if no when, assume always true
         return this.when? this.when.isValid(state, env) : true;;
     }
 
-    getResults(state) {        
-       
+    getResults(state) {
+
         let result = {
             find: this.find? this.find.getResults(state) : undefined,
             when: this.when? this.when.getResults(state) : undefined,
             actions: []
-        };       
-        
+        };
+
         for(let action of this.actions) {
             result.actions.push({action, isValid: action.isValid(state)});
         }
@@ -119,7 +119,7 @@ class RawClip {
     constructor(getRule, raw, position = 0) {
         this.getRule = getRule;
         this.raw = raw;
-        this.pos = position; 
+        this.pos = position;
     }
 
     subClip(innerRaw, innerIndexStartSearchPos = 0) {
@@ -133,15 +133,15 @@ class WhenCondition {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        this.condExp = createExpression(rawClip);        
+        this.condExp = createExpression(rawClip);
     }
 
-    isValid(state) { 
+    isValid(state) {
         return this.condExp.eval(state);
     }
 
     getResults(state) {
-        return this.condExp.getResults(state) 
+        return this.condExp.getResults(state)
     }
 }
 

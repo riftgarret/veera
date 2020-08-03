@@ -2,7 +2,7 @@
 
 class TurnExpression {
     constructor(rawClip) {
-        this.rawClip = rawClip;        
+        this.rawClip = rawClip;
 
         this.eval = (state) => state.turn ;
     }
@@ -10,7 +10,7 @@ class TurnExpression {
 
 class PGRoundExpression {
     constructor(rawClip) {
-        this.rawClip = rawClip;        
+        this.rawClip = rawClip;
 
         this.eval = (state) => state.pgSequence;
     }
@@ -18,7 +18,7 @@ class PGRoundExpression {
 
 class StageExpression {
     constructor(rawClip) {
-        this.rawClip = rawClip;        
+        this.rawClip = rawClip;
         this.eval = (state) => state.stageCurrent;
     }
 };
@@ -32,41 +32,40 @@ class NumberExpression {
 
 
 class CharacterEval {
-    constructor(rawClip) {
-        this.rawClip = rawClip;                
-        const nameParam = rawClip.raw;
+    constructor(rawClip, param) {
+        this.rawClip = rawClip;
 
         let getChar = (state) => {
             switch (true) {
-                case !isNaN(nameParam):
-                    return state.getCharByPos(Number(nameParam));
-                case nameParam == "TARGET":
-                    return rawClip.getRule().findCapture(state);                    
-                default: 
-                    return state.getCharByName(nameParam)
+                case !isNaN(param):
+                    return state.getCharByPos(Number(param));
+                case param == "TARGET":
+                    return rawClip.getRule().findCapture(state);
+                default:
+                    return state.getCharByName(param)
             }
-        }                              
+        }
 
-        this.getResult = (state) => !!(getChar(state) || {}).alive;    
+        this.getResult = (state) => !!(getChar(state) || {}).alive;
 
         this.eval = getChar;
     }
 }
 
 class BossEval {
-    constructor(rawClip) {
+    constructor(rawClip, param) {
         const str = rawClip.raw;
 
         const getBoss = function(state) {
             if(str == "") return state.bosses[0];
-            try {            
+            try {
                 return state.bosses[Number(str)];
             } catch (e) {
                 throw new SyntaxError(`Unable to get locate boss index: ${str}`, e);
             }
         }
-        
-        this.isValid = (state) => (getBoss(state) || {}).alive;    
+
+        this.isValid = (state) => (getBoss(state) || {}).alive;
 
         this.eval = getBoss;
     }
@@ -74,31 +73,38 @@ class BossEval {
 
 class UnitExpression {
     constructor(rawClip, params) {
-        this.rawClip = rawClip;    
-        this.unitExp;
-        switch(params[0].toLowerCase()) {
+        this.rawClip = rawClip;
+
+        let {unit, param, attr} = rawClip.raw.match(/(?<unit>\w+)(\[(?<param>\w+)\])?(\.(?<attr>\w+\%?))?/).groups;
+        param = param || ""
+
+        let unitExp;
+        switch(unit.toLowerCase()) {
             case "boss": {
-                unitExp = new BossEval(rawClip.subClip(params.length > 1? params[1] : ""));
+                unitExp = new BossEval(rawClip.subClip(param), param);
                 break;
             }
 
             case "char": {
-                unitExp = new CharacterEval(rawClip.subClip(params[1]));
+                unitExp = new CharacterEval(rawClip.subClip(param));
                 break;
             }
 
             default:
-                throw new ScriptError(`unknown unit expression: ${params[0]}`, params[0], raw);
+                throw new ScriptError(`unknown unit expression:`, param, raw);
         }
 
         let propEval;
-        switch(params[2]) {
+        switch(attr) {
             case "hp":
                 propEval = (unit) => unit.hp;
-                break;        
+                break;
+            case "hp%":
+                propEval = (unit) => 100 * unit.hp / unit.hpMax;
+                break;
 
             default:
-                throw new ScriptError(`unknown unit trait: ${params[2]}`, rawClip);
+                throw new ScriptError(`unknown unit trait: ${attr}`, rawClip);
         }
 
         this.eval = (state) => propEval(unitExp.eval(state));
@@ -129,15 +135,15 @@ class ComparativeExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        let esplit = rawClip.raw.match(/(\w+|[\<\>\=]+)/gs); 
+        let esplit = rawClip.raw.match(/([\w\[\]\.\%]+|[\<\>\=]+)/gs);
         let pos = 0;
         if(esplit.length != 3) throw new ScriptError("invalid condition split: ", rawClip);
 
         this.leftExp = createExpression(rawClip.subClip(esplit[0], pos));
-        pos += esplit[0].length;        
-        this.condExp = new ComparatorEval(rawClip.subClip(esplit[1], pos));        
+        pos += esplit[0].length;
+        this.condExp = new ComparatorEval(rawClip.subClip(esplit[1], pos));
         pos += esplit[1].length;
-        this.rightExp = createExpression(rawClip.subClip(esplit[2], pos));        
+        this.rightExp = createExpression(rawClip.subClip(esplit[2], pos));
 
         this.eval = (state) => this.condExp.eval(this.leftExp.eval(state), this.rightExp.eval(state));
         this.getResults = (state) => { return { exp: this, isValid: this.eval(state) }};
@@ -149,17 +155,17 @@ class GroupExpression {
         // search for multiple statements
         this.rawClip = rawClip;
         let split = rawClip.raw.split(" AND ");
-        
+
         let pos = 0;
         let evals = this.evals = [];
         for(let subraw of split) {
             evals.push(createExpression(rawClip.subClip(subraw, pos)));
             pos += subraw.length;
         }
-        
+
         this.eval = (state) => {
             for(let subeval of evals) {
-                if(!subeval.eval(state)) return false;                
+                if(!subeval.eval(state)) return false;
             }
             return true;
         }
@@ -171,7 +177,7 @@ class GroupExpression {
                 isValid: this.eval(state)
             };
 
-            for(let subeval of evals) {                
+            for(let subeval of evals) {
                 result.children.push(subeval.getResults(state));
             }
             return result;
@@ -181,7 +187,7 @@ class GroupExpression {
 
 
 class ComparatorEval  {
-    constructor(rawClip) {    
+    constructor(rawClip) {
         this.rawClip = rawClip;
     }
     eval(left, right) {
@@ -202,7 +208,7 @@ class ComparatorEval  {
             default:
                 throw new ScriptError(`Invalid comparator syntax: ${rawClip.raw}`, rawClip);
         }
-    }    
+    }
 };
 
 // sync with ScriptReader.js
@@ -211,12 +217,12 @@ function createMethodExpression(methodClip, paramsClip) {
         case "when": return new WhenCondition(paramsClip);
         case "skill": return new AbilityAction(paramsClip);
         case "find": return new FindClause(paramsClip);
-        case "summon": return new SummonAction(paramsClip);        
+        case "summon": return new SummonAction(paramsClip);
         case "holdCA": return new HoldCAAction(paramsClip);
         case "useItem": return new UseItemAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
-        
-        default:             
+
+        default:
             throw new ScriptError(`unknown method ${methodClip.raw}`, methodClip);
     }
 }
@@ -229,22 +235,22 @@ function createInnerExpression(rawClip) {
 
     switch(params[0].toLowerCase()) {
         case "always":  return new AlwaysExpression(rawClip);
-        case "turn":    return new TurnExpression(rawClip); 
-        case "pground": return new PGRoundExpression(rawClip);                   
-        case "stage":   return new StageExpression(rawClip);        
-        case "boss": 
-        case "char":    return new UnitExpression(rawClip, params);        
-        default: 
+        case "turn":    return new TurnExpression(rawClip);
+        case "pground": return new PGRoundExpression(rawClip);
+        case "stage":   return new StageExpression(rawClip);
+        case "boss":
+        case "char":    return new UnitExpression(rawClip, params);
+        default:
             throw new ScriptError(`unknown expression: ${params[0]}`, rawClip);
-    }    
+    }
 };
 
-function createExpression(rawClip) {    
+function createExpression(rawClip) {
     // search for multiple statements
     let split = rawClip.raw.split(" AND ");
     // if has multiple, then create inner children
     if(split.length > 1) {
-        return new GroupExpression(rawClip);        
+        return new GroupExpression(rawClip);
     } else if(rawClip.raw.match(/([\<\>\=]+)/) != null) { // comparitive syntax
         return new ComparativeExpression(rawClip);
     } else {
@@ -257,6 +263,6 @@ class ScriptError extends Error {
     constructor(msg, rawClip) {
         super(msg);
         this.msg = msg;
-        this.rawClip = rawClip;        
+        this.rawClip = rawClip;
     }
 }
