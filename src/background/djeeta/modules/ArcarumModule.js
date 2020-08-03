@@ -5,7 +5,7 @@ division_icon_status: [ ]
 9 => silver chest
 */
 "use strict";
-class ArcarumModule extends BaseModule {        
+class ArcarumModule extends BaseModule {
 
     constructor(roadColor, partyDelegate) {
         super();
@@ -20,7 +20,7 @@ class ArcarumModule extends BaseModule {
             case "blue":
                 this.desiredDungeonId = "9";
                 break;
-        }        
+        }
 
         this.partyDelegate = partyDelegate;
     }
@@ -37,10 +37,10 @@ class ArcarumModule extends BaseModule {
             Page.ARC_LANDING,
             Page.ARC_MAP,
             Page.ARC_PARTY_SELECT
-        ].includes(page);        
+        ].includes(page);
     }
 
-    onActionRequested(data) {     
+    onActionRequested(data) {
         switch(data.page) {
             case Page.ARC_LANDING: {
                 this.prepareGameNavigation((e) => e.event == "navigate" && e.page == Page.ARC_MAP);
@@ -70,19 +70,19 @@ class ArcarumModule extends BaseModule {
                 }
                 return ret;
             }
-        }        
+        }
     }
 
     getArcLandingAction(data) {
-        return {            
+        return {
             action: "arcSelectMap",
-            dungeonId: this.findDesiredDungeonId()                            
+            dungeonId: this.findDesiredDungeonId()
         }
-    }    
+    }
 
     getArcMapAction(data) {
-        
-        if(this.isMapCleared()) {            
+
+        if(this.isMapCleared()) {
             if(this.pageMeta.meta.stage.stage_id == "3") {
                 this.prepareGameNavigation([
                     (e) => e.event == "refresh",
@@ -122,7 +122,7 @@ class ArcarumModule extends BaseModule {
 
         console.warn("we should not have gotten here..");
         return FLAG_END_ROUND;
-    }            
+    }
 
     findDesiredDungeonId() {
         for(let dungeonBlob of this.pageMeta.meta.dungeon_list) {
@@ -141,7 +141,7 @@ class ArcarumModule extends BaseModule {
 
     get currentDivision() {
         return this.getDivision(this.pageMeta.meta.stage.current_division_id);
-    }    
+    }
 
     get divisions() {
         let ret = [];
@@ -150,14 +150,14 @@ class ArcarumModule extends BaseModule {
             ret.push(divisions[id]);
         }
         return ret;
-    }    
+    }
 
     getLimitations() {
-        return this.pageMeta.meta.deck_status.limitation_image;                
+        return this.pageMeta.meta.deck_status.limitation_image;
     }
 
     getQuestBlob(divisionId, originId) {
-        return this.getDivision(divisionId).quest_list[originId];            
+        return this.getDivision(divisionId).quest_list[originId];
     }
 
     isDivisionNavigatable(id) {
@@ -168,7 +168,7 @@ class ArcarumModule extends BaseModule {
                 return false;
             default:
                 return true;
-        }        
+        }
     }
 
     // copied from arcarum/index.js
@@ -189,7 +189,7 @@ class ArcarumModule extends BaseModule {
     }
 
     getUnexploredNavigatableDivisions() {
-        let navigatableStatus = [this.DivisionStatus.CAN_MOVE, this.DivisionStatus.OPEN_CAN_MOVE]; 
+        let navigatableStatus = [this.DivisionStatus.CAN_MOVE, this.DivisionStatus.OPEN_CAN_MOVE];
         let ret = [];
         for(let division of this.divisions) {
             if(navigatableStatus.includes(division.division_status)) {
@@ -199,7 +199,7 @@ class ArcarumModule extends BaseModule {
         return ret;
     }
 
-    isMapCleared() {        
+    isMapCleared() {
         for(let division of this.divisions) {
             if(!this.isDivisionCleared(division.division_id)) {
                 return false;
@@ -235,28 +235,35 @@ class ArcarumModule extends BaseModule {
     getDivisionActions(divisionId) {
         let division = this.getDivision(divisionId);
         let results = [];
-        
+
         for(let chest of division.chest_list) {
-            results.push({                
+            results.push({
                 type: "chest",
-                id: chest.chest_origin_id,                
+                id: chest.chest_origin_id,
             });
         }
         for(let prop in division.quest_list) {
             let questObj = division.quest_list[prop];
-            results.push({                
+            results.push({
                 type: "quest", // TODO is boss?
                 id: questObj.arcarum_quest_origin_id,
                 attrs: questObj.attribute_list,
                 restrictions: questObj.limitation_details,
                 isBoss: questObj.is_boss,
-                isForced: questObj.is_force,                
+                isForced: questObj.is_force,
             });
         }
-        for(let gatepost of division.gatepost_list) {            
-            results.push({                
+        for(let gatepost of division.gatepost_list) {
+            results.push({
                 type: "gatepost",
-                id: gatepost.origin_id,                
+                id: gatepost.origin_id,
+            });
+        }
+
+        for(let gatepost of division.red_gatepost_list) {
+            results.push({
+                type: "red-gatepost",
+                id: gatepost.origin_id,
             });
         }
 
@@ -282,7 +289,7 @@ class ArcarumModule extends BaseModule {
     findElementAdv(attr) {
         switch(attr) {
             // fire
-            case "1": return "2"; 
+            case "1": return "2";
             // water
             case "2": return "3";
             // earth (doesnt match normal lineup..)
@@ -296,12 +303,12 @@ class ArcarumModule extends BaseModule {
             default:
                 return "0"; // happens on neutral element
         }
-    }    
+    }
 
-    toElementName(attr) {        
+    toElementName(attr) {
         switch(attr) {
             // fire
-            case "1": return "fire"; 
+            case "1": return "fire";
             // water
             case "2": return "water";
             // earth (doesnt match normal lineup..)
@@ -317,11 +324,11 @@ class ArcarumModule extends BaseModule {
         }
     }
 
-    findIdealParty() {        
+    findIdealParty() {
         // if boss, just use default group
         let fightMeta = this.upcomingFight;
-        let isBoss = this.upcomingFight.is_boss;                    
-        let deckMeta = this.pageMeta.meta;        
+        let isBoss = this.upcomingFight.is_boss;
+        let deckMeta = this.pageMeta.meta;
         let enemyCount = fightMeta.attribute_list.length;
         let dominantElement = this.findDominentElement(fightMeta.attribute_list);
         let advElement = this.findElementAdv(dominantElement);
@@ -329,8 +336,8 @@ class ArcarumModule extends BaseModule {
         let deckLimitation = this.upcomingDeckStatus || {};
 
         let encounterProps = {
-            srOnly: deckLimitation.limitation_image == "1", 
-            rOnly: deckLimitation.limitation_image == "1_2", 
+            srOnly: deckLimitation.limitation_image == "1",
+            rOnly: deckLimitation.limitation_image == "1_2",
             isBoss,
             name: fightMeta.chapter_name,
             enemyCount,
@@ -345,7 +352,7 @@ class ArcarumModule extends BaseModule {
 
         let desiredGroup = Number(result[0]);
         let desiredIndex = Number(result[1]);
-        let script = result[2];        
+        let script = result[2];
 
         if(curPartyGroup != desiredGroup) {
             return {
@@ -358,8 +365,8 @@ class ArcarumModule extends BaseModule {
                 pos: desiredIndex,
                 script
             };
-        } 
-        
+        }
+
         // let findSelectPartyAction = () => {
         //     for(let idx in decks) {
         //         let deck = decks[idx];
@@ -369,7 +376,7 @@ class ArcarumModule extends BaseModule {
         //                 pos: Number(deck.priority)
         //             };
         //         }
-        //     }            
+        //     }
         //     this.abort("Failed to find ideal party element");
         //     return FLAG_END_ROUND;
         // }
@@ -384,7 +391,7 @@ class ArcarumModule extends BaseModule {
         //                     pos: Number(this.SR_GROUP)
         //                 }
         //             }
-        //             return findSelectPartyAction();                
+        //             return findSelectPartyAction();
         //         }
         //         case "2": { // R ONLY (assuming..)
         //             if(deckMeta.last_used_group_priority != this.R_GROUP) {
@@ -393,11 +400,11 @@ class ArcarumModule extends BaseModule {
         //                     pos: Number(this.R_GROUP)
         //                 }
         //             }
-        //             return findSelectPartyAction();                
-        //         }            
+        //             return findSelectPartyAction();
+        //         }
         //     }
         // }
-        
+
         // // option for fighting multi enemy fights for optimization
         // if(enemyCount > 1 && this.options.multi_enemy_config) {
         //     if(deckMeta.last_used_group_priority != this.options.multi_enemy_config.group) {
@@ -413,15 +420,15 @@ class ArcarumModule extends BaseModule {
         //         script: this.options.multi_enemy_config.party
         //     };
         // }
-                
+
         // // normal SSR fight
         // if(deckMeta.last_used_group_priority != this.SSR_GROUP) {
         //     return {
         //         action: "arcSelectPartyGroup",
         //         pos: Number(this.SSR_GROUP)
         //     }
-        // }        
+        // }
 
-        // return findSelectPartyAction();                
+        // return findSelectPartyAction();
     }
 }

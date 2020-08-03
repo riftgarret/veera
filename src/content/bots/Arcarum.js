@@ -6,12 +6,12 @@ class ArcarumBot extends BaseBot {
 
     async awaitArcStageAnimations() {
         let stageSelectors = [
-            // ".prt-stage-effect", 
+            // ".prt-stage-effect",
             ".rendering",
             ".fadein",
-            ".fadeout", 
-            "#cjs-arcarum_mission_progress",            
-            "#cjs-arcarum_map_mission",                        
+            ".fadeout",
+            "#cjs-arcarum_mission_progress",
+            "#cjs-arcarum_map_mission",
             "#cjs-arcarum_stage_effect_start",
             "#cjs-arcarum_map_appear_enemy",
             "#cjs-arcarum_map_appear_treasure",
@@ -31,7 +31,7 @@ class ArcarumBot extends BaseBot {
         await timeout(1000);
     }
 
-    hasDivisionAction(action) {        
+    hasDivisionAction(action) {
         switch(action.type) {
             case "quest":
                 return $(`.btn-quest-list[data-origin-id="${action.id}"]`).is(":visible");
@@ -39,6 +39,8 @@ class ArcarumBot extends BaseBot {
                 return $(`.btn-stage-chest[data-id="${action.id}"]`).is(":visible");
             case "gatepost":
                 return $(`.btn-stage-lock[data-origin-id="${action.id}"]`).is(":visible");
+            case "red-gatepost":
+                return $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).is(":visible");
         }
         return false;
     }
@@ -108,18 +110,18 @@ class ArcarumExecutor extends BaseExecutor {
 
             if(bot.hasPopup) {
                 await bot.clickOkPopup();
-                await timeout(1000);            
+                await timeout(1000);
                 await bot.awaitArcStageAnimations();
             }
 
             await runner.tryAction(
                 async () => {
                     await bot.clickDungeon(action.dungeonId);
-                    await waitForVisible(".pop-confirm-start-stage", ".pop-confirm-restart");        
+                    await waitForVisible(".pop-confirm-start-stage", ".pop-confirm-restart");
                 },
                 () => bot.hasPopup
             );
-                        
+
             await bot.awaitArcStageAnimations();
             await runner.tryAction(
                 async () => await bot.clickOkPopup(),
@@ -138,7 +140,7 @@ class ArcarumExecutor extends BaseExecutor {
 
             if(bot.hasPopup) {
                 await bot.clickOkPopup();
-                await timeout(1000);            
+                await timeout(1000);
                 await bot.awaitArcStageAnimations();
             }
 
@@ -146,12 +148,12 @@ class ArcarumExecutor extends BaseExecutor {
                 async () => await bot.clickDivisionNode(action.divisionId),
                 () => bot.currentDivision == action.divisionId
             );
-                                   
+
             await runner.tryAction(
                 async () => await bot.clickMoveDivision(),
                 () => !bot.hasMoveDivisionButton
-            );                    
-        });        
+            );
+        });
     }
 
     async selectDivisionAction(action) {
@@ -162,20 +164,20 @@ class ArcarumExecutor extends BaseExecutor {
 
             if(bot.hasPopup) {
                 await bot.clickOkPopup();
-                await timeout(1000);            
-                await bot.awaitArcStageAnimations();        
+                await timeout(1000);
+                await bot.awaitArcStageAnimations();
             }
 
             await runner.tryAction(
                 async () => await bot.clickDivisionNode(action.divisionId),
                 () => bot.currentDivision == action.divisionId
             );
-            
+
             await runner.tryAction(
                 async () => await bot.clickDivisionAction(action),
                 () => bot.hasDivisionAction(action)
-            );            
-        });    
+            );
+        });
     }
 
     async moveToNextStage(action) {
@@ -187,10 +189,10 @@ class ArcarumExecutor extends BaseExecutor {
 
             if(bot.hasPopup) {
                 await bot.clickOkPopup();
-                await timeout(1000);            
+                await timeout(1000);
                 await bot.awaitArcStageAnimations();
             }
-                    
+
 
             await runner.tryAction(
                 async () => {
@@ -201,7 +203,7 @@ class ArcarumExecutor extends BaseExecutor {
             );
 
             await bot.awaitArcStageAnimations();
-            
+
             await runner.tryAction(
                 async () => await bot.clickOkPopup(),
                 () => !bot.hasPopup
@@ -216,18 +218,18 @@ class ArcarumExecutor extends BaseExecutor {
         await waitButtonInterval();
 
         if(action.pos) {
-            await bot.clickPartyMarker(action.pos);            
+            await bot.clickPartyMarker(action.pos);
         }
 
         return await bot.clickPartyOk();
     }
-    
+
     async selectPartyGroup(action) {
         let bot = this.bot;
 
         let partyPos = action.pos;
         if(!bot.isShowingPartyGroup(partyPos)) {
-            await bot.clickTogglePartyGroupSet();            
+            await bot.clickTogglePartyGroupSet();
         }
 
         return await bot.clickPartyGroupTab(partyPos);
