@@ -45,9 +45,10 @@ class DjeetaScriptEditor {
             .then(newMeta => {
                 consoleUI(`${newMeta.name} Updating script ${name}.`)
                 self.currentMeta = newMeta;
-                if(newMeta.type == "master") {
-                    $("#script-engine-master-scriptname").html(name);
-                }
+                let masterName = newMeta.type == "master"? name : "";
+                let combatName = newMeta.type == "combat"? name : "";
+                $("#script-engine-master-scriptname").html(masterName);
+                $("#script-engine-combat-scriptname").html(combatName);
             }).then(() => {
                 BackgroundPage.send("djeetaScriptLoad", name);
                 $(".nav-tab[data-navpage=\"script-runner-container\"]").trigger("click");
