@@ -31,7 +31,6 @@ class ScriptController {
     set autoLoadCombat(val) {
         if(val == this._autoLoadCombat) return;
         this._autoLoadCombat = val;
-        this.mind.djeetaUI.updateScriptToggle(val);
         if(this.pageMeta.page == Page.COMBAT) {
             this.findAndLoadCurrentCombatScript();
         }
