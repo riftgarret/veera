@@ -12,7 +12,7 @@ class DjeetaParser {
         state.notableEvents.length = 0;
         state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
         state.pgSequence = json.sequence? json.sequence.type : undefined;
-        this.abilities(json, state);
+        this.abilities(json, state);    // needs to happen before party (condition abilities lock)
         this.startSummons(json, state);
         this.startParty(json, state);
         this.startBosses(json, state);
@@ -51,6 +51,7 @@ class DjeetaParser {
                             let char = state.getCharAtPos(action.pos);
                             char.buffs = this.conditions(action.condition, true);
                             char.debuffs = this.conditions(action.condition, false);
+                            this.abilityAvailableList(state, char, action.condition.ability_available_list);
                             break;
                         }
                         case "boss": {
@@ -191,6 +192,16 @@ class DjeetaParser {
         return result;
     }
 
+    abilityAvailableList(state, char, ability_available_list) {
+        if(!ability_available_list) return;
+
+        for(let skillPos in ability_available_list) {
+            let index = Number(skillPos) - 1;
+            let skill = state.abilities.find(skill => skill.charIndex == char.charIndex && skill.abilityIndex == index);
+            skill.isDisabled = !ability_available_list[skillPos];
+        }
+    }
+
     startBosses(json, state) {
         let bossParam = json.boss.param;
         let bosses = state.bosses;
@@ -259,6 +270,9 @@ class DjeetaParser {
                 buffs: buffs,
                 debuffs: debuffs,
             };
+
+            this.abilityAvailableList(state, playerObj, player.condition.ability_available_list);
+
             party.push(playerObj);
         }
     }
@@ -308,7 +322,8 @@ class DjeetaParser {
                     id: props["ability-id"],
                     recast: props["ability-recast"],
                     recastMax: props["recast-default"],
-                    iconType: props["icon-type"]
+                    iconType: props["icon-type"],
+                    isDisabled: false // updated by player parsing / scenario
                 };
 
                 abilities.push(abilityObj);

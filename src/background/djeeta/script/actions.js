@@ -121,7 +121,7 @@ class AbilityAction {
                 break;
         }
 
-        return skill.recast == 0;
+        return !skill.isDisabled && skill.recast == 0;
     }
 };
 
