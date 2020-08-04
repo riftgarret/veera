@@ -19,7 +19,8 @@ class ArcarumBot extends BaseBot {
 
         return await createAwaitPromise(stageSelectors.join(","),
                         (e) => !e.is(":visible"),
-                        {attributeFilter: ["class", "style"]});
+                        {attributeFilter: ["class", "style"]})
+                        .then(() => this.clickOkPopup());
     }
 
     async clickDivisionNode(divisionId) {
@@ -55,7 +56,7 @@ class ArcarumBot extends BaseBot {
                 return await $(`.btn-stage-lock[data-origin-id="${action.id}"]`).gbfClick();
             case "red-gatepost":
                 await $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).gbfClick();
-                await waitForVisible(".pop-usual")
+                await waitForVisible(".pop-usual", 2000)
                 return await this.clickOkPopup();
         }
     }
@@ -112,6 +113,7 @@ class ArcarumExecutor extends BaseExecutor {
 
             await bot.awaitArcStageAnimations();
 
+            await timeout(1000);
             if(bot.hasPopup) {
                 await bot.clickOkPopup();
                 await timeout(1000);
@@ -121,7 +123,7 @@ class ArcarumExecutor extends BaseExecutor {
             await runner.tryAction(
                 async () => {
                     await bot.clickDungeon(action.dungeonId);
-                    await waitForVisible(".pop-confirm-start-stage", ".pop-confirm-restart");
+                    await waitForVisible(".pop-confirm-start-stage", ".pop-confirm-restart", 2000);
                 },
                 () => bot.hasPopup
             );
@@ -188,7 +190,7 @@ class ArcarumExecutor extends BaseExecutor {
         let bot = this.bot;
 
         this.queue(async (runner) => {
-            await waitForVisible(".prt-next-stage");
+            await waitForVisible(".prt-next-stage", 5000);
             await bot.awaitArcStageAnimations();
 
             if(bot.hasPopup) {

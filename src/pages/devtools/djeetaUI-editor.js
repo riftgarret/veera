@@ -30,6 +30,36 @@ class DjeetaScriptEditor {
             $(".nav-tab[data-navpage=\"script-editor-container\"]").trigger("click");
         });
 
+        $("#btn-load-engine").click(() => {
+            let onLoadScript = async (name) => {
+                if(name.trim() == "") {
+                    consoleUI("Aborting Load, no name provided.");
+                    return;
+                }
+
+                let meta = await ScriptManager.findScript(name);
+                if(!meta) {
+                    console.warn(`failed to find script ${name}`);
+                    return;
+                }
+
+                ScriptManager.saveScript(name, {used: new Date().getTime()}, true)
+                .then(newMeta => {
+                    consoleUI(`Loading script ${name}.`)
+                    let masterName = newMeta.type == "master"? name : "";
+                    let combatName = newMeta.type == "combat"? name : "";
+                    $("#script-engine-master-scriptname").html(masterName);
+                    $("#script-engine-combat-scriptname").html(combatName);
+                }).then(() => {
+                    BackgroundPage.send("djeetaScriptLoad", name);
+                });
+            };
+
+            self.displayMetaDialog("Load",
+                "Load",
+                onLoadScript);
+        })
+
         $("#btn-execute-script").click((ev) => {
             // due to the nature of <div><br></div> in line breaks register as 2 \n's
             // let script = getScriptAsText($("#script-editor")[0]);
@@ -59,30 +89,35 @@ class DjeetaScriptEditor {
             self.currentMeta = null;
         });
 
-        $("#editor-file-menu .menu-save").click((e) => {
+        let saveScript = (name, script) => {
+            if(name.trim() == "") {
+                consoleUI("Aborting Save, no name provided.");
+                return;
+            }
+
+            ScriptManager.saveScript(name, { script }, true)
+            .then(newMeta => {
+                consoleUI(`${name} Saved.`)
+                self.currentMeta = newMeta;
+            });
+        };
+
+        let saveImmediately = () => saveScript(this.currentMeta.name, $("#script-editor").val())
+
+        $("#editor-file-menu .menu-save").click(saveImmediately);
+        $("#btn-save-script").click(saveImmediately);
+
+        $("#editor-file-menu .menu-saveas").click((e) => {
             // let script = getScriptAsText($("#script-editor")[0]);
             let script = $("#script-editor").val();
             if(script.trim() == "") {
                 return;
             }
 
-            let onSaveScript = (name) => {
-                if(name.trim() == "") {
-                    consoleUI("Aborting Save, no name provided.");
-                    return;
-                }
-
-                ScriptManager.saveScript(name, { script }, true)
-                .then(newMeta => {
-                    consoleUI(`${name} Saved.`)
-                    self.currentMeta = newMeta;
-                });
-            };
-
             let prompt = self.currentMeta? self.currentMeta.name : undefined;
             self.displayMetaDialog("Save",
                 "Save",
-                onSaveScript,
+                name => saveScript(name, script),
                 prompt);
         });
 
@@ -107,12 +142,90 @@ class DjeetaScriptEditor {
                 onLoadScript);
         });
 
+        let getScriptName = function(file) {
+            if(file.webkitRelativePath == "") return file.name;
+            let name = file.webkitRelativePath;
+            return name.substring(name.indexOf("/") + 1);
+        }
+
+        let readFile = (file) => new Promise((r) => {
+            let reader = new FileReader();
+            reader.addEventListener("load", (e) => r(e.target.result));
+            reader.readAsText(file);
+        });
+
+        $("#input-import-all").change(async (e) => {
+            console.log(e.target.files);
+            if(e.target.files.length == 0) return;
+
+            let importedNames = [];
+
+            for(let file of e.target.files) {
+                let name = getScriptName(file);
+                let contents = await readFile(file);
+                importedNames.push(name);
+                await ScriptManager.saveScript(name, {script: contents});
+            }
+
+            consoleUI(`Loaded ${e.target.files.length} scripts: ${importedNames.join(", ")}`);
+            $(e.target).val("");
+        })
+
+        $("#input-import-single").change(async (e) => {
+            console.log(e.target.files);
+            if(e.target.files.length == 0) return;
+            let file = e.target.files[0];
+
+            let name = getScriptName(file);
+            let script = await readFile(file);
+            let meta = {
+                name,
+                script
+            }
+            this.currentMeta = meta;
+            $(e.target).val("");
+        });
+
+        $("#editor-file-menu .menu-import-all").click(async (e) => {
+            $("#input-import-all").trigger("click");
+        });
+
+        $("#editor-file-menu .menu-import-single").click(async (e) => {
+            $("#input-import-single").trigger("click");
+        });
+
+        $("#editor-file-menu .menu-export-all").click(async (e) => {
+            let metas = await ScriptManager.getScripts();
+
+            let zip = new JSZip();
+            for(let meta of metas) {
+                let dir = zip;
+                let name = meta.name;
+                let lastPathPos = name.lastIndexOf("/");
+                if(lastPathPos > -1) {
+                    dir = zip.folder(name.substring(0, lastPathPos));
+                    name = name.substring(lastPathPos + 1);
+                }
+                dir.file(name, meta.script);
+            }
+
+            let content = await zip.generateAsync({type: "blob"});
+            saveAs(content, "djeeta-scripts.zip")
+        });
+
+        $("#editor-file-menu .menu-export-single").click(async (e) => {
+            let script = $("#script-editor").val();
+            let name = this.currentMeta.name;
+            saveAs(new Blob([script]), name);
+        });
+
         this.tableDialog = $("#table-dialog").dialog({
             autoOpen: false,
             width: 400,
             height: 450,
             modal: true,
         });
+
     }
 
     loadScript(meta) {

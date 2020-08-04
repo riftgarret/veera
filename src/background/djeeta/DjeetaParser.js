@@ -418,4 +418,8 @@ class DjeetaParser {
     coopLanding(json, metaObj) {
         Object.assign(metaObj, json);
     }
+
+    raidListings(json, metaObj) {
+        Object.assign(metaObj, json);
+    }
 }

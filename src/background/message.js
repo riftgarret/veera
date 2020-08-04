@@ -209,7 +209,12 @@ function hear(msg, sender) {
                     case path.ismatch("quest/cleared_list/10000/"):
                         DjeetaMind.questStartMeta(msg.data.json);
                         break;
-
+                    case path.ismatch("quest/content/newassist/"):
+                        DjeetaMind.onRaidListUpdated(msg.data.json.option.quest.assist_list);
+                        break;
+                    case path.ismatch("rest/quest/assist_list"):
+                        DjeetaMind.onRaidListUpdated(msg.data.json);
+                        break;
                     case /lobby\/content\/room\/\d+\/0/.test(path):
                     case /coopraid\/content\/room\/\d+/.test(path):
                         DjeetaMind.onCoopLanding(msg.data.json.option);

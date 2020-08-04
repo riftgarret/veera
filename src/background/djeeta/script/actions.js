@@ -48,12 +48,12 @@ class AttackAction {
 class AbilityAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
-        let abilitySplit = rawClip.raw.split(",");
+        let abilitySplit = rawClip.raw.split(/\s*,\s*/);
         this.abilityName = abilitySplit[0];
         switch(abilitySplit.length) {
             case 2:
                 let target = abilitySplit[1];
-                let targetEval = new CharacterEval(rawClip.subClip(target, this.abilityName.length));
+                let targetEval = new CharacterEval(rawClip.subClip(target, this.abilityName.length), target);
                 this.findTarget = (state) => targetEval.eval(state);
                 break;
             case 3:

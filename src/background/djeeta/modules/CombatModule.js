@@ -5,8 +5,6 @@ class CombatModule extends BaseModule {
     actionHistory = {};
     defaultAttack = new AttackAction();
 
-    get state() { return this.combatState; }
-
     loadScript(script, name = "") {
         this.reset();
         this.scriptName = name;

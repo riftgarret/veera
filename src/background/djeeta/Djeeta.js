@@ -255,6 +255,11 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    onRaidListUpdated(json) {
+        this.parse.raidListings(json, this.pageMeta.meta);
+        this.postActionScriptCheck();
+    }
+
     get whenCurrentTurn() {
         let ret = "turn = " + this.state.turn;
         if(this.state.stageMax > 1) {

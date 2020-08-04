@@ -13,13 +13,15 @@
         <script type="text/javascript" src="storage.js"></script>
         <script type="text/javascript" src="../../lib/Chart.min.js"></script>
         <script type="text/javascript" src="ui.js" defer></script>
-        <script  type="text/javascript" src="unfUI.js" defer></script>
-        <script  type="text/javascript" src="battleUI.js" defer></script>
-        <script  type="text/javascript" src="../../lib/djeeta-script-manager.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI-battle.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI-editor.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI-engine.js" defer></script>
-        <script  type="text/javascript" src="djeetaUI.js" defer></script>
+        <script type="text/javascript" src="unfUI.js" defer></script>
+        <script type="text/javascript" src="battleUI.js" defer></script>
+        <script type="text/javascript" src="../../lib/djeeta-script-manager.js" defer></script>
+        <script type="text/javascript" src="jszip.min.js" defer></script>
+        <script type="text/javascript" src="FileSaver.js" defer></script>
+        <script type="text/javascript" src="djeetaUI-battle.js" defer></script>
+        <script type="text/javascript" src="djeetaUI-editor.js" defer></script>
+        <script type="text/javascript" src="djeetaUI-engine.js" defer></script>
+        <script type="text/javascript" src="djeetaUI.js" defer></script>
         <script type="text/javascript" src="main.js" defer></script>
     </head>
     <body>
@@ -570,14 +572,22 @@
                             <div id="script-editor-container" class="code-tab">
                                 <div class="script-dashboard">
                                     <div class="data-row">
-                                        <div id="editor-file-menu" class="menu">
+                                        <div class="menu">
                                             <button id="btn-editor-file-menu" class="menu-button">File</button>
-                                            <div class="menu-content">
+                                            <div id="editor-file-menu" class="menu-content">
                                                 <a class="menu-new">New</a>
-                                                <a class="menu-open">Open</a>
+                                                <a class="menu-open">Open..</a>
                                                 <a class="menu-save">Save</a>
+                                                <a class="menu-saveas">Save As..</a>
+                                                <a class="menu-import-all">Import All..</a>
+                                                <input id="input-import-all" type="file" webkitdirectory multiple style="display: none;" />
+                                                <a class="menu-import-single">Import..</a>
+                                                <input id="input-import-single" type="file" style="display: none;" />
+                                                <a class="menu-export-all">Export All..</a>
+                                                <a class="menu-export-single">Export Current..</a>
                                             </div>
                                         </div>
+                                        <button id="btn-save-script" class="menu-button">Save</button>
                                         <button id="btn-execute-script" class="menu-button">Load Engine</button>
                                         <div>Script: <span id="script-editor-scriptname"></span></div>
                                     </div>
@@ -588,6 +598,7 @@
                             <div id="script-runner-container" class="code-tab">
                                 <div class="script-dashboard column-table">
                                     <div>
+                                        <button id="btn-load-engine" class="menu-button">Load Engine</button>
                                         <div class="dashboard-component">
                                             <span>Enable Script:</span>
                                             <label id="toggle-combat-script" class="switch">
@@ -602,19 +613,19 @@
                                                 <span class="slider round"></span>
                                             </label>
                                         </div>
-                                        <button id="btn-load-current" class="menu-button">Load Fight</button>
+                                        <button title="Find last combat script used for current fight" id="btn-load-current" class="menu-button">Load Combat Script</button>
                                     </div>
                                     <div>
-                                        <div class="dashboard-component">
+                                        <!-- <div class="dashboard-component">
                                             <span>Refresh delay</span>
                                             <input id="refresh-delay" type="text" value="1.0"/>
                                         </div>
                                         <div class="dashboard-component">
                                             <span>Skill delay</span>
                                             <input id="skill-delay" type="text" value="1.0"/>
-                                        </div>
+                                        </div> -->
                                         <div>Combat: <span id="script-engine-combat-scriptname"></span></div>
-                                        <div>Master: <span id="script-engine-master-scriptname"></span></div>
+                                        <div style="margin-left: 10px;">Master: <span id="script-engine-master-scriptname"></span></div>
                                     </div>
 
                                 </div>

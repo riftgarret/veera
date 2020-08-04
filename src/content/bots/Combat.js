@@ -297,7 +297,7 @@ class CombatExecutor extends BaseExecutor {
             await runner.tryAction(
                     async () => {
                     await bot.clickRequestBackup();
-                    await waitForVisible(".pop-start-assist");
+                    await waitForVisible(".pop-start-assist", 2000);
                 },
                 () => bot.hasPopup
             );

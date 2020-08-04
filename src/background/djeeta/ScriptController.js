@@ -9,6 +9,9 @@ class ScriptController {
     };
 
     _isRunning = false;
+
+    heartBeat = 0
+
     get isRunning() { return this._isRunning && !!this.process; }
     set isRunning(val) {
         if(val == this._isRunning) return;
@@ -18,6 +21,7 @@ class ScriptController {
         if(!oldVal && val && this.process) {
             this.reset();
             this.process.start();
+            this.startHeartBeat()
         } else if(oldVal && !val && this.process) {
             this.requestGameAction({
                 action: "abortScript"
@@ -64,9 +68,45 @@ class ScriptController {
             updateScriptProps: (name, props) => me.updateScriptProps(name, props),
             parser: mind.parse,
             config: me.config,
-            combatState: mind.state,
+            state: mind.state,
             pageMeta: mind.pageMeta,
         }
+    }
+
+    async startHeartBeat() {
+        /*
+        tracks interactions from client. If we are still running,
+        and we havent received an action from the client in a while.
+        Lets force a refresh and see where it takes us
+        */
+        if(this.heartBeat > 0) return; // already running
+
+        let concernedInterval = 16000;
+        let refreshRate = 4000;
+        this.beatHeart();
+        try {
+            while(this.isRunning) {
+                await timeout(refreshRate);
+                if(new Date().getTime() - this.heartBeat > concernedInterval) {
+                    this.heartBeat = timestamp();
+                    this.requestGameRefresh();
+                    // this is due to game refreshing to a new page to redirect once or twice
+                    this.prepareGameNavigation([
+                        () => true,
+                        () => true,
+                        () => true,
+                    ])
+                }
+            }
+        } catch (e) {
+            console.e(e);
+        } finally {
+            this.heartBeat = 0;
+        }
+    }
+
+    beatHeart() {
+        this.heartBeat = new Date().getTime();
     }
 
     updateScriptProps(name, props) {
