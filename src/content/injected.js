@@ -8,13 +8,13 @@ var _injectedScript = function injected(state) {
     context.log = log;
 
     try {
-        class Hooker {                    
+        class Hooker {
             hookedPrototypes = [];
             hooks = [];
             trackedSelectors = {};
 
-            hookDefers(renderSelector, obj, ...methodNames) {                
-                for(let methodName of methodNames) {                    
+            hookDefers(renderSelector, obj, ...methodNames) {
+                for(let methodName of methodNames) {
                     let orig = obj.__proto__[methodName];
 
                     if(this.hooks.includes(methodName)) {
@@ -24,31 +24,31 @@ var _injectedScript = function injected(state) {
 
                     let className = "rendering";
                     let attrName = "render-count";
-                    const self = this;                    
+                    const self = this;
 
                     let incrementCounter = function (e) {
                         self.trackedSelectors[renderSelector] = self.trackedSelectors[renderSelector] || {};
                         if(self.trackedSelectors[renderSelector][methodName] == undefined) {
                             self.trackedSelectors[renderSelector][methodName] = 0;
-                        }                        
+                        }
                         self.trackedSelectors[renderSelector][methodName]++;
                         if(!e.hasClass(className)) {
                             e.addClass(className);
-                            e.attr(attrName, 1);                            
+                            e.attr(attrName, 1);
                         } else {
                             e.attr(attrName, 1 + Number(e.attr(attrName)));
-                        }                        
+                        }
                     }
 
-                    let decrementCounter = function (e) {                        
-                        self.trackedSelectors[renderSelector][methodName]--;                        
+                    let decrementCounter = function (e) {
+                        self.trackedSelectors[renderSelector][methodName]--;
                         let count = Number(e.attr(attrName));
                         if(count <= 1) {
                             e.removeClass(className);
                             e.removeAttr(attrName);
                         } else {
                             e.attr(attrName, count - 1);
-                        }                        
+                        }
                     }
 
                     let hooked = function() {
@@ -62,32 +62,32 @@ var _injectedScript = function injected(state) {
                     obj.__proto__[methodName] = hooked;
 
                     this.hooks.push(methodName);
-                }                
+                }
             }
 
             hookMethod(obj, methodName, func) {
                 let orig = obj.__proto__[methodName];
 
-                if(this.hooks.includes(methodName)) {                    
+                if(this.hooks.includes(methodName)) {
                     return log(`already hooked ${methodName}`);
                 }
-                
-                let hooked = function() {                    
-                    let result = orig.apply(this, arguments);                                                            
-                    
+
+                let hooked = function() {
+                    let result = orig.apply(this, arguments);
+
                     try {
                         func(Array.from(arguments), methodName, this);
                     } catch(e) {
                         logError(`failed hookMethod: ${methodName}`, e);
                     }
-                    
+
                     return result;
                 }
 
                 obj.__proto__[methodName] = hooked;
 
                 this.hooks.push(methodName);
-            }            
+            }
 
             hookMethodToMessage(obj, methodName, key, captureParams = true) {
                 this.hookMethod(obj, methodName, (args) => {
@@ -100,12 +100,12 @@ var _injectedScript = function injected(state) {
                     if(captureParams) {
                         event.args = args;
                     }
-                    
+
                     sendMessage(event);
                 });
             }
 
-            hookForProp(obj, prop, func, once = true) {                                                
+            hookForProp(obj, prop, func, once = true) {
                 if(!obj) return;
 
                 const self = this;
@@ -126,13 +126,13 @@ var _injectedScript = function injected(state) {
                             catch(e) {
                                 logError(`failed hookForProp: ${prop}`, e);
                             }
-                            execd = true;        
-                        }                
+                            execd = true;
+                        }
                     };
                     Object.defineProperty(obj, prop, {
                         get: getter,
                         set: setter,
-                        enumerable: false, 
+                        enumerable: false,
                         configurable: true // depending on your needs
                     });
                 })();
@@ -146,7 +146,7 @@ var _injectedScript = function injected(state) {
                 const self = this;
                 this.hookForProp(context, "Game", (game) => {
                     log(`GameObj: ${game}`);
-                    self.hookForProp(game, "view", (v) => self.hookView(v), false);                                
+                    self.hookForProp(game, "view", (v) => self.hookView(v), false);
                     self.muteProp(game, "reportError");
                 });
             }
@@ -156,7 +156,7 @@ var _injectedScript = function injected(state) {
                 (function(){
                     const mute = () => {};
                     let getter = function() {
-                        return mute; 
+                        return mute;
                     };
                     let setter = function(newValue) {
                         // ignored
@@ -164,16 +164,16 @@ var _injectedScript = function injected(state) {
                     Object.defineProperty(obj, prop, {
                         get: getter,
                         set: setter,
-                        enumerable: false, 
-                        configurable: true 
+                        enumerable: false,
+                        configurable: true
                     });
                 })();
             }
 
-            
+
 
             hookView(view) {
-                if(!view || this.hookedPrototypes.includes(view.__proto__)) return;                
+                if(!view || this.hookedPrototypes.includes(view.__proto__)) return;
                 this.hookedPrototypes.push(view.__proto__);
 
                 const self = this;
@@ -181,8 +181,8 @@ var _injectedScript = function injected(state) {
                 // TODO find a better way to detect which game object to inject
                 if(view.showForceBattle) {
                     // these are all animatinos that return an Deferred jquery object
-                    this.hookDefers(".cnt-division-list", view, "renderDivisionList");                        
-                    this.hookDefers(".prt-stage-map", view, 
+                    this.hookDefers(".cnt-division-list", view, "renderDivisionList");
+                    this.hookDefers(".prt-stage-map", view,
                                 "showMap",
                                 "showStageEffect",
                                 "stageInitialized",
@@ -198,7 +198,7 @@ var _injectedScript = function injected(state) {
                                 "showChangeBoss",
                                 // "showOpenChest",
                                 "showForceBattle",
-                                "endForceBattle", 
+                                "endForceBattle",
                                 "showAppearSpecialEnemy",
                                 "showMissionFormidableEnemy",
                                 // "showMissionChest",
@@ -209,32 +209,32 @@ var _injectedScript = function injected(state) {
                     // we modify the list div attribute for our content script to find
                     this.hookMethod(view, "moveDivision", (args) => $(".cnt-division-list").attr("division", args[0]));
                     this.hookMethod(view, "updateStageParam", (args) => $(".cnt-division-list").attr("division", args[0].stage.current_division_id));
-                    
+
                     // when a popup shows, lets bump a msg
                     this.hookForProp(view, "popView", (pop) => {
                         self.hookMethodToMessage(pop, "popShow", "onPopup");
                     });
 
                     log(`hooked arcarum map`);
-                    return;                
-                }      
+                    return;
+                }
                 else if(view.raid_id) {
                     this.hookForProp(view, "setupView", (v) => {
-                        self.hookView(v);                        
-                    });                    
+                        self.hookView(v);
+                    });
                 } else if(view.popShowAbilityRailError) {
                     this.hookMethodToMessage(view, "popShowAbilityRailError", "battleErrorPop");
                     this.hookMethodToMessage(view, "popShowRematchFail", "battleEnded");
                     log(`hooked battle`);
-                }    
+                }
             }
         }
-        
+
         var hooker = new Hooker();
         hooker.hookGameObj();
         context.hooker = hooker;
 
-        // TODO hook websocket to propagate to background.        
+        // TODO hook websocket to propagate to background.
         state.onIncomingMessage = function onMessageFromContent(evt) {
             if(!evt.data.type) return;
 
@@ -247,9 +247,11 @@ var _injectedScript = function injected(state) {
                         let divisionId = Number(evt.data.divisionId);
                         log(`selecting divId ${divisionId}`);
                         $(document).trigger("selectDivision", divisionId);
-                        return;       
-                    
-                }                
+                        return;
+                    case "combat_fullAutoAction":
+                        Game.view.setupView.runFullAuto();
+                        return;
+                }
             }
             catch(e) {
                 sendMessage({
@@ -261,5 +263,5 @@ var _injectedScript = function injected(state) {
     }
     catch(e) {
         logError("unhandled exception in injected.js", e);
-    }    
+    }
 }

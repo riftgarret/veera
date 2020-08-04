@@ -220,6 +220,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "summon": return new SummonAction(paramsClip);
         case "holdCA": return new HoldCAAction(paramsClip);
         case "useItem": return new UseItemAction(paramsClip);
+        case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
 
         default:

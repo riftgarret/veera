@@ -375,6 +375,9 @@ quest_name: "Level 50 Vohu Manah"
                 newPage = Page.ARC_PARTY_SELECT;
                 break;
             case hash.startsWith("#lobby/room/"):
+                newPage = Page.COOP_RAID_LANDING;
+                break;
+            case hash.startsWith("#coopraid"):
                 newPage = Page.COOP_LANDING;
                 break;
             case hash.startsWith("#result/"):

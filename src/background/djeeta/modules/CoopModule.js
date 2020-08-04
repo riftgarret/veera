@@ -7,7 +7,7 @@ class CoopModule extends BaseModule {
     }
 
     handlesPage(page) {
-        return page == Page.COOP_LANDING;
+        return [Page.COOP_RAID_LANDING, page.COOP_LANDING].includes(page);
     }
 
     get roomSettings() {
@@ -41,7 +41,8 @@ class CoopModule extends BaseModule {
 
     getInitialAction() {
         let settings = this.roomSettings;
-        if(settings.is_all_member_cleared_continuequest) {
+        if(this.pageMeta.page == Page.COOP_RAID_LANDING
+            && settings.is_all_member_cleared_continuequest) {
             return FLAG_END_ROUND;
         }
 
@@ -55,16 +56,41 @@ class CoopModule extends BaseModule {
         this.prepareCoopNavigation();
 
         // we're ready, lets go
-        if(settings.is_quest_user && settings.is_set_user) {
-            return {
-                action: "startCoopQuest"
+        switch(this.pageMeta.page) {
+            case Page.COOP_RAID_LANDING: {
+                if(settings.is_quest_user && settings.is_set_user) {
+                    return {
+                        action: "startCoopQuest"
+                    }
+                }
+
+                 // coop hasnt started yet
+                if(settings.can_quest_start_count == settings.max_quest_start_count) {
+                    return { action: "idle" }
+                }
+                break;
+            }
+
+            case Page.COOP_LANDING: {
+                if(settings.is_ready
+                    && settings.is_ready_all
+                    && settings.is_set_quest
+                    && settings.is_set_supporter
+                    && settings.is_set_user ) {
+                    return {
+                        action: "startCoopQuest"
+                    }
+                }
+
+                if(!settings.is_ready && !settings.is_set_user) {
+                    return {
+                        action: "readyCoopQuest"
+                    }
+                }
+                break;
             }
         }
 
-        // coop hasnt started yet
-        if(settings.can_quest_start_count == settings.max_quest_start_count) {
-            return { action: "idle" }
-        }
 
         // wait
         return {

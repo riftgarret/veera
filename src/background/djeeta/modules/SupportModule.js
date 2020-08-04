@@ -10,7 +10,7 @@ class SupportModule extends BaseModule {
         super();
         this.summons = summons;
         this.behavior = behavior;
-    }    
+    }
 
     handlesPage(page) {
         return page == Page.SUMMON_SELECT;
@@ -21,22 +21,25 @@ class SupportModule extends BaseModule {
             case "init":
                 switch(this.behavior) {
                     case Behavior.COOP: {
+                        // due to navigation it goes from coop-> cooproom/id.. triggering twice
+                        let eHandle = (e) => [Page.COOP_RAID_LANDING, Page.COOP_LANDING].includes(e.page);
                         this.prepareGameNavigation([
-                            (e) => e.event == "navigate" && e.page == Page.COOP_LANDING,                            
+                            eHandle,
+                            eHandle
                         ]);
-                        return {                            
+                        return {
                             action: "selectSummon",
-                            summons: this.summons,                            
+                            summons: this.summons,
                         }
                     }
                     case Behavior.PROVING_GROUND: {
                         this.prepareGameNavigation([
-                            (e) => e.event == "navigate" && e.page == Page.PG_LANDING,                            
+                            (e) => e.event == "navigate" && e.page == Page.PG_LANDING,
                         ]);
-                        return {                            
+                        return {
                             action: "selectSummon",
-                            summons: this.summons,                            
-                        }                        
+                            summons: this.summons,
+                        }
                     }
                     default: {
                         this.prepareGameNavigation([
@@ -45,10 +48,10 @@ class SupportModule extends BaseModule {
                         ]);
                         return {
                             action: "selectSummon",
-                            summons: this.summons,                        
-                        }                        
-                    }                    
-                }                
+                            summons: this.summons,
+                        }
+                    }
+                }
         }
     }
 }

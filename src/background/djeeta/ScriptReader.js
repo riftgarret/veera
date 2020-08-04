@@ -2,7 +2,7 @@
 class ScriptReader {
   static isCombatScript(rawScript) {
     // sync with expressions.js
-    let knownMethods = ["when", "find", "skill", "summon", "holdCA", "useItem", "requestBackup"];
+    let knownMethods = ["when", "find", "skill", "summon", "holdCA", "useItem", "requestBackup", "fullAutoAction"];
     return !!knownMethods.find(keyword => rawScript.startsWith(keyword));
   }
 

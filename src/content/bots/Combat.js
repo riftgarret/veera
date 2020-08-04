@@ -43,6 +43,25 @@ class CombatBot extends BaseBot {
         return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
 
+    async requestFullAutoAction() {
+        sendExternalMessage({
+            type: "combat_fullAutoAction",
+        });
+        await timeout(1000);
+    }
+
+    async waitForQueueToClear() {
+        return createAwaitPromise(
+            ".prt-ability-rail-overlayer",
+            (e) => e.hasClass("hide"),
+            { attributeFilter: ["class"] }
+        )
+    }
+
+    get hasActionQueuedUp() {
+        return $(".prt-ability-rail-overlayer").is(":visible");
+    }
+
     async clickRequestBackup() {
         return await $(`.btn-assist`).gbfClick();
     }
@@ -299,6 +318,21 @@ class CombatExecutor extends BaseExecutor {
         });
     }
 
+    async executeFullAutoAction(action) {
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            console.log("starting fullauto")
+            await runner.tryAction(
+                async () => await bot.requestFullAutoAction(),
+                () => bot.hasActionQueuedUp
+            );
+
+            console.log("waiting for queue")
+            await bot.waitForQueueToClear();
+            console.log("queue done")
+        });
+    }
+
     async useItem(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
@@ -309,7 +343,7 @@ class CombatExecutor extends BaseExecutor {
                 await bot.clickBack();
             }
 
-            await this.tryAction(
+            await runner.tryAction(
                 async () => await bot.clickOpenHealButton(),
                 () => bot.isHealPanelOpen
             );

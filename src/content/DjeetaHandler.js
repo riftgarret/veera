@@ -7,18 +7,18 @@ class DjeetaHandler {
     arcarum = new ArcarumExecutor();
     coop = new CoopExecutor();
 
-    onActionReceived(actionMeta) {    
+    onActionReceived(actionMeta) {
         if(actionMeta == undefined) {
             console.log("No action.");
             return;
-        }        
-        console.log("Received Action", actionMeta);        
-        
+        }
+        console.log("Received Action", actionMeta);
+
         if(actionMeta.isRunning) {
             // battle
             switch(actionMeta.action) {
                 case "skill":
-                    this.combat.skill(actionMeta);                        
+                    this.combat.skill(actionMeta);
                     break;
                 case "summon":
                     this.combat.summon(actionMeta);
@@ -36,18 +36,21 @@ class DjeetaHandler {
                 case "useItem":
                     this.combat.useItem(actionMeta);
                     break;
+                case "fullAutoAction":
+                    this.combat.executeFullAutoAction(actionMeta);
+                    break;
 
                 //supporter
                 case "selectSummon":
                     this.support.selectSummon(actionMeta);
                     break;
-                case "supportSelectParty": 
+                case "supportSelectParty":
                     this.support.selectParty(actionMeta);
                     break;
 
                 // reward
                 case "claimNightmareReward":
-                    this.reward.claimNightmareReward();                        
+                    this.reward.claimNightmareReward();
                     break;
 
                 // PG
@@ -86,12 +89,15 @@ class DjeetaHandler {
                 case "startCoopQuest":
                     this.coop.startCoopFight(actionMeta);
                     break;
-                
+
+                case "readyCoopQuest":
+                    this.coop.readyCoopQuest(actionMeta);
+
                 case "maybeRefresh":
                     this.coop.waitForBattleOrRequestRefresh(actionMeta);
                     break;
             }
-        }            
+        }
     }
 
     onInjectInterrupt(data) {
@@ -102,13 +108,13 @@ class DjeetaHandler {
                 timeout(500).then(() => this.requestCombatAction());
                 break;
             case "battleEnded":
-                this.abortExecutors();                
+                this.abortExecutors();
                 break;
-            case "onPopup":                                
+            case "onPopup":
                 break;
         }
     }
-    
+
     onActionRequested(request) {
         console.log(`action requested: `, request);
 
@@ -122,12 +128,12 @@ class DjeetaHandler {
                 return true;
             case "navigate":
                 timeout(request.delay)
-                    .then(() => window.location.hash = request.hash);                    
+                    .then(() => window.location.hash = request.hash);
                 return true;
         }
         console.log(`unkonwn request: ${request}`);
         return false;
-    }    
+    }
 
     abortExecutors() {
         this.coop.abort();
@@ -138,8 +144,8 @@ class DjeetaHandler {
     }
 
     requestAction(page, event) {
-        return BackgroundPage.query(REQUEST_ACTION, { page, event})                
-            .then((res) => djeetaHandler.onActionReceived(res));    
+        return BackgroundPage.query(REQUEST_ACTION, { page, event})
+            .then((res) => djeetaHandler.onActionReceived(res));
     }
 
     requestCombatAction() {
@@ -147,11 +153,11 @@ class DjeetaHandler {
     }
 
     requestCoopLandingAction() {
-        return this.requestAction(Page.COOP_LANDING, "init");
+        return this.requestAction(Page.COOP_RAID_LANDING, "init");
     }
 
     requestSupportAction() {
-        return this.requestAction(Page.SUMMON_SELECT, "init");        
+        return this.requestAction(Page.SUMMON_SELECT, "init");
     }
 
     requestRewardAction() {

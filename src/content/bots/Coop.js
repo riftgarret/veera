@@ -1,6 +1,6 @@
 "use strict";
 class CoopBot extends BaseBot  {
-    
+
     get needsParty() {
         return $(".btn-make-ready-large.assist.not-ready:visible").length > 0;
     }
@@ -16,27 +16,48 @@ class CoopBot extends BaseBot  {
     async clickStartRaid() {
         return await $("div.btn-quest-start").gbfClick();
     }
+
+    async clickReady() {
+        return await $('div.btn-execute-ready').gbfClick();
+    }
+
+    get hasNotReadyButton() {
+        return $("div.btn-retraction-ready").is(":visible");
+    }
 }
 
 class CoopExecutor extends BaseExecutor {
-    bot = wrapLogger(new CoopBot());    
+    bot = wrapLogger(new CoopBot());
 
     async waitForBattleOrRequestRefresh(action) {
-        let result = await Promise.race([
-            new Promise((r) => $(window).one("hashchange", () => r.resolve("ok"))),
-            timeout(action.delay)
-        ]);
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            let result = await Promise.race([
+                new Promise((r) => $(window).one("hashchange", () => r("ok"))),
+                timeout(action.delay)
+            ]);
 
-        if(result != "ok") {
-            djeetaHandler.requestAction(Page.COOP_LANDING, "requestRefresh");
-        }
+            if(result != "ok" && runner.isValid) {
+                djeetaHandler.requestAction(Page.COOP_RAID_LANDING, "requestRefresh");
+            }
+        });
     }
 
     async startCoopFight() {
         let bot = this.bot;
         this.queue(async (runner) => {
             await runner.tryNavigateAction(
-                async () => await bot.clickStartRaid(),                
+                async () => await bot.clickStartRaid(),
+            );
+        });
+    }
+
+    async readyCoopQuest() {
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            await runner.tryAction(
+                async () => bot.clickReady(),
+                () => bot.hasNotReadyButton
             );
         });
     }
@@ -45,9 +66,8 @@ class CoopExecutor extends BaseExecutor {
         let bot = this.bot;
         this.queue(async (runner) => {
             await runner.tryNavigateAction(
-                async () => await bot.clickSelectParty(),                
+                async () => await bot.clickSelectParty(),
             );
         });
     }
 }
-

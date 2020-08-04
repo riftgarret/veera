@@ -210,9 +210,11 @@ function hear(msg, sender) {
                         break;
 
                     case /lobby\/content\/room\/\d+\/0/.test(path):
+                    case /coopraid\/content\/room\/\d+/.test(path):
                         DjeetaMind.onCoopLanding(msg.data.json.option);
                         break;
                     case path.ismatch("rest/lobby/refresh_data"):
+                    case path.ismatch("coopraid/refresh_data"):
                         DjeetaMind.onCoopLanding(msg.data.json);
                         break;
                     case path.ismatch("quest/treasure_raid"):

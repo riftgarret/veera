@@ -241,3 +241,19 @@ class RequestBackupAction {
         return false;
     }
 }
+
+class FullAutoAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+    }
+
+    actionMeta(state) {
+        return {
+            action: "fullAutoAction"
+        }
+    }
+
+    isValid(state) {
+        return true;
+    }
+}
