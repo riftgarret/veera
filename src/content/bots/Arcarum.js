@@ -53,6 +53,8 @@ class ArcarumBot extends BaseBot {
                 return await $(`.btn-stage-chest[data-id="${action.id}"]`).gbfClick();
             case "gatepost":
                 return await $(`.btn-stage-lock[data-origin-id="${action.id}"]`).gbfClick();
+            case "red-gatepost":
+                return await $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).gbfClick();
         }
     }
 
