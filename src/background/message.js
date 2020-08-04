@@ -143,6 +143,7 @@ function hear(msg, sender) {
                     case path.ismatch("rest/arcarum/stage"):
                     case path.ismatch("rest/board/stage"):
                     case path.ismatch("rest/arcarum/open_gatepost"):
+                    case path.ismatch("rest/arcarum/open_red_gatepost"):
                     case path.ismatch("rest/arcarum/move_division"):
                     case path.ismatch("rest/arcarum/next_stage"):
                         if (msg.data.json.notice_effect && msg.data.json.notice_effect.show_open_red_chest) {
