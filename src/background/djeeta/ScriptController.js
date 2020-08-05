@@ -83,30 +83,33 @@ class ScriptController {
 
         let concernedInterval = 16000;
         let refreshRate = 4000;
+        let timestamp = () => new Date().getTime()
         this.beatHeart();
         try {
             while(this.isRunning) {
                 await timeout(refreshRate);
-                if(new Date().getTime() - this.heartBeat > concernedInterval) {
-                    this.heartBeat = timestamp();
-                    this.requestGameRefresh();
-                    // this is due to game refreshing to a new page to redirect once or twice
-                    this.prepareGameNavigation([
-                        () => true,
-                        () => true,
-                        () => true,
-                    ])
+                if(timestamp() - this.heartBeat > concernedInterval) {
+                    if(this.isRunning) {
+                        this.heartBeat = timestamp();
+                        this.requestGameRefresh();
+                        // this is due to game refreshing to a new page to redirect once or twice
+                        this.prepareGameNavigation([
+                            () => true,
+                            () => true,
+                            () => true,
+                        ])
+                    }
                 }
             }
         } catch (e) {
-            console.e(e);
+            console.error(e);
         } finally {
             this.heartBeat = 0;
         }
     }
 
     beatHeart() {
-        this.heartBeat = new Date().getTime();
+        if(this.isRunning) this.heartBeat = new Date().getTime();
     }
 
     updateScriptProps(name, props) {
@@ -160,6 +163,7 @@ class ScriptController {
     }
 
     onActionRequested(data) {
+        this.beatHeart()
         let process = this.process;
 
         let result = process.onActionRequested(data);

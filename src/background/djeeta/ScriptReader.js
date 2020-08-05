@@ -67,8 +67,8 @@ class ScriptEnv {
 
   processes = [];
 
-  arcarum(roadColor, delegate) {
-    this.processes.push(new ArcarumProcess(roadColor, delegate));
+  arcarum(roadColor, delegate, options) {
+    this.processes.push(new ArcarumProcess(roadColor, delegate, options));
   }
 
   coop(script, summons, options) {

@@ -47,13 +47,7 @@ class ArcarumModule extends BaseModule {
                 return this.getArcLandingAction(data);
             }
             case Page.ARC_MAP: {
-                let ret = this.getArcMapAction(data);
-                if(ret.action == "arcSelectDivisionAction" && ret.type == "quest") {
-                    this.upcomingDeckStatus = this.pageMeta.meta.deck_status;
-                    this.upcomingFight = this.getQuestBlob(ret.divisionId, ret.id);
-                    this.prepareGameNavigation((e) => e.event == "navigate" && e.page == Page.ARC_PARTY_SELECT);
-                }
-                return ret;
+                return this.getArcMapAction(data);
             }
             case Page.ARC_PARTY_SELECT: {
                 if(!this.upcomingFight) {
@@ -80,13 +74,47 @@ class ArcarumModule extends BaseModule {
         }
     }
 
+    reviewDivisionAction(action) {
+        if(action.type == "quest") {
+            // check to see if we need to use a globe
+            if(action.isBoss
+                && this.options.targetBoss
+                && this.options.targetBoss != action.name
+                && this.globeCount > 0) {
+
+                return {
+                    action: action.action,
+                    divisionId: action.divisionId,
+                    type: "select-globe",
+                    id: this.pageMeta.meta.boss_choice.choice_list.find(boss => boss.quest_name == this.options.targetBoss).enemy_id
+                }
+            }
+
+            this.upcomingDeckStatus = this.pageMeta.meta.deck_status;
+            this.upcomingFight = this.getQuestBlob(action.divisionId, action.id);
+            this.prepareGameNavigation((e) => e.event == "navigate" && e.page == Page.ARC_PARTY_SELECT);
+        }
+        return action;
+    }
+
+    get globeCount() {
+        if(!this.pageMeta.meta.item_list) {
+            console.warn("missing item list for globe check");
+            return 0;
+        }
+
+        let globeItem = this.pageMeta.meta.item_list.find(item => item.item_id == "101"); // globe id
+        return globeItem? Number(globeItem.number) : 0
+    }
+
     getArcMapAction(data) {
 
         if(this.isMapCleared()) {
             if(this.pageMeta.meta.stage.stage_id == "3") {
+                let landingArcNavigation = (e) => e.event == "refresh" || e.page == Page.ARC_LANDING;
                 this.prepareGameNavigation([
-                    (e) => e.event == "refresh",
-                    (e) => e.event == "navigate" && e.page == Page.ARC_LANDING,
+                    landingArcNavigation,
+                    landingArcNavigation
                 ]);
             }
             return {
@@ -102,13 +130,13 @@ class ArcarumModule extends BaseModule {
                 return forcedAction;
             }
 
-            return divisionActions[0];
+            return this.reviewDivisionAction(divisionActions[0]);
         }
 
         // then double back for any previously visited node that has new items
         let allDivisionActions = this.getAllDivisionActions();
         if(allDivisionActions.length > 0) {
-            return allDivisionActions[0];
+            return this.reviewDivisionAction(allDivisionActions[0]);
         }
 
         // move to a new node
@@ -249,6 +277,7 @@ class ArcarumModule extends BaseModule {
                 id: questObj.arcarum_quest_origin_id,
                 attrs: questObj.attribute_list,
                 restrictions: questObj.limitation_details,
+                name: questObj.quest_name,
                 isBoss: questObj.is_boss,
                 isForced: questObj.is_force,
             });
@@ -366,69 +395,5 @@ class ArcarumModule extends BaseModule {
                 script
             };
         }
-
-        // let findSelectPartyAction = () => {
-        //     for(let idx in decks) {
-        //         let deck = decks[idx];
-        //         if(deck.job.job_attribute == advElement) {
-        //             return {
-        //                 action: "arcSelectParty",
-        //                 pos: Number(deck.priority)
-        //             };
-        //         }
-        //     }
-        //     this.abort("Failed to find ideal party element");
-        //     return FLAG_END_ROUND;
-        // }
-
-        // // R or SR fights
-        // if(this.upcomingFight.limitation_image || this.upcomingFight.limitation_image != null) {
-        //     switch(this.upcomingFight.limitation_image) {
-        //         case "1": { // R SR ONLY
-        //             if(deckMeta.last_used_group_priority != this.SR_GROUP) {
-        //                 return {
-        //                     action: "arcSelectPartyGroup",
-        //                     pos: Number(this.SR_GROUP)
-        //                 }
-        //             }
-        //             return findSelectPartyAction();
-        //         }
-        //         case "2": { // R ONLY (assuming..)
-        //             if(deckMeta.last_used_group_priority != this.R_GROUP) {
-        //                 return {
-        //                     action: "arcSelectPartyGroup",
-        //                     pos: Number(this.R_GROUP)
-        //                 }
-        //             }
-        //             return findSelectPartyAction();
-        //         }
-        //     }
-        // }
-
-        // // option for fighting multi enemy fights for optimization
-        // if(enemyCount > 1 && this.options.multi_enemy_config) {
-        //     if(deckMeta.last_used_group_priority != this.options.multi_enemy_config.group) {
-        //         return {
-        //             action: "arcSelectPartyGroup",
-        //             pos: Number(this.options.multi_enemy_config.group)
-        //         }
-        //     }
-
-        //     return {
-        //         action: "arcSelectParty",
-        //         pos: Number(this.options.multi_enemy_config.party),
-        //         script: this.options.multi_enemy_config.party
-        //     };
-        // }
-
-        // // normal SSR fight
-        // if(deckMeta.last_used_group_priority != this.SSR_GROUP) {
-        //     return {
-        //         action: "arcSelectPartyGroup",
-        //         pos: Number(this.SSR_GROUP)
-        //     }
-        // }
-
-        // return findSelectPartyAction();
     }
 }

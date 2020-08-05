@@ -18,12 +18,14 @@ class DjeetaParser {
         this.startBosses(json, state);
         this.startBackupRequest(json, state);
         this.startItems(json, state);
+        this.scenario(json.scenario, state);
+        this.status(json.status, state);
         state.questId = json.quest_id;
         state.raidId = json.raid_id;
     }
 
     status(status, state) {
-        if(!status) return console.warn("missing status");
+        if(!status) return
         state.summonsEnabled = Number(status.summon_enable) > 0;
         state.turn = status.turn;
         this.statusSummons(status, state);
@@ -31,7 +33,7 @@ class DjeetaParser {
     }
 
     scenario(scenario, state) {
-        if(!scenario) return console.warn("missing scenario");
+        if(!scenario) return
         state.notableEvents.length = 0;
 
         for (let action of scenario) {
@@ -385,7 +387,7 @@ class DjeetaParser {
     }
 
     chat(json, state) {
-        this.scenario(json.scenario);
+        this.scenario(json.scenario, state);
     }
 
     backupRequest(postData, state) {

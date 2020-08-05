@@ -58,6 +58,14 @@ class ArcarumBot extends BaseBot {
                 await $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).gbfClick();
                 await waitForVisible(".pop-usual", 2000)
                 return await this.clickOkPopup();
+            case "select-globe":
+                await $("div.btn-change-boss").gbfClick();
+                await waitForVisible(".pop-usual", 2000)
+                await $(`.btn-select-boss[data-id="${action.id}"]`).gbfClick();
+                await timeout(700)
+                await this.clickOkPopup();
+                await timeout(700)
+                return await this.clickOkPopup();
         }
     }
 
@@ -82,7 +90,7 @@ class ArcarumBot extends BaseBot {
     }
 
     async clickPartyOk() {
-        return await $(`.btn-usual-ok.se-quest-start`).gbfClick();
+        return await $(`div.btn-usual-ok`).gbfClick();
     }
 
     async clickMoveDivision() {
@@ -181,7 +189,7 @@ class ArcarumExecutor extends BaseExecutor {
 
             await runner.tryAction(
                 async () => await bot.clickDivisionAction(action),
-                () => bot.hasDivisionAction(action)
+                () => !bot.hasDivisionAction(action)
             );
         });
     }

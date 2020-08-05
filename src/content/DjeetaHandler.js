@@ -111,6 +111,14 @@ class DjeetaHandler {
                 this.abortExecutors();
                 break;
             case "onPopup":
+                if(this.arcarum.isRunning) {
+                    this.arcarum.queueInterrupt(async () => {
+                        let bot = new BaseBot();
+                        await timeout(1000);
+                        await bot.clickOkPopup();
+                    });
+                }
+
                 break;
         }
     }

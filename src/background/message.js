@@ -133,6 +133,9 @@ function hear(msg, sender) {
                     case path.ismatch("arcarum/dungeon_list"):
                         DjeetaMind.onArcDungeonList(msg.data.json);
                         break;
+                    case path.ismatch("rest/arcarum/arcarum_items"):
+                        DjeetaMind.onArcItems(msg.data.json);
+                        break;
                     case path.ismatch("arcarum/open_chest"):
                         DjeetaMind.onArcStage(msg.data.json); // fall through
                     case path.ismatch("result/stage_only_data/"):

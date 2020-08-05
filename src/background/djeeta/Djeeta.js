@@ -297,6 +297,11 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    onArcItems(json) {
+        this.parse.arcStage(json, this.pageMeta.meta);
+        // no update as this is called along with onArcStage
+    }
+
     onPartyDeckShown(json) {
         this.parse.partyDeck(json, this.pageMeta.meta);
         this.postActionScriptCheck();

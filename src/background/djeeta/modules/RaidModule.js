@@ -13,9 +13,18 @@ class RaidModule extends BaseModule {
             let name = raid.chapter_name.toLowerCase()
             let found = this.raids.find(raidName => name.startsWith(raidName));
             if(!found) return false;
-            if(this.isCrewOnly) {
-                return found.is_same_guild;
+            if(this.isCrewOnly && !found.is_same_guild) {
+                return false;
             }
+
+            if(this.options.minHp && this.options.minHp < raid.boss_hp_width) {
+                return false;
+            }
+
+            if(this.options.maxJoined && this.member_count > this.options.maxJoined) {
+                return false;
+            }
+
             return true;
         });
     }
