@@ -127,7 +127,7 @@ class ArcarumModule extends BaseModule {
         if(divisionActions.length > 0) {
             let forcedAction = divisionActions.find(x => x.isForced);
             if(forcedAction) {
-                return forcedAction;
+                return this.reviewDivisionAction(forcedAction);
             }
 
             return this.reviewDivisionAction(divisionActions[0]);
