@@ -1,11 +1,14 @@
 "use strict";
 const REQUEST_ACTION = "djeetaRequestAction";
 class DjeetaHandler {
-    combat = new CombatExecutor();
-    support = new SupportExecutor();
-    reward = new RewardExecutor();
-    arcarum = new ArcarumExecutor();
-    coop = new CoopExecutor();
+    constructor() {
+        this.opQueue = new OperationQueue();
+        this.combat = new CombatExecutor(this.opQueue);
+        this.support = new SupportExecutor(this.opQueue);
+        this.reward = new RewardExecutor(this.opQueue);
+        this.arcarum = new ArcarumExecutor(this.opQueue);
+        this.coop = new CoopExecutor(this.opQueue);
+    }
 
     onActionReceived(actionMeta) {
         if(actionMeta == undefined) {
@@ -131,12 +134,18 @@ class DjeetaHandler {
                 this.abortExecutors();
                 return true;
             case "refreshPage":
-                timeout(request.delay)
-                    .then(() => window.location.reload());
+                this.abortExecutors();
+                this.opQueue.queueInterrupt(async () => {
+                    await timeout(request.delay)
+                    window.location.reload()
+                })
                 return true;
             case "navigate":
-                timeout(request.delay)
-                    .then(() => window.location.hash = request.hash);
+                this.abortExecutors();
+                this.opQueue.queueInterrupt(async () => {
+                    await timeout(request.delay)
+                    window.location.hash = request.hash
+                })
                 return true;
         }
         console.log(`unkonwn request: ${request}`);
@@ -144,15 +153,11 @@ class DjeetaHandler {
     }
 
     abortExecutors() {
-        this.coop.abort();
-        this.combat.abort();
-        this.arcarum.abort();
-        this.support.abort();
-        this.reward.abort();
+        this.opQueue.abort();
     }
 
     requestAction(page, event) {
-        return BackgroundPage.query(REQUEST_ACTION, { page, event})
+        return BackgroundPage.query(REQUEST_ACTION, { page, event })
             .then((res) => djeetaHandler.onActionReceived(res));
     }
 

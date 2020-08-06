@@ -1,6 +1,7 @@
 "use strict";
 
 const Page = {
+    API: "api",
     COMBAT: "combat",
     SUMMON_SELECT: "summon_select",
     ARC_PARTY_SELECT: "arc_party_select",

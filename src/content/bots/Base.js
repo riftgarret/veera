@@ -27,6 +27,16 @@ class BaseBot {
 }
 
 class BaseExecutor {
+    constructor(operationQueue) {
+        this.opQueue = operationQueue;
+    }
+
+    queue(func) {
+        this.opQueue.queue(func);
+    }
+}
+
+class OperationQueue {
     runnerQueue = [];
     runner = undefined
 
@@ -57,12 +67,15 @@ class BaseExecutor {
         this.runnerQueue.length = 0;
         if(this.runner) {
             this.runner.abort();
+            this.runner = undefined;
         }
     }
 
     queueInterrupt(interrupt) {
         if(this.runner) {
             this.runner.queueInterrupt(interrupt);
+        } else {
+            this.queue(interrupt);
         }
     }
 }

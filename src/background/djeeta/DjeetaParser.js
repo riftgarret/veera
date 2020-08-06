@@ -112,6 +112,13 @@ class DjeetaParser {
                     break;
                 }
 
+                case "formchange": {
+                    if(action.to == "boss") {
+                        // long delays
+                        state.notableEvents.push(action);
+                    }
+                }
+
                 case "recast": {
                     switch(action.to) {
                         case "player": {
@@ -130,6 +137,7 @@ class DjeetaParser {
 
                 case "replace": {
                     state.formation[action.pos] = action.npc;
+                    state.notableEvents.push(action);
                     break;
                 }
 
@@ -143,6 +151,7 @@ class DjeetaParser {
                 case "die": {
                     let unit = action.to == "player"? state.getCharAtPos(action.pos) : state.getBossAtPos(action.pos);
                     // TODO propgate unit
+                    state.notableEvents.push(action);
                     break;
                 }
 
@@ -152,6 +161,10 @@ class DjeetaParser {
                     state.notableEvents.push(action);
                     break;
                 }
+                case "lose":
+                    state.roundLost = true;
+                    state.notableEvents.push(action);
+                    break;
 
                 case "temporary": {
                     state.items.greenPotions = Number(action.small);

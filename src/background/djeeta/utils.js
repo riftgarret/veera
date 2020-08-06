@@ -10,3 +10,15 @@ String.prototype.splitEx = function(separator, limit) {
 
     return str;
 }
+
+Array.prototype.findMax = function(propToEval) {
+    let arr = this.map(x => x[propToEval])
+    let max = Math.max.apply(Math, arr);
+    return this.find(x => x[propToEval] == max);
+}
+
+Array.prototype.findMin = function(propToEval) {
+    let arr = this.map(x => x[propToEval])
+    let max = Math.max.apply(Math, arr);
+    return this.find(x => x[propToEval] == max);
+}

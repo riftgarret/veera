@@ -2,6 +2,7 @@
 
 // keep this up-to-date with background/constants.js
 const Page = {
+    API: "api",
     COMBAT: "combat",
     SUMMON_SELECT: "summon_select",
     ARC_PARTY_SELECT: "arc_party_select",
