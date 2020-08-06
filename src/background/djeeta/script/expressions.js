@@ -32,8 +32,9 @@ class NumberExpression {
 
 
 class CharacterEval {
-    constructor(rawClip, param) {
+    constructor(rawClip) {
         this.rawClip = rawClip;
+        const param = rawClip.raw;
 
         let getChar = (state) => {
             switch (true) {
@@ -53,15 +54,15 @@ class CharacterEval {
 }
 
 class BossEval {
-    constructor(rawClip, param) {
-        const str = rawClip.raw;
+    constructor(rawClip) {
+        const param = rawClip.raw;
 
         const getBoss = function(state) {
-            if(str == "") return state.bosses[0];
+            if(param == "") return state.bosses[0];
             try {
-                return state.bosses[Number(str)];
+                return state.bosses[Number(param)];
             } catch (e) {
-                throw new SyntaxError(`Unable to get locate boss index: ${str}`, e);
+                throw new SyntaxError(`Unable to get locate boss index: ${param}`, e);
             }
         }
 
@@ -72,16 +73,17 @@ class BossEval {
 }
 
 class UnitExpression {
-    constructor(rawClip, params) {
+    constructor(rawClip) {
         this.rawClip = rawClip;
-
-        let {unit, param, attr} = rawClip.raw.match(/(?<unit>\w+)(\[(?<param>\w+)\])?(\.(?<attr>\w+\%?))?/).groups;
+        // boss.hp boss[0].hp% char[MC].hasDebuff[234] char[MC].isAlive char[MC].hasDebuff[234_40*]
+        let regex = /(?<unit>\w+)(\[(?<param>[\d\w]+)\])?(\.(?<attr>\w+\%?)(\[(?<attr_param>[\d\w\_\*]+)\])?)?/
+        let {unit, param, attr, attr_param} = rawClip.raw.match(regex).groups;
         param = param || ""
 
         let unitExp;
         switch(unit.toLowerCase()) {
             case "boss": {
-                unitExp = new BossEval(rawClip.subClip(param), param);
+                unitExp = new BossEval(rawClip.subClip(param));
                 break;
             }
 
@@ -102,12 +104,25 @@ class UnitExpression {
             case "hp%":
                 propEval = (unit) => 100 * unit.hp / unit.hpMax;
                 break;
+            case "isAlive":
+                propEval = (unit) => unit.alive;
+                break;
+            case "hasBuff":
+                propEval = (unit) => evalHasCondition(unit.buffs, attr_param);
+                break;
+            case "hasDebuff":
+                propEval = (unit) => evalHasCondition(unit.debuffs, attr_param);
+                break;
 
             default:
                 throw new ScriptError(`unknown unit trait: ${attr}`, rawClip);
         }
 
-        this.eval = (state) => propEval(unitExp.eval(state));
+        this.eval = (state) => {
+            let unit = unitExp.eval(state);
+            if(!unit) return undefined;
+            propEval(unit);
+        }
     }
 };
 
@@ -118,8 +133,6 @@ class AlwaysExpression {
         this.getResults = () => { return { exp: this, isValid: true } };
     }
 }
-
-
 
 class SingleExpression {
     constructor(rawClip) {
@@ -191,6 +204,7 @@ class ComparatorEval  {
         this.rawClip = rawClip;
     }
     eval(left, right) {
+        if(left == undefined || right == undefined) return false;
         switch(this.rawClip.raw) {
             case "<":
                 return left < right;
@@ -210,6 +224,19 @@ class ComparatorEval  {
         }
     }
 };
+
+function evalHasCondition(conditions, targetCond) {
+    if(targetCond) {
+        let pred = (cond) => cond == targetCond;
+        if(targetCond.endsWith("*")) {
+            const p = targetCond.substring(0, targetCond.length - 1);
+            pred = (cond) => cond.startsWith(p)
+        }
+        return !!conditions.find(pred);
+    } else {
+        return conditions.length
+    }
+}
 
 // sync with ScriptReader.js
 function createMethodExpression(methodClip, paramsClip) {

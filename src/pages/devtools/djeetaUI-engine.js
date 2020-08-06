@@ -89,6 +89,7 @@ class DjeetaScriptEngine {
                 }
 
                 if(lineResult.find) {
+                    let find = lineResult.find;
                     let findDecor = lineDecorator.createInlineDecorator(lineResult.find.exp.rawClip);
                     findDecor.className = `${find.capture? "valid" : "invalid"} find-exp`;
                     if(find.capture) {

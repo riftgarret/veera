@@ -31,6 +31,7 @@ class SummonAction {
 
     isValid(state) {
         if(!state.summonsEnabled) return false;
+        if(!state.party[0].alive) return false;
         let summon =  this.getValidSummon(state);
         return summon && summon.isAvailable;
     }
