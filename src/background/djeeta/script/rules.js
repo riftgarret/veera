@@ -70,11 +70,11 @@ class Rule {
 
     constructor(line) {
         let rawClip = new RawClip(() => this, line);
-        let results = line.matchAll(/(?<method>\w+)\((?<params>.*?)\)/g);
+        let results = line.matchAll(/(?<method>\w+)\((?<params>.*?)\)(\s\-(?<flag>\w+))?/g);
 
         for(let result of results) {
-            let {method, params} = result.groups;
-
+            let {method, params, flag} = result.groups;
+            this.assignFlag(flag);
             let evaluator = createMethodExpression(rawClip.subClip(method, result.index), rawClip.subClip(params, result.index));
             switch(method) {
                 case "when":
@@ -86,6 +86,15 @@ class Rule {
                 default:
                     this.actions.push(evaluator);
             }
+        }
+    }
+
+    assignFlag(flag) {
+        if(!flag) return;
+        switch(flag.toLowerCase()) {
+            case "refresh":
+                this.autoRefresh = true;
+                break;
         }
     }
 
@@ -127,7 +136,11 @@ class RawClip {
     };
 }
 
-
+class Flag {
+    constructor(flag) {
+        this.flag = flag;
+    }
+}
 
 class WhenCondition {
     constructor(rawClip) {

@@ -44,6 +44,19 @@ class CombatModule extends BaseModule {
         return {};
     }
 
+    requestCombatGameRefresh() {
+        const possibleRefreshNavigation = (e) =>
+            e.event == "refresh"
+            || e.page == Page.REWARD
+            || e.page == Page.STAGE_HANDLER;
+
+        this.requestGameRefresh();
+        this.prepareGameNavigation([
+            possibleRefreshNavigation,
+            possibleRefreshNavigation,
+            possibleRefreshNavigation
+        ]);
+    }
 
     evaluate() {
         let evaluatedRules = this.evaluateRules();
@@ -119,6 +132,11 @@ class CombatModule extends BaseModule {
         if(!turnHistory.includes(action)) {
             turnHistory.push(action);
         }
+
+        let line = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action));
+        if(line.rule.autoRefresh) {
+            this.requestCombatGameRefresh();
+        }
     }
 
     preProcessCombatAction(actionMeta) {
@@ -161,18 +179,8 @@ class CombatModule extends BaseModule {
             }
         }
 
-        let possibleRefreshNavigation = (e) =>
-            e.event == "refresh"
-            || (e.event == "navigate" && e.page == Page.REWARD)
-            || (e.event == "navigate" && e.page == Page.STAGE_HANDLER);
-
         if(actionMeta.action == "attack" && !wonFight && this.config.refreshOnAttack) {
-            this.requestGameRefresh();
-            this.prepareGameNavigation([
-                possibleRefreshNavigation,
-                possibleRefreshNavigation,
-                possibleRefreshNavigation
-            ]);
+            this.requestCombatGameRefresh();
         }
     }
 }
