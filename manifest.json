@@ -3,7 +3,7 @@
 
    "name": "Veera",
    "description": "The GBF Companion that keeps a close watch.",
-   "version": "2.1.0",
+   "version": "2.1.1",
 
    "icons": {
       "128": "src/assets/images/veera128.png",
@@ -60,6 +60,7 @@
                  "src/background/djeeta/utils.js",
                  "src/lib/djeeta-script-manager.js",
                  "src/background/djeeta/modules/BaseModule.js",
+                 "src/background/djeeta/modules/ApiModule.js",
                  "src/background/djeeta/modules/RepeatModule.js",
                  "src/background/djeeta/modules/CombatModule.js",
                  "src/background/djeeta/modules/RewardModule.js",

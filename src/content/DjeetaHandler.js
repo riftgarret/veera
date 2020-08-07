@@ -161,6 +161,10 @@ class DjeetaHandler {
             .then((res) => djeetaHandler.onActionReceived(res));
     }
 
+    requestApi(event) {
+        return this.requestAction(Page.API, event);
+    }
+
     requestCombatAction() {
         return this.requestAction(Page.COMBAT, "init");
     }

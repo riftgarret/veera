@@ -66,6 +66,7 @@ class ScriptController {
             onProcessEnd: () => me.disableScriptAndNotifyUI("Script Finished."),
             abort: (reason) => me.disableScriptAndNotifyUI(reason),
             updateScriptProps: (name, props) => me.updateScriptProps(name, props),
+            userStatus: mind.userStatus,
             parser: mind.parse,
             config: me.config,
             state: mind.state,

@@ -52,7 +52,7 @@ class ArcarumModule extends BaseModule {
             case Page.ARC_PARTY_SELECT: {
                 if(!this.upcomingFight) {
                     console.warn("Failed to store upcoming fight attrs, aborting");
-                    return FLAG_END_ROUND;
+                    return FLAG_END_SCRIPT;
                 }
                 let ret = this.findIdealParty();
                 if(["arcSelectParty", "arcUseCurrentParty"].includes(ret.action)) {
@@ -149,7 +149,7 @@ class ArcarumModule extends BaseModule {
         }
 
         console.warn("we should not have gotten here..");
-        return FLAG_END_ROUND;
+        return FLAG_END_SCRIPT;
     }
 
     findDesiredDungeonId() {

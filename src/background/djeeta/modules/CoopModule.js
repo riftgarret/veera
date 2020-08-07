@@ -22,7 +22,7 @@ class CoopModule extends BaseModule {
             case "requestRefresh": {
                 this.requestGameRefresh();
                 this.prepareCoopNavigation();
-                return {action: "idle"}
+                return FLAG_IDLE
             }
         }
     }
@@ -43,7 +43,7 @@ class CoopModule extends BaseModule {
         let settings = this.roomSettings;
         if(this.pageMeta.page == Page.COOP_RAID_LANDING
             && settings.is_all_member_cleared_continuequest) {
-            return FLAG_END_ROUND;
+            return FLAG_END_SCRIPT;
         }
 
         if(!settings.is_set_supporter) {
@@ -66,7 +66,7 @@ class CoopModule extends BaseModule {
 
                  // coop hasnt started yet
                 if(settings.can_quest_start_count == settings.max_quest_start_count) {
-                    return { action: "idle" }
+                    return FLAG_IDLE
                 }
                 break;
             }

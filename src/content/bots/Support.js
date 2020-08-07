@@ -94,6 +94,7 @@ class SupportExecutor extends BaseExecutor {
                 // abort!
                 // TODO notify auth popup
                 console.log("auth found.");
+                djeetaHandler.requestApi("abort");
                 return;
             }
 
@@ -102,6 +103,7 @@ class SupportExecutor extends BaseExecutor {
             if(costMeta.after < 0) {
                 // TODO notify to redirect to get AP / EP
                 console.log("not enough stamina.");
+                djeetaHandler.requestApi("abort");
                 return;
             }
 

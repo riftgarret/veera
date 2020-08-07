@@ -23,16 +23,12 @@ class RewardModule extends BaseModule {
                             (e) => e.page == Page.COMBAT,
                             (e) => e.event == "refresh"
                         ]);
-                        return {
-                            action: "idle"
-                        }
+                        return FLAG_IDLE
 
                     case Behavior.ARCARUM:
                     case Behavior.PROVING_GROUND:
                         this.requestGameNavigation(this.pageMeta.meta.nextUrl || this.pageMeta.meta.url);
-                        return {
-                            action: "idle"
-                        }
+                        return FLAG_IDLE
 
                     default:
                         if(this.hasClaimNightmareEnabled) {

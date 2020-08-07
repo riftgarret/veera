@@ -437,4 +437,24 @@ class DjeetaParser {
     raidListings(json, metaObj) {
         Object.assign(metaObj, json);
     }
+
+    actionPoint(json, userStatus) {
+        userStatus.ap = json.action_point;
+        userStatus.halfElixerRecovery = Number(json.elixer_half_recover_value);
+    }
+
+    battlePoint(json, userStatus) {
+        userStatus.bp = json.battle_point;
+    }
+
+    userStatus(json, userStatus) {
+        userStatus.ap = json.now_action_point;
+        userStatus.bp = json.now_battle_point;
+        userStatus.halfElixerRecovery = Number(json.elixer_half_recover_value);
+    }
+
+    normalItemList(json, userStatus) {
+        userStatus.halfElixerCount = Number(json.find(x => x.item_id = "2").number);
+        userStatus.berryCount = Number(json.find(x => x.item_id = "5").number);
+    }
 }

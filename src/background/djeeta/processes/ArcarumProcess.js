@@ -6,6 +6,7 @@ class ArcarumProcess extends ModularProcess {
         this.addModule(this.combat = new CombatModule());
         this.addModule(new ArcarumModule(roadColor, delegate));
         this.addModule(new RewardModule(Behavior.ARCARUM));
+        this.addModule(new ApiModule())
     }
 
     beginRound() {

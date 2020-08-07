@@ -214,6 +214,7 @@ function hear(msg, sender) {
                         break;
                     case path.ismatch("quest/content/newassist/"):
                         DjeetaMind.onRaidListUpdated(msg.data.json.option.quest.assist_list);
+                        DjeetaMind.onUserStatus(msg.data.json.option.user_status);
                         break;
                     case path.ismatch("rest/quest/assist_list"):
                         DjeetaMind.onRaidListUpdated(msg.data.json);
@@ -253,6 +254,10 @@ function hear(msg, sender) {
                         break;
                     case path.ismatch("quest/user_action_point"):
                         Profile.update(msg.data.json);
+                        DjeetaMind.onActionPoint(msg.data.json);
+                        break;
+                    case path.ismatch("item/normal_item_list"):
+                        DjeetaMind.onNormalItemList(msg.data.json);
                         break;
                     case path.ismatch("quest/user_item"):
                     case path.ismatch("item/use_normal_item"):

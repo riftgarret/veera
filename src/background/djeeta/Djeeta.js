@@ -2,6 +2,7 @@
 class Djeeta {
     state = new DjeetaState();
     pageMeta = new PageMeta();
+    userStatus = new UserStatus();
     currentPage = Page.UNKNOWN;
     parse = new DjeetaParser();
     scriptRunner = new ScriptController(this);
@@ -258,6 +259,18 @@ quest_name: "Level 50 Vohu Manah"
     onRaidListUpdated(json) {
         this.parse.raidListings(json, this.pageMeta.meta);
         this.postActionScriptCheck();
+    }
+
+    onActionPoint(json) {
+        this.parse.actionPoint(json, this.userStatus);
+    }
+
+    onUserStatus(json) {
+        this.parse.userStatus(json, this.userStatus);
+    }
+
+    onNormalItemList(json) {
+        this.parse.normalItemList(json, this.userStatus);
     }
 
     get whenCurrentTurn() {
