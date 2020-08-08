@@ -156,8 +156,12 @@ class DjeetaHandler {
         this.opQueue.abort();
     }
 
-    requestAction(page, event) {
-        return BackgroundPage.query(REQUEST_ACTION, { page, event })
+    requestAction(page, event = "init", options) {
+        let query = { page, event };
+        if(options) {
+            Object.assign(query, options);
+        }
+        return BackgroundPage.query(REQUEST_ACTION, query)
             .then((res) => djeetaHandler.onActionReceived(res));
     }
 
@@ -166,38 +170,38 @@ class DjeetaHandler {
     }
 
     requestCombatAction() {
-        return this.requestAction(Page.COMBAT, "init");
+        return this.requestAction(Page.COMBAT, "init", {target: this.combat.bot.targetNumber});
     }
 
     requestCoopLandingAction() {
-        return this.requestAction(Page.COOP_RAID_LANDING, "init");
+        return this.requestAction(Page.COOP_RAID_LANDING);
     }
 
     requestSupportAction() {
-        return this.requestAction(Page.SUMMON_SELECT, "init");
+        return this.requestAction(Page.SUMMON_SELECT);
     }
 
     requestRewardAction() {
-        return this.requestAction(Page.REWARD, "init");
+        return this.requestAction(Page.REWARD);
     }
 
     requestPgFinalAction() {
-        return this.requestAction(Page.PG_FINAL_REWARD, "init");
+        return this.requestAction(Page.PG_FINAL_REWARD);
     }
 
     requestPgLandingAction() {
-        return this.requestAction(Page.PG_LANDING, "init");
+        return this.requestAction(Page.PG_LANDING);
     }
 
     requestArcLandingAction() {
-        return this.requestAction(Page.ARC_LANDING, "init");
+        return this.requestAction(Page.ARC_LANDING);
     }
 
     requestArcMapAction() {
-        return this.requestAction(Page.ARC_MAP, "init");
+        return this.requestAction(Page.ARC_MAP);
     }
 
     requestArcSupportAction() {
-        return this.requestAction(Page.ARC_PARTY_SELECT, "init");
+        return this.requestAction(Page.ARC_PARTY_SELECT);
     }
 }

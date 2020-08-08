@@ -126,6 +126,49 @@ class UnitExpression {
     }
 };
 
+class V2TriggerExpression {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        // boss.hp boss[0].hp% char[MC].hasDebuff[234] char[MC].isAlive char[MC].hasDebuff[234_40*]
+        let regex = /v2trigger(\.(?<attr>\w+\%?))?/i
+        let {attr} = rawClip.raw.match(regex).groups;
+
+        let propEval;
+        if(attr) {
+            switch(attr) {
+                case "name":
+                    propEval = (special) => special.name;
+                    break;
+                case "targets":
+                    propEval = (special, state) => special.targetedCharPos.map(pos => state.party[state.formation[pos]]);
+                    break;
+                case "color":
+                    propEval = (special) => special.color;
+                    break;
+                case "isOugi":
+                    propEval = (special) => special.isOugi;
+                    break;
+                case "isTrigger":
+                    propEval = (special) => special.isTrigger;
+                    break;
+
+                default:
+                    throw new ScriptError(`unknown trigger prop: ${attr}`, rawClip);
+            }
+        }
+
+        this.eval = (state) => {
+            if(!state.v2Trigger) return false;
+
+            if(!attr) {
+                return true; // has trigger
+            } else {
+                return propEval(state.v2Trigger, state);
+            }
+        }
+    }
+};
+
 class AlwaysExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -246,7 +289,9 @@ function createMethodExpression(methodClip, paramsClip) {
         case "find": return new FindClause(paramsClip);
         case "summon": return new SummonAction(paramsClip);
         case "holdCA": return new HoldCAAction(paramsClip);
+        case "guard": return new GuardAction(paramsClip);
         case "useItem": return new UseItemAction(paramsClip);
+        case "selectTarget": return new TargetAction(paramsClip);
         case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
 
@@ -268,6 +313,7 @@ function createInnerExpression(rawClip) {
         case "stage":   return new StageExpression(rawClip);
         case "boss":
         case "char":    return new UnitExpression(rawClip, params);
+        case "v2special": return new V2TriggerExpression(rawClip, params);
         default:
             throw new ScriptError(`unknown expression: ${params[0]}`, rawClip);
     }

@@ -167,30 +167,6 @@ class Djeeta {
         this.postActionScriptCheck();
     }
 
-    reportNewQuestMeta(json) {
-        /*
-episode: [{quest_id: "500101", quest_type: "5", use_action_point: "30", is_half: false, synopsis: "",…}]
-0: {quest_id: "500101", quest_type: "5", use_action_point: "30", is_half: false, synopsis: "",…}
-extra_flag: null
-is_half: false
-is_only_scene_scenario: false
-ng_attribute_names: ""
-ng_npc_names: ""
-quest_id: "500101"
-quest_type: "5"
-riddle_type: null
-scene_id: ""
-start_at_once: ""
-start_attribute_names: ""
-start_npc_names: ""
-start_rarity_names: ""
-synopsis: ""
-use_action_point: "30"
-without_summon: 0
-quest_name: "Level 50 Vohu Manah"
-        */
-    }
-
     processHoldCA(attackPost) {
         let isHoldingCA = attackPost.lock == 1;
 
@@ -251,6 +227,12 @@ quest_name: "Level 50 Vohu Manah"
         this.postActionScriptCheck();
     }
 
+    // v2 stuff
+    onGuardUsed(json) {
+        this.parse.v2guardToggle(json);
+        this.postActionScriptCheck();
+    }
+
     onCoopLanding(json) {
         this.parse.coopLanding(json, this.pageMeta.meta);
         this.postActionScriptCheck();
@@ -290,7 +272,7 @@ quest_name: "Level 50 Vohu Manah"
             action: "sticker"
         });
 
-        this.parse.chat(json);
+        this.parse.chat(json, this.state);
 
         this.postActionScriptCheck();
     }

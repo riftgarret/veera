@@ -38,6 +38,14 @@ class FindClause {
                     return max.val > 0? max.c : undefined;
                 }
                 break;
+            case "v2unguardedtarget":
+                this.capture = (state) => {
+                    if(!state.v2Trigger) return undefined
+                    if(state.v2Trigger.targetedCharPos.length == 0) return undefined
+                    let chars = state.getActiveCharacters();
+                    return state.v2Trigger.targetedCharPos.find(pos => !chars[pos].guarding);
+                }
+                break;
             case "lowesthp":
                 this.capture = (state) => {
                     let chars = state.getActiveCharacters().map(c => { return {char: c, value: c.hp}});

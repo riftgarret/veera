@@ -21,6 +21,11 @@ class CombatBot extends BaseBot {
         return $('div.btn-attack-start.display-on').length > 0;
     }
 
+    get targetNumber() {
+        let selectedTarget = $(".btn-targeting.lock-on").attr("data-target")
+        return selectedTarget? Number(selectedTarget) - 1 : 0;
+    }
+
     async clickAttack() {
         return await $('div.btn-attack-start.display-on').gbfClick();
     }
@@ -209,7 +214,7 @@ class CombatExecutor extends BaseExecutor {
                 },
                 () => {
                     if(action.targetAim != undefined || action.subParams != undefined) {
-                        return !bot.hasPopup;
+                        return bot.hasPopup;
                     }
                     return !bot.isSkillIconAvailable(action.id)
                 }

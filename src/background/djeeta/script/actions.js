@@ -37,6 +37,21 @@ class SummonAction {
     }
 }
 
+class TargetAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.index = Number(rawClip.raw);
+    }
+
+    actionMeta(state) { return { action: "selectTarget", index: this.index } };
+
+    isValid(state) {
+        if(state.bosses.length <= this.index) return false;
+        if(!state.bosses[this.index].alive) return false;
+        return state.targetedBossIndex != this.index
+    };
+}
+
 class AttackAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -115,7 +130,7 @@ class AbilityAction {
                 if(!target || target.alive) return false;
                 break;
             case GBFC.PICK.ATTRIBUTE_SINGLE_EXCEPT_OWN:
-                if(!target || target.charIndex == skill.charIndex || !targetInFront) return false;
+                if(!target || !target.alive || target.charIndex == skill.charIndex || !targetInFront) return false;
                 break;
             default: // all other cases should be picking single character, alive, and in formation
                 if(!target || !target.alive || !targetInFront) return false;
@@ -202,18 +217,46 @@ class HoldCAAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        this.shouldHoldCA = () => rawClip.raw == "1" || rawClip.raw == "true";
+        this.shouldHoldCA = ["true", "1"].includes(rawClip.raw.toLowerCase())
     }
 
     actionMeta(state) {
         return {
             action: "holdCA",
-            value: this.shouldHoldCA()
+            value: this.shouldHoldCA
         }
     }
 
     isValid(state) {
-        return state.isHoldingCA != this.shouldHoldCA();
+        return state.isHoldingCA != this.shouldHoldCA;
+    }
+}
+
+class GuardAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+
+        let split = rawClip.raw.split(/\s*,\s*/);
+        let target = split[0];
+        this.shouldGuard = ["true", "1"].includes(split[1].toLowerCase())
+        let targetEval = new CharacterEval(rawClip.subClip(target), target);
+        this.findTarget = (state) => targetEval.eval(state);
+    }
+
+    actionMeta(state) {
+        let target = this.findTarget(state);
+        return {
+            action: "guard",
+            value: this.shouldGuard,
+            charPos: state.formation.indexOf(`${target.charIndex}`)
+        }
+    }
+
+    isValid(state) {
+        let target = this.findTarget(state);
+        if(!state.formation.includes(target.charIndex)) return false;
+        if(!target.canGuard) return false;
+        return target.guarding != this.shouldGuard
     }
 }
 
@@ -223,7 +266,6 @@ class RequestBackupAction {
 
         this.backupArray = rawClip.raw.split(",").map(x => Number(x.trim()));
     }
-
 
     actionMeta(state) {
         // for now ignore

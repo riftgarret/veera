@@ -33,6 +33,9 @@ class CombatModule extends BaseModule {
     }
 
     onActionRequested(data) {
+        // apply target to state
+        this.state.targetedBossIndex = data.targetIndex;
+
         let evaluation = this.evaluate();
         let evaluator = this.evaluator;
 
@@ -72,7 +75,7 @@ class CombatModule extends BaseModule {
             let action = this.state.stageCurrent == this.state.stageMax? "navigateToVictory" : "navigateNextStage";
             return [{ actionMeta: () => { return { action } } }];
         } else if(this.state.roundLost) {
-            return { action: "idle" } // TODO figure out to end round or what, maybe behavior
+            return FLAG_IDLE // TODO figure out to end round or what, maybe behavior
         }
 
         // converts found valid actions into single array.

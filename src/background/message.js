@@ -269,6 +269,9 @@ function hear(msg, sender) {
                     case path.ismatch("/temporary_item_result"):
                         DjeetaMind.onItemUse(msg.data.postData, msg.data.json);
                         break;
+                    case path.ismatch("guard_setting.json"):
+                        DjeetaMind.onGuardUsed(msg.data.json);
+                        break;
                     case path.ismatch("casino/exchange"):
                     case path.ismatch("shop_exchange/purchase"):
                     case path.ismatch("rest/sidestory/purchase"):

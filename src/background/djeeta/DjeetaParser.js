@@ -10,8 +10,10 @@ class DjeetaParser {
         state.stageMax = Number(json.battle.total);
         state.roundWon = false; // can never load a round we won
         state.notableEvents.length = 0;
+        state.targetedBossIndex = 0;
         state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
         state.pgSequence = json.sequence? json.sequence.type : undefined;
+        this.v2triggerDetails(json.special_skill_indicate, state);
         this.abilities(json, state);    // needs to happen before party (condition abilities lock)
         this.startSummons(json, state);
         this.startParty(json, state);
@@ -20,8 +22,40 @@ class DjeetaParser {
         this.startItems(json, state);
         this.scenario(json.scenario, state);
         this.status(json.status, state);
+        state.roundLost = !state.party.find(c => c.alive);
         state.questId = json.quest_id;
         state.raidId = json.raid_id;
+    }
+
+    v2triggerDetails(json, state) {
+        if(!json || json.length == 0) return state.v2Trigger = undefined;
+        let special = json[0];
+        state.v2Trigger = {
+            isOugi: special.is_ct_max,
+            isTrigger: !special.is_ct_max,
+            isTargetAll: special.is_target_all,
+            targetedCharPos: special.target_char_pos? special.target_char_pos : [],
+            name: special.special_skill_name,
+            comment: special.special_skill_comment,
+            color: special.is_ct_max? "red" : (special.special_skill_type == 2? "purple" : "gold")
+        }
+    }
+
+    v2statusGuard(json, state) {
+        if(!json) return;
+
+        for(let guardData of json) {
+            let char = state.party[state.formation[guardData.pos]];
+            char.guarding = !!guardData.is_guard_status
+            char.canGuard = !!guardData.is_guard_unavailable
+        }
+    }
+
+    v2guardToggle(json, state) {
+        let char = state.party[state.formation[json.target_num]];
+        char.guarding = !!json.is_guard_status
+        char.canGuard = !!json.is_guard_unavailable
+        this.abilityAvailableList(state, char, json.condition.ability_available_list);
     }
 
     status(status, state) {
@@ -30,6 +64,8 @@ class DjeetaParser {
         state.turn = status.turn;
         this.statusSummons(status, state);
         this.abilities(status, state);
+        this.v2triggerDetails(status.special_skill_indicate, state);
+        this.v2statusGuard(status.is_guard_status, state);
     }
 
     scenario(scenario, state) {
@@ -228,6 +264,7 @@ class DjeetaParser {
             let debuffs = this.conditions(enemy.condition, false);
 
             let enemyObj = {
+                type: "boss",
                 id: Number(enemy.enemy_id),
                 name: enemy.name.en,
                 cjs: enemy.cjs,
@@ -270,6 +307,7 @@ class DjeetaParser {
             let debuffs = this.conditions(player.condition, false);
 
             let playerObj = {
+                type: "character",
                 name: player.name,
                 charIndex: i,
                 cjs: player.cjs,
@@ -282,6 +320,8 @@ class DjeetaParser {
                 hpMax: Number(player.hpmax),
                 ougi: Number(player.recast),
                 ougiMax: Number(player.recastmax),
+                guarding: player.is_guard_status? player.is_guard_status != 0 : false,
+                canGuard: player.is_guard_unavailable? player.is_guard_unavailable == 0 : false,
                 buffs: buffs,
                 debuffs: debuffs,
             };
@@ -338,7 +378,7 @@ class DjeetaParser {
                     recast: props["ability-recast"],
                     recastMax: props["recast-default"],
                     iconType: props["icon-type"],
-                    isDisabled: false // updated by player parsing / scenario
+                    isDisabled: false // updated by player parsing / scenario / guard
                 };
 
                 abilities.push(abilityObj);
