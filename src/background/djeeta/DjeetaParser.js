@@ -268,6 +268,7 @@ class DjeetaParser {
                 id: Number(enemy.enemy_id),
                 name: enemy.name.en,
                 cjs: enemy.cjs,
+                alive: !!enemy.alive,
                 attr: Number(enemy.attr),
                 hp: Number(enemy.hp),
                 hpMax: Number(enemy.hpmax),

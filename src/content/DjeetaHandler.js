@@ -42,6 +42,9 @@ class DjeetaHandler {
                 case "fullAutoAction":
                     this.combat.executeFullAutoAction(actionMeta);
                     break;
+                case "selectTarget":
+                    this.combat.selectTarget(actionMeta);
+                    break;
 
                 //supporter
                 case "selectSummon":
@@ -170,7 +173,7 @@ class DjeetaHandler {
     }
 
     requestCombatAction() {
-        return this.requestAction(Page.COMBAT, "init", {target: this.combat.bot.targetNumber});
+        return this.requestAction(Page.COMBAT, "init", {targetIndex: this.combat.bot.targetNumber});
     }
 
     requestCoopLandingAction() {

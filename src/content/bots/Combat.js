@@ -26,6 +26,10 @@ class CombatBot extends BaseBot {
         return selectedTarget? Number(selectedTarget) - 1 : 0;
     }
 
+    async selectTarget(index) {
+        return await $(`.btn-targeting[data-target="${index + 1}"`).gbfClick()
+    }
+
     async clickAttack() {
         return await $('div.btn-attack-start.display-on').gbfClick();
     }
@@ -259,6 +263,20 @@ class CombatExecutor extends BaseExecutor {
                 async () => await bot.clickOkPopup(),
                 () => !bot.hasPopup
             );
+        });
+    }
+
+    async selectTarget(action) {
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            
+            await runner.tryAction(
+                async () => await bot.selectTarget(action.index),
+                () => bot.targetNumber == action.index
+            )
+
+            // no network notification, so lets query action ourselves
+            djeetaHandler.requestCombatAction();
         });
     }
 
