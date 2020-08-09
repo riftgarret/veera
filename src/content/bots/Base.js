@@ -3,7 +3,7 @@
 class BaseBot {
 
     get hasPopup() {
-        return $('.pop-usual:visible .btn-usual-ok, .pop-usual:visible .btn-usual-text').length > 0;
+        return $('.pop-usual').is(":visible")
     }
 
     isPopupVisible(className) {
@@ -33,7 +33,7 @@ class BaseExecutor {
 
     queue(func) {
         this.opQueue.queue(func);
-    }
+    }    
 }
 
 class OperationQueue {

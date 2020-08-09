@@ -292,6 +292,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "guard": return new GuardAction(paramsClip);
         case "useItem": return new UseItemAction(paramsClip);
         case "selectTarget": return new TargetAction(paramsClip);
+        case "attack": return new AttackAction(paramsClip);
         case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
 

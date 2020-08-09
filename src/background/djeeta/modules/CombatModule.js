@@ -90,13 +90,7 @@ class CombatModule extends BaseModule {
                 }
             }
         }
-
-        if(actions.length == 0 && this.state.roundLost) {
-            console.log("Round lost, we should abandon actions, disable script");
-            this.disableScriptAndNotifyUI(`Script aborted loss scenario.`);
-            return actions;
-        }
-
+        
         // push attack as last option every time
         actions.push(this.defaultAttack);
         return actions;

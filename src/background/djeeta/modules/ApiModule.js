@@ -48,7 +48,7 @@ class ApiModule extends BaseModule {
 
         return {
             action: "refillAp",
-            count: refillCount,
+            amount: refillCount,
             onSuccessEvent: "refillComplete"
         }
     }

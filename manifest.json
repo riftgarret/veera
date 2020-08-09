@@ -25,6 +25,7 @@
          "src/content/message.js",
          "src/content/utils.js",
          "src/content/bots/Base.js",
+         "src/content/bots/Api.js",
          "src/content/bots/Arcarum.js",
          "src/content/bots/Combat.js",
          "src/content/bots/Coop.js",

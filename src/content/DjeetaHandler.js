@@ -8,6 +8,7 @@ class DjeetaHandler {
         this.reward = new RewardExecutor(this.opQueue);
         this.arcarum = new ArcarumExecutor(this.opQueue);
         this.coop = new CoopExecutor(this.opQueue);
+        this.api = new ApiExecutor(this.opQueue);
     }
 
     onActionReceived(actionMeta) {
@@ -101,6 +102,11 @@ class DjeetaHandler {
 
                 case "maybeRefresh":
                     this.coop.waitForBattleOrRequestRefresh(actionMeta);
+                    break;
+
+                // API
+                case "refillAP":
+                    this.api.refillAp(actionMeta);
                     break;
             }
         }
