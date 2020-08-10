@@ -64,7 +64,7 @@ class Djeeta {
         }
 
         this.pushDevState();
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_START);
     }
 
     safeCharName(idx) {
@@ -95,15 +95,12 @@ class Djeeta {
             action: "skill",
             name: abilityName
         };
-        this.scriptRunner.preProcessCombatAction(actionMeta);
 
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
 
-        this.scriptRunner.postProcessCombatAction(actionMeta);
-
         this.pushDevState();
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_SKILL, actionMeta);
     }
 
 
@@ -122,26 +119,21 @@ class Djeeta {
             action: "summon",
             name: summonName
         };
-        this.scriptRunner.preProcessCombatAction(actionMeta);
 
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
 
-        this.scriptRunner.postProcessCombatAction(actionMeta);
-
         this.pushDevState();
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_SUMMON, actionMeta);
     }
 
     onCombatAttack(postData, json) {
         let actionMeta = { action: "attack" };
-        this.scriptRunner.preProcessCombatAction(actionMeta);
-        this.processHoldCA(postData);
+        this.processAttackCA(postData);
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
-        this.scriptRunner.postProcessCombatAction(actionMeta);
         this.pushDevState();
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_ATTACK, actionMeta)
     }
 
     onItemUse(postData, json) {
@@ -159,15 +151,13 @@ class Djeeta {
             action: "useItem",
             params
         });
-        this.scriptRunner.preProcessCombatAction(actionMeta);
         this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
-        this.scriptRunner.postProcessCombatAction(actionMeta);
         this.pushDevState();
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_ITEM, actionMeta)
     }
 
-    processHoldCA(attackPost) {
+    processAttackCA(attackPost) {
         let isHoldingCA = attackPost.lock == 1;
 
         let notifyCA = false;
@@ -189,21 +179,20 @@ class Djeeta {
 
     onCombatSettingChanged(postData, json) {
         if(!!json.success) {
+            let actionMeta;
             switch(postData.set) {
                 case "special_skill": {
                     let holdCA = (postData.value == 1);
-                    let actionMeta = {
+                    actionMeta = {
                         action: "holdCA",
                         value: holdCA
                     };
-                    this.scriptRunner.preProcessCombatAction(actionMeta);
                     this.state.isHoldingCA = holdCA;
                     // ignore this we will compare to previous action
-                    this.scriptRunner.postProcessCombatAction(actionMeta);
                 }
             }
         }
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_CA, actionMeta)
     }
 
     onCombatRequestBackup(postData) {
@@ -220,39 +209,40 @@ class Djeeta {
             params: requestArray
         });
 
-        this.scriptRunner.preProcessCombatAction(actionMeta);
         this.parse.backupRequest(postData, this.state);
-        this.scriptRunner.postProcessCombatAction(actionMeta);
 
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_BACKUP, actionMeta);
     }
 
     // v2 stuff
     onGuardUsed(json) {
         this.parse.v2guardToggle(json);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_GUARD);
     }
 
     onCoopLanding(json) {
         this.parse.coopLanding(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COOP_ROOM_DATA);
     }
 
     onRaidListUpdated(json) {
         this.parse.raidListings(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.RAID_LIST_UPDATE);
     }
 
     onActionPoint(json) {
         this.parse.actionPoint(json, this.userStatus);
+        // this.postActionScriptCheck(DateEvent.AP_UPDATE);
     }
 
     onUserStatus(json) {
         this.parse.userStatus(json, this.userStatus);
+        // this.postActionScriptCheck(DateEvent.ITEM_UPDATE)
     }
 
     onNormalItemList(json) {
         this.parse.normalItemList(json, this.userStatus);
+        // this.postActionScriptCheck(DateEvent.ITEM_UPDATE);
     }
 
     get whenCurrentTurn() {
@@ -274,32 +264,33 @@ class Djeeta {
 
         this.parse.chat(json, this.state);
 
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.COMBAT_CHAT);
     }
 
     onRewardPage(json) {
         this.parse.rewards(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.REWARD_DATA);
     }
 
     onArcDungeonList(json) {
         this.parse.arcDungeon(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.ARC_DUNGEON);
     }
 
     onArcStage(json) {
         this.parse.arcStage(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.ARC_STAGE);
     }
 
     onArcItems(json) {
         this.parse.arcStage(json, this.pageMeta.meta);
+        this.postActionScriptCheck(DataEvent.ARC_ITEMS);
         // no update as this is called along with onArcStage
     }
 
     onPartyDeckShown(json) {
         this.parse.partyDeck(json, this.pageMeta.meta);
-        this.postActionScriptCheck();
+        this.postActionScriptCheck(DataEvent.SUPPORT_PARTYDECK);
     }
 
     // script calls
@@ -366,7 +357,7 @@ class Djeeta {
             case hash.startsWith("#raid_semi/"):
                 newPage = Page.COMBAT;
                 break;
-            case hash.startsWith("/#quest/assist"):
+            case hash.startsWith("#quest/assist"):
                 newPage = Page.RAIDS;
                 break;
             case hash.startsWith("#quest/supporter_raid/"):
@@ -422,9 +413,6 @@ class Djeeta {
         }
 
         this.pageMeta.newPage(newPage, hash);
-        if(requiresPing) {
-            this.scriptRunner.requestDelayedContentPing(1000);
-        }
     }
 
     onPageRefresh() {
@@ -432,8 +420,17 @@ class Djeeta {
         console.log(`page refresh detected.`);
     }
 
-    postActionScriptCheck() {
-        this.scriptRunner.requestContentPing();
+    postActionScriptCheck(event, data) {
+
+        let firstOf = this.pageMeta.dataEvents.event++ == 0;
+        let eventObj = {
+            page: this.pageMeta.page,
+            event,
+            firstOf,
+            data
+        }
+
+        this.scriptRunner.onDataEvent(eventObj)
     }
 }
 

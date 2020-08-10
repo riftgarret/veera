@@ -2,10 +2,14 @@
 
 class PageMeta {
     page = Page.UNKNOWN;
+    hash
+    dataEvents = createNumberProxy()
+    meta = {}
 
     newPage(page, hash) {
         this.page = page;
         this.hash = hash;
+        this.dataEvents = createNumberProxy();
         this.meta = {};
     }
 }

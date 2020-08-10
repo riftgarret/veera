@@ -56,6 +56,11 @@ class ModularProcess {
         }
     }
 
+    onDataEvent(event) {
+        let mod = this.modules.find(mod => mod.handlesPage(data.page));
+        if(mod && mod.onDataEvent) mod.onDataEvent(event);
+    }
+
     onActionRequested(data) {
         let mod = this.modules.find(mod => mod.handlesPage(data.page));
         this.lastMod = mod;
@@ -83,13 +88,5 @@ class ModularProcess {
         if(!mod) return true;
         let result = mod.onActionRequested({event: "init"});
         return result == FLAG_END_ROUND;
-    }
-
-    preProcessCombatAction(actionMeta) {
-        this.modules.forEach((mod) => mod.preProcessCombatAction(actionMeta));
-    }
-
-    postProcessCombatAction(actionMeta) {
-        this.modules.forEach((mod) => mod.postProcessCombatAction(actionMeta));
     }
 }

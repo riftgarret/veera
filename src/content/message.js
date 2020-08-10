@@ -17,15 +17,15 @@ window.BackgroundPage = {
         }
         this.connection.postMessage({action, data});
     },
-    hear: function(msg) {    
+    hear: function(msg) {
         var action = msg.action;
         console.log("received type: " + action);
-        switch(action) {            
-            case "djeetaScriptPing":            
-                hookForEvents();
-                break;  
-                            
-        }        
+        switch(action) {
+            case "djeetaScriptPing":
+                awaitPageReady();
+                break;
+
+        }
     }
 };
 

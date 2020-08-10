@@ -103,7 +103,7 @@ class SupportExecutor extends BaseExecutor {
             if(costMeta.after < 0) {
                 // TODO notify to redirect to get AP / EP
                 console.log("not enough stamina.");
-                djeetaHandler.requestApi("abort");
+                djeetaHandler.requestApi("refillAP");
                 return;
             }
 

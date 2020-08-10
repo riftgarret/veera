@@ -18,7 +18,7 @@ const Page = {
     UNKNOWN: "unknown"
 };
 
-function hookForEvents() {
+function _awaitPageReady() {
     const hash = window.location.hash;
     switch(true) {
         case hash.startsWith("#raid/"):
@@ -82,7 +82,7 @@ function hookBattlePage() {
 
 function hookSupporterPage() {
     // this is because selecting a summon triggers this ping.
-    if(djeetaHandler.support.isRunning) return;
+    if(djeetaHandler.isRunning) return;
 
     console.log("hooking for support..");
     createAwaitPromise(
@@ -169,7 +169,7 @@ function hookArcSupportPage() {
 
 function hookCoopLanding() {
     // there are too many events triggering this
-    if(djeetaHandler.coop.isRunning) return;
+    if(djeetaHandler.isRunning) return;
 
     console.log("hooking for Coop Landing..");
     createAwaitPromise(

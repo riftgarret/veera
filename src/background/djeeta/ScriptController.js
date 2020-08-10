@@ -21,7 +21,7 @@ class ScriptController {
         if(!oldVal && val && this.process) {
             this.reset();
             this.process.start();
-            this.startHeartBeat()
+            // this.startHeartBeat()
         } else if(oldVal && !val && this.process) {
             this.requestGameAction({
                 action: "abortScript"
@@ -175,6 +175,12 @@ class ScriptController {
         return result;
     }
 
+    onDataEvent(event) {
+        if(!this.isRunning || !this.process) return;
+
+        this.process.onDataEvent(event);
+    }
+
     prepareGameNavigation(navEventValidator) {
         if(this.expectedNavigation) {
             console.warn(`still have existing navEventValidator`);
@@ -245,20 +251,6 @@ class ScriptController {
             page,
             hash,
         });
-    }
-
-    preProcessCombatAction(actionMeta) {
-        if(!this.isRunning) return;
-        if(!this.process.preProcessCombatAction) return;
-
-        this.process.preProcessCombatAction(actionMeta);
-    }
-
-    postProcessCombatAction(actionMeta) {
-        if(!this.isRunning) return;
-        if(!this.process.postProcessCombatAction) return;
-
-        this.process.postProcessCombatAction(actionMeta);
     }
 
     onNewBattle() {

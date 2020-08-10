@@ -22,3 +22,15 @@ Array.prototype.findMin = function(propToEval) {
     let max = Math.max.apply(Math, arr);
     return this.find(x => x[propToEval] == max);
 }
+
+function createNumberProxy() {
+    return new Proxy({}, {
+        get(target, prop) {
+            if (prop in target) {
+                return target[prop];
+            } else {
+                return 0; // default value
+            }
+        }
+    })
+}

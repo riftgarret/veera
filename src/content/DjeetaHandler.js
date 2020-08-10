@@ -165,6 +165,10 @@ class DjeetaHandler {
         this.opQueue.abort();
     }
 
+    get isRunning() {
+        return this.opQueue.isRunning;
+    }
+
     requestAction(page, event = "init", options) {
         let query = { page, event };
         if(options) {

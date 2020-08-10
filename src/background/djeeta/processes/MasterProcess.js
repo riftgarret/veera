@@ -1,7 +1,7 @@
 "use strict";
 
-class MasterProcess { 
-    
+class MasterProcess {
+
     processIdx = 0;
 
     constructor(processes) {
@@ -25,29 +25,29 @@ class MasterProcess {
             currentIdx: this.processIdx
         }
     }
-    
+
     get hasEnded() { return this.processIdx >= this.processes.length; }
 
-    attachAPI(sharedApi) {                
+    attachAPI(sharedApi) {
         for(let api in sharedApi) {
             this[api] = sharedApi[api];
         }
 
         let adjustedApi = {}
-        Object.assign(adjustedApi, sharedApi);        
-        adjustedApi.onProcessEnd = () => {            
+        Object.assign(adjustedApi, sharedApi);
+        adjustedApi.onProcessEnd = () => {
             this.processIdx++;
-            if(this.hasEnded) {                
+            if(this.hasEnded) {
                 sharedApi.onProcessEnd();
             } else {
                 this.curProcess.start();
-            }            
+            }
         }
 
         for(let p of this.processes) {
             p.attachAPI(adjustedApi);
         }
-    }    
+    }
 
     loadResources() {
         for(let p of this.processes) {
@@ -55,22 +55,19 @@ class MasterProcess {
         }
     }
 
-    onActionRequested(data) { 
-        if(this.hasEnded) return undefined;        
-        return this.curProcess.onActionRequested(data); 
+    onDataEvent(event) {
+        if(this.hasEnded) return;
+        this.curProcess.onDataEvent(event);
     }
-    preProcessCombatAction(actionMeta) { 
-        if(this.hasEnded) return;        
-        this.curProcess.preProcessCombatAction(actionMeta); 
-    }
-    postProcessCombatAction(actionMeta) { 
-        if(this.hasEnded) return;        
-        this.curProcess.postProcessCombatAction(actionMeta); 
+
+    onActionRequested(data) {
+        if(this.hasEnded) return undefined;
+        return this.curProcess.onActionRequested(data);
     }
 
     onNewBattle() {
-        if(this.hasEnded) return;     
-        if(!this.curProcess.onNewBattle) return;   
-        this.curProcess.onNewBattle(); 
+        if(this.hasEnded) return;
+        if(!this.curProcess.onNewBattle) return;
+        this.curProcess.onNewBattle();
     }
 }

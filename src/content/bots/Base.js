@@ -27,13 +27,15 @@ class BaseBot {
 }
 
 class BaseExecutor {
+    last = undefined
+
     constructor(operationQueue) {
         this.opQueue = operationQueue;
     }
 
     queue(func) {
         this.opQueue.queue(func);
-    }    
+    }
 }
 
 class OperationQueue {

@@ -5,14 +5,28 @@ var externalChannel;
 var initSandbox = false;
 var ee;
 var knownObservers = {};
+var $el;
 window.djeetaHandler = new DjeetaHandler();
+var awaitPageReady = function() { console.log("not ready..") }
 
 if(chrome.runtime) {
     BackgroundPage.connect();
 }
 
+
+if(!$el) {
+    createAwaitPromise(
+        ".contents",
+        e => e.length > 0
+    ).then(e => {
+        $el = e;
+        awaitPageReady = _awaitPageReady;
+        awaitPageReady();
+    });
+}
+
 // $(document).ready(() => hookForEvents());
-$(window).on('hashchange', () => {       
+$(window).on('hashchange', () => {
     for(let prop in knownObservers) {
         knownObservers[prop].disconnect();
         delete knownObservers[prop];
@@ -38,12 +52,9 @@ function onMessageFromSandbox(evt) {
     console.log(evt);
 
     switch(evt.data.type) {
-        case "methodHook": {            
+        case "methodHook": {
             djeetaHandler.onInjectInterrupt(evt.data);
             break;
         }
     }
 }
-
-
-

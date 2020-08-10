@@ -4,11 +4,13 @@ class CombatModule extends BaseModule {
     evaluator = new ScriptEvaluator();
     actionHistory = {};
     defaultAttack = new AttackAction();
+    lastAction
 
     loadScript(script, name = "") {
         this.reset();
         this.scriptName = name;
         this.evaluator.read(script);
+        this.lastAction = undefined
     }
 
     loadScriptName(scriptName) {
@@ -41,10 +43,14 @@ class CombatModule extends BaseModule {
 
         if(evaluation.queue.length > 0) {
             updateUI("djeeta", {type: "scriptEvaluation", data: {name: this.scriptName, evaluator, evaluation}});
-            return evaluation.queue[0].actionMeta(this.state);
+            let action = queue[0];
+            let meta = action.actionMeta(this.state);
+            let rule = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action)).rule;
+            this.lastAction = { action, meta, rule }
+            return meta;
         }
 
-        return {};
+        return FLAG_END_SCRIPT // something went wrong;
     }
 
     requestCombatGameRefresh() {
@@ -90,7 +96,7 @@ class CombatModule extends BaseModule {
                 }
             }
         }
-        
+
         // push attack as last option every time
         actions.push(this.defaultAttack);
         return actions;
@@ -124,60 +130,61 @@ class CombatModule extends BaseModule {
         return this.actionHistory[key];
     }
 
-    actionExecuted(action) {
+    recordAction(action) {
         let turnHistory = this.getThisTurnHistory();
         if(!turnHistory.includes(action)) {
             turnHistory.push(action);
         }
+    }
 
-        let line = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action));
-        if(line.rule.autoRefresh) {
+    onDataEvent(event) {
+        // we handle all combat data events, except for first move
+        if(event.event == DataEvent.COMBAT_START) return;
+
+        let actionMeta = event.data;
+        let shouldRefresh = false;
+
+        if(actionMeta) {
+            if(!this.state.roundWon && actionMeta.action == "attack" && this.config.refreshOnAttack) {
+                shouldRefresh = true;
+            }
+
+            if(this.isLastAction(actionMeta)) {
+                this.recordAction(this.lastAction.action);
+
+                if(this.lastAction.rule.autoRefresh) {
+                    shouldRefresh = true;
+                }
+            }
+            this.lastAction = undefined;
+        }
+
+        if(this.state.roundWon) {
+            let hash = this.parser.getNavigationUrl(e, this.state);
+            this.requestGameNavigation(hash);
+        } else if(shouldRefresh) {
             this.requestCombatGameRefresh();
+        } else {
+            this.requestContentPing();
         }
     }
 
-    preProcessCombatAction(actionMeta) {
-        let { queue } = this.evaluate();
-        queue = queue.filter(a => a.actionMeta(this.state).action == actionMeta.action);
-        let foundAction;
+
+    isLastAction(actionMeta) {
+        if(!this.lastAction) return false;
+
+        let lastMeta = this.lastAction.meta;
+
+        if(actionMeta.action != lastMeta.action) return false;
+
         switch(actionMeta.action) {
             case "holdCA":
-                foundAction = queue.find(a => a.actionMeta(this.state).value == actionMeta.value);
-                break;
+                return lastMeta.value == actionMeta.value;
             case "skill":
-                foundAction = queue.find(a => a.actionMeta(this.state).name == actionMeta.name);
-                break;
             case "summon":
-                foundAction = queue.find(a => a.actionMeta(this.state).name == actionMeta.name);
-                break;
-            case "requestBackup":
-                foundAction = queue.find(a => true);
-                break;
+                return lastMeta.name == actionMeta.name;
         }
 
-        if(foundAction) {
-            this.actionExecuted(foundAction);
-        }
-    }
-
-    postProcessCombatAction(actionMeta) {
-        let wonFight = false;
-
-        for(let e of this.state.notableEvents) {
-            switch(e.cmd) {
-                case "finished":
-                case "win":
-                    if(this.config.refreshOnVictory) {
-                        let hash = this.parser.getNavigationUrl(e, this.state);
-                        this.requestGameNavigation(hash);
-                        wonFight = true;
-                    }
-                    break;
-            }
-        }
-
-        if(actionMeta.action == "attack" && !wonFight && this.config.refreshOnAttack) {
-            this.requestCombatGameRefresh();
-        }
+        return true;
     }
 }
