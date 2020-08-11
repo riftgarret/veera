@@ -17,7 +17,7 @@ class PageMeta {
 class UserStatus {
     ap = 0
     bp = 0
-    halfElixerCount = 0
-    halfElixerRecovery = 0
+    halfElixirCount = 0
+    halfElixirRecovery = 0
     berryCount = 0
 }

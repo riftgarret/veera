@@ -232,17 +232,17 @@ class Djeeta {
 
     onActionPoint(json) {
         this.parse.actionPoint(json, this.userStatus);
-        // this.postActionScriptCheck(DateEvent.AP_UPDATE);
+        this.postActionScriptCheck(DataEvent.AP_UPDATE);
     }
 
     onUserStatus(json) {
         this.parse.userStatus(json, this.userStatus);
-        // this.postActionScriptCheck(DateEvent.ITEM_UPDATE)
+        this.postActionScriptCheck(DataEvent.ITEM_UPDATE)
     }
 
     onNormalItemList(json) {
         this.parse.normalItemList(json, this.userStatus);
-        // this.postActionScriptCheck(DateEvent.ITEM_UPDATE);
+        this.postActionScriptCheck(DataEvent.ITEM_UPDATE);
     }
 
     get whenCurrentTurn() {

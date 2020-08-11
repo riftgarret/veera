@@ -8,16 +8,16 @@ class ApiBot extends BaseBot {
         return $(".pop-recover-stamina").is(":visible")
     }
 
-    async selectHalfElixerAmount(num) {
+    async selectHalfElixirAmount(num) {
         $(`.use-item-num[data-item-index="1"]`).val(num)
         return await waitButtonInterval()
     }
 
-    get getSelectHalfElixerAmount() {
+    get getSelectHalfElixirAmount() {
         return $(`.use-item-num[data-item-index="1"]`).val()
     }
 
-    async useHalfElixerAmount() {
+    async useHalfElixirAmount() {
         return await $(`.btn-use-item[data-item-index="1"]`).gbfClick();
     }
 
@@ -32,7 +32,7 @@ class ApiBot extends BaseBot {
 
 class ApiExecutor extends BaseExecutor {
     bot = wrapLogger(new ApiBot());
-    
+
     async refillAp(action) {
         let bot = this.bot;
 
@@ -49,14 +49,14 @@ class ApiExecutor extends BaseExecutor {
 
             // select AP amount
             await runner.tryAction(
-                async () => bot.selectHalfElixerAmount(action.amount),
-                () => bot.getSelectHalfElixerAmount == action.amount
+                async () => bot.selectHalfElixirAmount(action.amount),
+                () => bot.getSelectHalfElixirAmount == action.amount
             );
 
             // click OK
             await runner.tryAction(
                 async () => {
-                    await bot.useHalfElixerAmount()
+                    await bot.useHalfElixirAmount()
                     await waitForVisible(".pop-complete-recover-stamina", 4000);
                 },
                 () => bot.hasPopupRecoverSuccess
@@ -73,5 +73,5 @@ class ApiExecutor extends BaseExecutor {
                 djeetaHandler.requestApi(action.onSuccessEvent)
             }
         })
-    }    
+    }
 }

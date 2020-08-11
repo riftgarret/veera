@@ -10,6 +10,11 @@ class CoopModule extends BaseModule {
         return [Page.COOP_RAID_LANDING, page.COOP_LANDING].includes(page);
     }
 
+    onDataEvent(event) {
+        // for now..
+        // this.requestContentPing();
+    }
+
     get roomSettings() {
         return this.pageMeta.meta.room_quest_setting;
     }

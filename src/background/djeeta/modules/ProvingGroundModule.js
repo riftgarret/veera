@@ -4,10 +4,15 @@ class ProvingGroundModule extends BaseModule {
         return page == Page.PG_LANDING || page == Page.PG_FINAL_REWARD;
     }
 
-    onActionRequested(data) {     
+    onDataEvent(event) {
+        // for now..
+        // this.requestContentPing();
+    }
+
+    onActionRequested(data) {
         if(data.page == Page.PG_FINAL_REWARD) {
             return FLAG_END_ROUND;
-        }   
+        }
 
         // assume landing
         this.prepareGameNavigation([
@@ -15,8 +20,8 @@ class ProvingGroundModule extends BaseModule {
             (e) => e.event == "refresh",
             (e) => e.event == "navigate" && e.page == Page.COMBAT,
         ]);
-        return {        
-            action: "startPgFight"                            
-        }     
+        return {
+            action: "startPgFight"
+        }
     }
 }

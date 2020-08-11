@@ -13,11 +13,6 @@ class ApiModule extends BaseModule {
                     if(!this.detourOrigin) return this.guessStaminaAction();
                     if(this.detourOrigin.stamina == "AP") return this.refillApAction();
                     return FLAG_END_ROUND; // do something for bp
-                case "refillComplete":
-                    if(!this.detourOrigin) return FLAG_END_ROUND;
-                    this.requestGameNavigation(this.detourOrigin.hash);
-                    this.detourOrigin = undefined;
-                    return FLAG_IDLE
             }
         }
 
@@ -25,12 +20,17 @@ class ApiModule extends BaseModule {
         switch(data.event) {
             case "abort":
                 return FLAG_END_SCRIPT;
-            case "refillAP":
+            case "requestRefillAP":
                 this.detourOrigin = {
                     hash: this.pageMeta.hash,
                     stamina: "AP"
                 }
                 this.requestGameNavigation("#quest/assist");
+                return FLAG_IDLE
+            case "refillComplete":
+                if(!this.detourOrigin) return FLAG_END_ROUND;
+                this.requestGameNavigation(this.detourOrigin.hash);
+                this.detourOrigin = undefined;
                 return FLAG_IDLE
         }
     }
@@ -41,13 +41,13 @@ class ApiModule extends BaseModule {
     }
 
     refillApAction() {
-        let recovery = this.userStatus.halfElixerRecovery;
+        let recovery = this.userStatus.halfElixirRecovery;
         let ap = this.userStatus.ap;
         let goal = 100 // should be configurable
         let refillCount = Math.floor((goal - ap) / recovery);
 
         return {
-            action: "refillAp",
+            action: "refillAP",
             amount: refillCount,
             onSuccessEvent: "refillComplete"
         }

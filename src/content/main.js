@@ -30,6 +30,12 @@ $(window).on('hashchange', () => {
     for(let prop in knownObservers) {
         knownObservers[prop].disconnect();
         delete knownObservers[prop];
+        djeetaHandler.abortExecutors();
+
+        new Promise(async () => {
+            await timeout(300);
+            awaitPageReady();
+        });
     }
 });
 

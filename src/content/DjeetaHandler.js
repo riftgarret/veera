@@ -217,4 +217,8 @@ class DjeetaHandler {
     requestArcSupportAction() {
         return this.requestAction(Page.ARC_PARTY_SELECT);
     }
+
+    requestRaidListAction() {
+        return this.requestAction(Page.RAIDS);
+    }
 }

@@ -26,8 +26,8 @@ function _awaitPageReady() {
         case hash.startsWith("#raid_semi/"):
             hookBattlePage();
             break;
-        case hash.startsWith("/#quest/assist"):
-
+        case hash.startsWith("#quest/assist"):
+            hookRaidsList();
             break;
         case hash.startsWith("#quest/supporter_raid/"):
         case hash.startsWith("#quest/supporter/"):
@@ -68,7 +68,7 @@ function hookBattlePage() {
     Promise.race([
         createAwaitPromise(
             "div.btn-attack-start",
-            (e) => e.hasClass("display-on"),
+            (e) => e.hasClass("display-on") && e.is(":visible"),
             { attributeFilter: ['class'] }),
         createAwaitPromise(
             "div.prt-battle-condition",
@@ -81,9 +81,6 @@ function hookBattlePage() {
 }
 
 function hookSupporterPage() {
-    // this is because selecting a summon triggers this ping.
-    if(djeetaHandler.isRunning) return;
-
     console.log("hooking for support..");
     createAwaitPromise(
         ".btn-supporter",
@@ -168,9 +165,6 @@ function hookArcSupportPage() {
 }
 
 function hookCoopLanding() {
-    // there are too many events triggering this
-    if(djeetaHandler.isRunning) return;
-
     console.log("hooking for Coop Landing..");
     createAwaitPromise(
         "div.prt-quest-info",
@@ -179,5 +173,17 @@ function hookCoopLanding() {
     ).then(() => {
         console.log("Djeeta > hookCoopLanding Ready");
         return djeetaHandler.requestCoopLandingAction()
+    });
+}
+
+function hookRaidsList() {
+    console.log("hooking Raids Landing..");
+    createAwaitPromise(
+        "div.prt-assist-list",
+        (e) => e.is(":visible"),
+        { attributeFilter: ["style", "class"] }
+    ).then(() => {
+        console.log("Djeeta > hookCoopLanding Ready");
+        return djeetaHandler.requestRaidListAction()
     });
 }

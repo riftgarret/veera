@@ -43,10 +43,10 @@ class CombatModule extends BaseModule {
 
         if(evaluation.queue.length > 0) {
             updateUI("djeeta", {type: "scriptEvaluation", data: {name: this.scriptName, evaluator, evaluation}});
-            let action = queue[0];
+            let action = evaluation.queue[0];
             let meta = action.actionMeta(this.state);
-            let rule = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action)).rule;
-            this.lastAction = { action, meta, rule }
+            let line = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action));
+            this.lastAction = { action, meta, rule: line? line.rule : undefined }
             return meta;
         }
 
@@ -152,7 +152,7 @@ class CombatModule extends BaseModule {
             if(this.isLastAction(actionMeta)) {
                 this.recordAction(this.lastAction.action);
 
-                if(this.lastAction.rule.autoRefresh) {
+                if(this.lastAction.rule && this.lastAction.rule.autoRefresh) {
                     shouldRefresh = true;
                 }
             }
@@ -160,6 +160,7 @@ class CombatModule extends BaseModule {
         }
 
         if(this.state.roundWon) {
+            let e = this.state.notableEvents.find(e => ["win", "finished"].includes(e.cmd));
             let hash = this.parser.getNavigationUrl(e, this.state);
             this.requestGameNavigation(hash);
         } else if(shouldRefresh) {

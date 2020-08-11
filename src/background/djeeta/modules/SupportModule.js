@@ -16,6 +16,12 @@ class SupportModule extends BaseModule {
         return page == Page.SUMMON_SELECT;
     }
 
+    onDataEvent(event) {
+        // for now..
+        if(event.event == DataEvent.SUPPORT_PARTYDECK) return;
+        this.requestContentPing();
+    }
+
     onActionRequested(data) {
         switch(data.event) {
             case "init":

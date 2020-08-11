@@ -57,7 +57,7 @@ class ModularProcess {
     }
 
     onDataEvent(event) {
-        let mod = this.modules.find(mod => mod.handlesPage(data.page));
+        let mod = this.modules.find(mod => mod.handlesPage(event.page));
         if(mod && mod.onDataEvent) mod.onDataEvent(event);
     }
 

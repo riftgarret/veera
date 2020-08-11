@@ -151,7 +151,7 @@ class CombatBot extends BaseBot {
                 return await $(".item-small.btn-temporary-small").gbfClick();
             case "blue":
                 return await $(".item-large.btn-temporary-large").gbfClick();
-            case "elixer":
+            case "elixir":
                 return await $(".item-potion.btn-temporary-large").gbfClick();
         }
     }
@@ -269,7 +269,7 @@ class CombatExecutor extends BaseExecutor {
     async selectTarget(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
-            
+
             await runner.tryAction(
                 async () => await bot.selectTarget(action.index),
                 () => bot.targetNumber == action.index

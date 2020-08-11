@@ -25,6 +25,20 @@ class ArcarumModule extends BaseModule {
         this.partyDelegate = partyDelegate;
     }
 
+    onDataEvent(event) {
+        // for now..
+        switch(event.page) {
+            case Page.ARC_LANDING:
+                return;
+            case Page.ARC_PARTY_SELECT:
+                this.requestContentPing();
+                return;
+            case Page.ARC_MAP:
+                if(!event.firstOf) this.requestContentPing();
+                return;
+        }
+    }
+
     onNewRound() {
         super.onNewRound();
 
@@ -270,17 +284,21 @@ class ArcarumModule extends BaseModule {
                 id: chest.chest_origin_id,
             });
         }
-        for(let prop in division.quest_list) {
-            let questObj = division.quest_list[prop];
-            results.push({
-                type: "quest", // TODO is boss?
-                id: questObj.arcarum_quest_origin_id,
-                attrs: questObj.attribute_list,
-                restrictions: questObj.limitation_details,
-                name: questObj.quest_name,
-                isBoss: questObj.is_boss,
-                isForced: questObj.is_force,
-            });
+        // for whatever reason they use an empty array when nothing
+        // otherwise its a object with a map
+        if(!Array.isArray(division.quest_list)) {
+            for(let prop in division.quest_list) {
+                let questObj = division.quest_list[prop];
+                results.push({
+                    type: "quest", // TODO is boss?
+                    id: questObj.arcarum_quest_origin_id,
+                    attrs: questObj.attribute_list,
+                    restrictions: questObj.limitation_details,
+                    name: questObj.quest_name,
+                    isBoss: questObj.is_boss,
+                    isForced: questObj.is_force,
+                });
+            }
         }
         for(let gatepost of division.gatepost_list) {
             results.push({

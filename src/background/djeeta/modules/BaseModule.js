@@ -22,7 +22,7 @@ class BaseModule {
         for(let api in sharedApi) {
             this[api] = sharedApi[api];
         }
-    }        
+    }
 
     onStart() {}
     onNewRound() {}
