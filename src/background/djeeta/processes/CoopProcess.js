@@ -19,9 +19,9 @@ class CoopProcess extends ModularProcess {
             .catch((e) => me.abort("failed to load combat script."));
     }
 
-    beginRound() {
-        super.beginRound();
-
+    start() {
+        super.start();
+        // assume we are on a coop page
         this.requestContentPing();
     }
 

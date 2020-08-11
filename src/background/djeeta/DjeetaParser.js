@@ -498,4 +498,14 @@ class DjeetaParser {
         userStatus.halfElixirCount = Number(json.find(x => x.item_id = "2").number);
         userStatus.berryCount = Number(json.find(x => x.item_id = "5").number);
     }
+
+    useNormalItem(json, userStatus) {
+        let recoveryObj = (json.result) ? json.result : json;
+        // referenced profile.js
+        if (recoveryObj.recovery_str == "AP") {
+            userStatus.ap = recoveryObj.after;
+        } else if (recoveryObj.recovery_str == "EP") {
+            userStatus.bp = recoveryObj.after;
+        }
+    }
 }

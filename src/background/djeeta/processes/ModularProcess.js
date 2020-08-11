@@ -20,7 +20,6 @@ class ModularProcess {
     start() {
         this.repeat.reset();
         this.modules.forEach((mod) => mod.onStart());
-        this.beginRound();
     }
 
     loadResources() {
@@ -82,11 +81,7 @@ class ModularProcess {
         return result;
     }
 
-    shouldNavigateToStart() {
-        let mod = this.modules.find(mod => mod.handlesPage(this.pageMeta.page));
-        this.lastMod = mod;
-        if(!mod) return true;
-        let result = mod.onActionRequested({event: "init"});
-        return result == FLAG_END_ROUND;
+    canResume() {
+        return !!this.modules.find(mod => mod.handlesPage(this.pageMeta.page));
     }
 }

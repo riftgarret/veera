@@ -251,6 +251,11 @@ var _injectedScript = function injected(state) {
                     case "combat_fullAutoAction":
                         Game.view.setupView.runFullAuto();
                         return;
+                    case "api_updateApPopup":
+                        Game.view._subViews.view86.updateRecoverStaminaPopup({
+                            currentTarget: $(`.use-item-num[data-item-index="1"]`)[0]
+                        });
+                        return;
                 }
             }
             catch(e) {

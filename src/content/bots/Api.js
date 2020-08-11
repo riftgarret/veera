@@ -9,7 +9,11 @@ class ApiBot extends BaseBot {
     }
 
     async selectHalfElixirAmount(num) {
-        $(`.use-item-num[data-item-index="1"]`).val(num)
+        let option = $el(`.use-item-num[data-item-index="1"]`)
+        option.val(num) // apparently this doesnt bubble the event to GBF
+        sendExternalMessage({
+            type: "api_updateApPopup"
+        });
         return await waitButtonInterval()
     }
 

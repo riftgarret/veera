@@ -21,7 +21,7 @@ class ScriptController {
         if(!oldVal && val && this.process) {
             this.reset();
             this.process.start();
-            // this.startHeartBeat()
+            this.startHeartBeat()
         } else if(oldVal && !val && this.process) {
             this.requestGameAction({
                 action: "abortScript"
@@ -164,6 +164,10 @@ class ScriptController {
     }
 
     onActionRequested(data) {
+        if(!this.isRunning) {
+            return { isRunning: false}
+        }
+
         this.beatHeart()
         let process = this.process;
 

@@ -33,6 +33,10 @@ class RaidModule extends BaseModule {
         return page == Page.RAIDS;
     }
 
+    onDataEvent(data) {
+
+    }
+
     onActionRequested(data) {
         if(data.page == Page.PG_FINAL_REWARD) {
             return FLAG_END_ROUND;

@@ -21,6 +21,11 @@ window.DevTools = {
                 ContentTab.connected(port);
                 break;
             }
+
+            case "raidfinder-page": {
+                RaidfinderTab.connected(port);
+                break;
+            }
         }
     },
     deafen() {
@@ -53,6 +58,41 @@ window.ContentTab = {
     connection: null,
     connected(port) {
         console.log("Djeeta-sama!", port);
+        this.connection = port;
+        port.onMessage.addListener(hearContent);
+        port.onDisconnect.addListener(self.deafen);
+    },
+    deafen() {
+        let self = ContentTab;
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+        }
+        if (self.connection) {
+            self.connection.onMessage.removeListener(this.listen);
+            chrome.runtime.onMessage.removeListener(hearContent);
+            self.connection.disconnect();
+            self.connection = null;
+        }
+        devlog("Disconnected.");
+    },
+    send(action, data) {
+        if (!this.connection) {
+            deverror("No active connection to DevTools.");
+            return;
+        }
+        this.connection.postMessage({action, data});
+    },
+    query(key, data) {
+        if(State.game.tabId) {
+            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => r(ret.value)));
+        }
+    }
+}
+
+window.RaidfinderTab = {
+    connection: null,
+    connected(port) {
+        console.log("Raid-sama!", port);
         this.connection = port;
         port.onMessage.addListener(hearContent);
         port.onDisconnect.addListener(self.deafen);
@@ -262,6 +302,7 @@ function hear(msg, sender) {
                     case path.ismatch("quest/user_item"):
                     case path.ismatch("item/use_normal_item"):
                         useRecoveryItem(msg.data.json);
+                        DjeetaMind.onUseNormalItem(msg.data.json);
                         break;
                     case path.ismatch("rest/quest/decks_info"):
                         DjeetaMind.onPartyDeckShown(msg.data.json);

@@ -183,7 +183,7 @@ function hookRaidsList() {
         (e) => e.is(":visible"),
         { attributeFilter: ["style", "class"] }
     ).then(() => {
-        console.log("Djeeta > hookCoopLanding Ready");
+        console.log("Djeeta > hookRaids Ready");
         return djeetaHandler.requestRaidListAction()
     });
 }

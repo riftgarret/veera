@@ -183,7 +183,10 @@ class DjeetaHandler {
     }
 
     requestCombatAction() {
-        return this.requestAction(Page.COMBAT, "init", {targetIndex: this.combat.bot.targetNumber});
+        return this.requestAction(Page.COMBAT, "init", {
+            targetIndex: this.combat.bot.targetNumber,
+            myHonors: this.combat.bot.myHonors || 0
+        });
     }
 
     requestCoopLandingAction() {

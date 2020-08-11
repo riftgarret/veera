@@ -19,7 +19,7 @@
    "content_scripts": [ {
       "css": [  ],
       "js": [
-         "src/content/jquery-3.5.1.min.js",
+         "src/lib/jquery-3.5.1.min.js",
          "src/content/sandbox.js",
          "src/content/injected.js",
          "src/content/message.js",
@@ -38,7 +38,17 @@
       ],
       "matches": [ "*://game.granbluefantasy.jp/*", "*://gbf.game.mbga.jp/*" ],
       "run_at": "document_start"
-   } ],
+   },
+   {
+      "css": [  ],
+      "js": [
+         "src/lib/jquery-3.5.1.min.js",
+         "src/raidfinder/message.js",
+         "src/raidfinder/main.js"
+      ],
+      "matches": [ "*://gbf-raidfinder.aikats.us/*" ],
+      "run_at": "document_idle"
+   }],
 
 
    "background": {

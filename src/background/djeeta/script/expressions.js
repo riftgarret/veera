@@ -8,6 +8,13 @@ class TurnExpression {
     }
 };
 
+class HonorsExpression {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.eval = state => isNaN(state.myHonors)? 0 : state.myHonors;
+    }
+}
+
 class PGRoundExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -295,6 +302,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "attack": return new AttackAction(paramsClip);
         case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
+        case "endCombat": return new EndCombatAction(paramsClip);
 
         default:
             throw new ScriptError(`unknown method ${methodClip.raw}`, methodClip);
@@ -312,6 +320,7 @@ function createInnerExpression(rawClip) {
         case "turn":    return new TurnExpression(rawClip);
         case "pground": return new PGRoundExpression(rawClip);
         case "stage":   return new StageExpression(rawClip);
+        case "honors":  return new HonorsExpression(rawClip);
         case "boss":
         case "char":    return new UnitExpression(rawClip, params);
         case "v2special": return new V2TriggerExpression(rawClip, params);

@@ -37,6 +37,7 @@ class CombatModule extends BaseModule {
     onActionRequested(data) {
         // apply target to state
         this.state.targetedBossIndex = data.targetIndex;
+        this.state.myHonors = data.myHonors;
 
         let evaluation = this.evaluate();
         let evaluator = this.evaluator;
@@ -44,6 +45,11 @@ class CombatModule extends BaseModule {
         if(evaluation.queue.length > 0) {
             updateUI("djeeta", {type: "scriptEvaluation", data: {name: this.scriptName, evaluator, evaluation}});
             let action = evaluation.queue[0];
+
+            if(action instanceof EndCombatAction) {
+                return FLAG_END_ROUND;
+            }
+
             let meta = action.actionMeta(this.state);
             let line = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action));
             this.lastAction = { action, meta, rule: line? line.rule : undefined }

@@ -20,15 +20,21 @@ class QuestProcess extends ModularProcess {
             .catch((e) => me.abort("failed to load combat script."));
     }
 
+    start() {
+        super.start();
+
+        if(this.canResume()) {
+            this.requestContentPing();
+        } else {
+            this.beginRound();
+        }
+    }
+
     beginRound() {
         super.beginRound();
 
-        if(this.shouldNavigateToStart()) {
-            let hash = new URL(this.url).hash;
-            this.requestGameNavigation(hash);
-        } else {
-            this.requestContentPing();
-        }
+        let hash = new URL(this.url).hash;
+        this.requestGameNavigation(hash);
     }
 
     onNewBattle() {

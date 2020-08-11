@@ -9,8 +9,8 @@ class SimpleCombatProcess extends ModularProcess {
         this.addModule(new RewardModule()); // this triggers script end.
     }
 
-    beginRound() {
-        super.beginRound();
+    start() {
+        super.start();
 
         if(this.pageMeta.page == Page.COMBAT) {
             this.requestContentPing();

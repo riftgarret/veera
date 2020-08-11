@@ -26,6 +26,14 @@ class CombatBot extends BaseBot {
         return selectedTarget? Number(selectedTarget) - 1 : 0;
     }
 
+    get myHonors() {
+        let honorsMatch = $el(".lis-user.player > .txt-point").text().match(/[0-9]+/)
+        if(honorsMatch && honorsMatch.length == 1) {
+            return Number(honorsMatch[0]);
+        }
+        return undefined
+    }
+
     async selectTarget(index) {
         return await $(`.btn-targeting[data-target="${index + 1}"`).gbfClick()
     }

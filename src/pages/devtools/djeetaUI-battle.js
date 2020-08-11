@@ -1,7 +1,7 @@
 "use strict";
 // battle callbacks
 class DjeetaBattleUI {
-    state = {}    
+    state = {}
     bossMetaElements = []
     playerMetaElements = []
 
@@ -26,11 +26,11 @@ class DjeetaBattleUI {
             node.diamonds = rootEle.find(".unit-diamonds");
             node.mode = rootEle.find(".unit-mode");
             node.buffs = rootEle.find(".unit-conditions.buffs");
-            node.debuffs = rootEle.find(".unit-conditions.debuffs");    
+            node.debuffs = rootEle.find(".unit-conditions.debuffs");
 
             node.hpProgress.mousemove((e) => {
                 let rect = node.hpContainer[0].getBoundingClientRect();
-                let x = e.clientX - rect.left; //x position within the element.                
+                let x = e.clientX - rect.left; //x position within the element.
                 let frac = x / rect.width; // snap to a single percent
                 let fracSnap = Math.max(0, Math.floor(100 * frac));
                 let targetHP = (fracSnap / 100) * Number(node.hp.attr('hp-max'));
@@ -56,9 +56,9 @@ class DjeetaBattleUI {
                 p200full: rootEle.find(".unit-ca-progress-200full"),
                 pDisabled: rootEle.find(".unit-ca-progress-disabled")
             };
-            node.skills = rootEle.find(".unit-skill-state");            
+            node.skills = rootEle.find(".unit-skill-state");
             node.buffs = rootEle.find(".unit-conditions.buffs");
-            node.debuffs = rootEle.find(".unit-conditions.debuffs");    
+            node.debuffs = rootEle.find(".unit-conditions.debuffs");
 
             return node;
         }
@@ -83,21 +83,21 @@ class DjeetaBattleUI {
         }
     }
 
-    snapshotState() { 
-        return JSON.parse(JSON.stringify(this.state)); 
+    snapshotState() {
+        return JSON.parse(JSON.stringify(this.state));
     }
 
     generateActionStateNode(innerHTML) {
         let div = $(`<div>${innerHTML}</div>`);
-        let stateSnapshot = this.snapshotState();        
+        let stateSnapshot = this.snapshotState();
         div.click((e) => UI.djeeta.updateStateUI(stateSnapshot));
         return div;
     }
-    
-    updateStateUI(state) {        
+
+    updateStateUI(state) {
         // common
         let updateCommon = function(unit, node) {
-            
+
             // ..conditions..
         };
 
@@ -108,23 +108,24 @@ class DjeetaBattleUI {
                 img.attr({
                     src: `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/ui/icon/status/x64/status_${cond}.png`,
                     title: cond
-                });                
+                });
                 div.append(img);
             }
         };
 
         let populateDiamonds = function(unit, diamondsDiv) {
             diamondsDiv.empty();
+            if(unit.recastMax > 10) return; // special cases like trials have 99999
             for(let i = 1; i < unit.recastMax; i++) {
                 let isBreak = (unit.mode == "break")? 1 : 0;
-                let isFilled = unit.recast + i <= unit.recastMax? 1 : 0;                
-                let diamondElement = $(`<div class="diamond"></div>`);                
+                let isFilled = unit.recast + i <= unit.recastMax? 1 : 0;
+                let diamondElement = $(`<div class="diamond"></div>`);
                 diamondElement.attr({ isBreak, isFilled });
                 diamondsDiv.append(diamondElement);
-            } 
+            }
         }
 
-        if(!state.bosses) return;        
+        if(!state.bosses) return;
 
         $("#battle-turn").html(state.turn);
         $("#stage-container").toggle(state.stageMax > 1);
@@ -134,26 +135,26 @@ class DjeetaBattleUI {
 
         // bosses
         for(let i = 0; i < this.bossMetaElements.length; i++) {
-            let node = this.bossMetaElements[i];            
+            let node = this.bossMetaElements[i];
             if(i < state.bosses.length) {
                 let unit = state.bosses[i];
-                updateCommon(unit, node);         
+                updateCommon(unit, node);
                 updateConditions(unit.buffs, node.buffs);
-                updateConditions(unit.debuffs, node.debuffs);   
-                populateDiamonds(unit, node.diamonds);                 
-                node.root.show();          
+                updateConditions(unit.debuffs, node.debuffs);
+                populateDiamonds(unit, node.diamonds);
+                node.root.show();
                 node.name.html(unit.name);
-                node.elementIcon.attr("attr", unit.attr);                
+                node.elementIcon.attr("attr", unit.attr);
                 node.hp.html(unit.hp + " : " + Math.ceil(100 * unit.hp / unit.hpMax) + "%");
-                node.hp.attr({"hp-value": unit.hp, "hp-max": unit.hpMax});                
-                node.hpProgress.css("width", (100 * unit.hp / unit.hpMax) + "%");                                
+                node.hp.attr({"hp-value": unit.hp, "hp-max": unit.hpMax});
+                node.hpProgress.css("width", (100 * unit.hp / unit.hpMax) + "%");
                 let cjSplit = unit.cjs.split("_");
                 node.unitIcon.attr("src", `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/assets/${cjSplit[0]}/s/${cjSplit[1]}.png`);
                 node.mode.toggle(unit.mode != "unknown");
-                node.mode.html(unit.mode);                               
-            } else {                
-                node.root.hide();      
-            }                                    
+                node.mode.html(unit.mode);
+            } else {
+                node.root.hide();
+            }
         }
 
         // players
@@ -178,11 +179,11 @@ class DjeetaBattleUI {
                 for(let ai = 0; ai < 4; ai++) {
                     let skillNode = $(node.skills[ai]);
                     if(ai >= abilities.length) {
-                        skillNode.attr("state", 0);                        
+                        skillNode.attr("state", 0);
                         skillNode.empty();
                     } else {
                         let ability = abilities[ai];
-                        skillNode.attr("type", ability.iconType);                        
+                        skillNode.attr("type", ability.iconType);
                         if(ability.recast == 0) {
                             skillNode.attr("state", 2);
                             skillNode.empty();
@@ -191,12 +192,12 @@ class DjeetaBattleUI {
                             skillNode.html(ability.recast);
                         }
                     }
-                }                
-                            
-            } else {                
+                }
+
+            } else {
                 node.root.hide();
-            }                                    
+            }
         }
-        
+
     }
 }

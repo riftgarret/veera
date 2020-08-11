@@ -9,20 +9,24 @@ class ArcarumProcess extends ModularProcess {
         this.addModule(new ApiModule())
     }
 
-    beginRound() {
-        super.beginRound();
-
+    start() {
         if(this.pageMeta.page == Page.COMBAT) {
             this.abort("Cannot start ARCARUM from combat");
             return;
         }
 
-        if(this.shouldNavigateToStart()) {
-            let hash = "#arcarum2"
-            this.requestGameNavigation(hash);
-        } else {
+        if(this.canResume()) {
             this.requestContentPing();
+        } else {
+            this.beginRound();
         }
+    }
+
+    beginRound() {
+        super.beginRound();
+
+        let hash = "#arcarum2"
+        this.requestGameNavigation(hash);
     }
 
     onActionRequested(data) {

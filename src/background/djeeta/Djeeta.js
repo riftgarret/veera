@@ -189,10 +189,12 @@ class Djeeta {
                     };
                     this.state.isHoldingCA = holdCA;
                     // ignore this we will compare to previous action
+
+                    this.postActionScriptCheck(DataEvent.COMBAT_CA, actionMeta)
+                    break;
                 }
             }
         }
-        this.postActionScriptCheck(DataEvent.COMBAT_CA, actionMeta)
     }
 
     onCombatRequestBackup(postData) {
@@ -242,6 +244,11 @@ class Djeeta {
 
     onNormalItemList(json) {
         this.parse.normalItemList(json, this.userStatus);
+        this.postActionScriptCheck(DataEvent.ITEM_UPDATE);
+    }
+
+    onUseNormalItem(json) {
+        this.parse.useNormalItem(json, this.userStatus);
         this.postActionScriptCheck(DataEvent.ITEM_UPDATE);
     }
 

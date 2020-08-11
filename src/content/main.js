@@ -5,7 +5,7 @@ var externalChannel;
 var initSandbox = false;
 var ee;
 var knownObservers = {};
-var $el;
+var $_el, $el;
 window.djeetaHandler = new DjeetaHandler();
 var awaitPageReady = function() { console.log("not ready..") }
 
@@ -19,26 +19,30 @@ if(!$el) {
         ".contents",
         e => e.length > 0
     ).then(e => {
-        $el = e;
+        $_el = e;
+        $el = selector => $_el.find(selector)
         awaitPageReady = _awaitPageReady;
         awaitPageReady();
     });
 }
 
 // $(document).ready(() => hookForEvents());
+var resetCounter = 0;
 $(window).on('hashchange', () => {
     for(let prop in knownObservers) {
         knownObservers[prop].disconnect();
         delete knownObservers[prop];
         djeetaHandler.abortExecutors();
-
-        new Promise(async () => {
-            await timeout(300);
-            awaitPageReady();
-        });
     }
-});
 
+    const checkCounter = ++resetCounter
+    new Promise(async () => {
+        await timeout(1000);
+        if(resetCounter == checkCounter) {
+            awaitPageReady();
+        }
+    });
+});
 
 var step1 = function(_ee, token, readyToDetatch) {
     ee = _ee;

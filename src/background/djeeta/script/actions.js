@@ -61,6 +61,15 @@ class AttackAction {
     isValid() { return true };
 }
 
+class EndCombatAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+    }
+
+    actionMeta() { return { action: "endCombat" } };
+    isValid() { return true };
+}
+
 class AbilityAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
