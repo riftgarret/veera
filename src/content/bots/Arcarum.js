@@ -51,11 +51,14 @@ class ArcarumBot extends BaseBot {
             case "quest":
                 return await $(`.btn-quest-list[data-origin-id="${action.id}"]`).gbfClick();
             case "chest":
-                return await $(`.btn-stage-chest[data-id="${action.id}"]`).gbfClick();
+                $(`.btn-stage-chest[data-id="${action.id}"]`).gbfClick();
+                await waitForSandbox("actionListUpdate", "onPopup", 3000);
             case "gatepost":
-                return await $(`.btn-stage-lock[data-origin-id="${action.id}"]`).gbfClick();
+                $(`.btn-stage-lock[data-origin-id="${action.id}"]`).gbfClick();
+                await waitForSandbox("actionListUpdate", 3000);
             case "red-gatepost":
-                await $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).gbfClick();
+                $(`.btn-stage-enemy-lock[data-origin-id="${action.id}"]`).gbfClick();
+                await waitForSandbox("actionListUpdate", "onPopup", 3000);
                 await waitForVisible(".pop-usual", 2000)
                 return await this.clickOkPopup();
             case "select-globe":

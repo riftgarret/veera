@@ -6,6 +6,7 @@ const Page = {
     COMBAT: "combat",
     SUMMON_SELECT: "summon_select",
     ARC_PARTY_SELECT: "arc_party_select",
+    UNCLAIMED_REWARD: "unclaimed_reward",
     REWARD: "reward",
     RAIDS: "raids",
     PG_LANDING: "proving_grounds_landing",
@@ -26,8 +27,11 @@ function _awaitPageReady() {
         case hash.startsWith("#raid_semi/"):
             hookBattlePage();
             break;
-        case hash.startsWith("#quest/assist"):
+        case hash == "#quest/assist":
             hookRaidsList();
+            break;
+        case hash.startsWith("#quest/assist/unclaimed/"):
+            hookUnclaimedList();
             break;
         case hash.startsWith("#quest/supporter_raid/"):
         case hash.startsWith("#quest/supporter/"):
@@ -185,5 +189,17 @@ function hookRaidsList() {
     ).then(() => {
         console.log("Djeeta > hookRaids Ready");
         return djeetaHandler.requestRaidListAction()
+    });
+}
+
+function hookUnclaimedList() {
+    console.log("hooking Unclaimed List..");
+    createAwaitPromise(
+        "#prt-unclaimed-list",
+        (e) => e.is(":visible"),
+        { attributeFilter: ["style", "class"] }
+    ).then(() => {
+        console.log("Djeeta > Unclaimed List Ready");
+        return djeetaHandler.requestUnclaimedListAction()
     });
 }

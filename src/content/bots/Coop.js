@@ -37,6 +37,7 @@ class CoopExecutor extends BaseExecutor {
                 timeout(action.delay)
             ]);
 
+            if(!runner.isValid) return;
             if(result != "ok" && runner.isValid) {
                 djeetaHandler.requestAction(Page.COOP_RAID_LANDING, "requestRefresh");
             }

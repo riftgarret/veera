@@ -1,10 +1,12 @@
 /* eslint-disable no-undef */
 window.BackgroundPage = {
     query: function(key, val) {
-        return new Promise(r => chrome.runtime.sendMessage({source: "ui", query: key, val}, ret => r(ret.value)));
+        return new Promise(r => chrome.runtime.sendMessage({source: "ui", query: key, val}, ret => {
+            try { r(ret.value) } catch(e) { console.error(`Error on ${key}`, e) }
+        }));
     },
     connection: null,
-    connect: function() {        
+    connect: function() {
         chrome.runtime.onMessage.addListener(hearQuery);
         this.connection = chrome.runtime.connect({name: "devtools-page"});
         this.connection.onMessage.addListener(this.hear);

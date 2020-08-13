@@ -78,4 +78,12 @@ class ApiExecutor extends BaseExecutor {
             }
         })
     }
+
+    async delayReload() {
+        this.queue(async (runner) => {
+            await timeout(action.delay)
+            if(!runner.isValid) return;
+            djeetaHandler.requestAction(Page.API, "requestRefresh");
+        });
+    }
 }

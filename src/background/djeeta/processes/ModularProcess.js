@@ -1,4 +1,5 @@
 "use strict";
+const FLAG_RESTART_ROUND = "flag_restart_round"
 const FLAG_END_ROUND = "flag_end_round";
 const FLAG_END_SCRIPT = "flag_end_script";
 const FLAG_IDLE = { action: "idle" }; // used to indicate no action on user
@@ -63,18 +64,22 @@ class ModularProcess {
     onActionRequested(data) {
         let mod = this.modules.find(mod => mod.handlesPage(data.page));
         this.lastMod = mod;
-        if(!mod) return undefined;
+        if(!mod) return;
         let result = mod.onActionRequested(data);
+        if(result == FLAG_RESTART_ROUND) {
+            this.beginRound();
+            return
+        }
         if(result == FLAG_END_ROUND) {
             if(this.repeat.shouldRepeat) {
                 this.beginRound();
             } else {
                 this.onProcessEnd();
             }
-            return undefined
+            return
         } else if(result == FLAG_END_SCRIPT) {
             this.onProcessEnd();
-            return undefined;
+            return;
         } else if(result == undefined) {
             console.error(`Failed to find action from ${mod.__proto__}`);
         }

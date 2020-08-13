@@ -50,7 +50,9 @@ window.DevTools = {
         this.connection.postMessage({action, data});
     },
     query(key) {
-        return new Promise(r => chrome.runtime.sendMessage({source: "bg", query: key}, ret => r(ret.value)));
+        return new Promise(r => chrome.runtime.sendMessage({source: "bg", query: key}, ret => {
+            try { r(ret.value) } catch(e) { console.error(`Error on ${key}`, e) }
+        }));
     }
 };
 
@@ -84,7 +86,9 @@ window.ContentTab = {
     },
     query(key, data) {
         if(State.game.tabId) {
-            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => r(ret.value)));
+            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => {
+                try { r(ret.value) } catch(e) { console.error(`Error on ${key}`, e) }
+            }));
         }
     }
 }
@@ -119,7 +123,9 @@ window.RaidfinderTab = {
     },
     query(key, data) {
         if(State.game.tabId) {
-            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => r(ret.value)));
+            return new Promise(r => chrome.tabs.sendMessage(State.game.tabId, {source: "bg", query: key, data: data}, ret => {
+                try { r(ret.value) } catch(e) { console.error(`Error on ${key}`, e) }
+            }));
         }
     }
 }
@@ -169,9 +175,12 @@ function hear(msg, sender) {
                         Raids.checkNextQuest(msg.data.json);
                         Tools.logSupportUser(msg.data.json);
                         DjeetaMind.onRewardPage(msg.data.json);
-                        // eslint-disable-next-line no-fallthrough
+                        break;
                     case path.ismatch("arcarum/dungeon_list"):
                         DjeetaMind.onArcDungeonList(msg.data.json);
+                        break;
+                    case path.ismatch("quest/unclaimed_reward"):
+                        DjeetaMind.onUnclaimedReward(msg.data.json);
                         break;
                     case path.ismatch("rest/arcarum/arcarum_items"):
                         DjeetaMind.onArcItems(msg.data.json);

@@ -2,7 +2,9 @@
 
 window.BackgroundPage = {
     query: function(key, val) {
-        return new Promise(r => chrome.runtime.sendMessage({source: "raidfinder", query: key, val}, ret => r(ret.value)));
+        return new Promise(r => chrome.runtime.sendMessage({source: "raidfinder", query: key, val}, ret => {
+            try { r(ret.value) } catch(e) { console.error(`Error on ${key}`, e) }
+        }));
     },
     connection: null,
     connect: function() {

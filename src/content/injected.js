@@ -68,6 +68,10 @@ var _injectedScript = function injected(state) {
             hookMethod(obj, methodName, func) {
                 let orig = obj.__proto__[methodName];
 
+                if(!orig) {
+                    logError(`method (${methodName}) doesnt exist in prototype`)
+                }
+
                 if(this.hooks.includes(methodName)) {
                     return log(`already hooked ${methodName}`);
                 }
@@ -208,7 +212,20 @@ var _injectedScript = function injected(state) {
 
                     // we modify the list div attribute for our content script to find
                     this.hookMethod(view, "moveDivision", (args) => $(".cnt-division-list").attr("division", args[0]));
-                    this.hookMethod(view, "updateStageParam", (args) => $(".cnt-division-list").attr("division", args[0].stage.current_division_id));
+                    this.hookMethod(view, "updateStageParam", (args) => {
+                        // slap on division ID so we can jquery from content
+                        $(".cnt-division-list").attr("division", args[0].stage.current_division_id)
+
+                        // notify when render has finished
+                        let event = {
+                            key: "actionListUpdate",
+                            type: "methodHook",
+                            methodName: "updateStageParam",
+                            args
+                        };
+
+                        sendMessage(event);
+                    })
 
                     // when a popup shows, lets bump a msg
                     this.hookForProp(view, "popView", (pop) => {
@@ -252,9 +269,15 @@ var _injectedScript = function injected(state) {
                         Game.view.setupView.runFullAuto();
                         return;
                     case "api_updateApPopup":
-                        Game.view._subViews.view86.updateRecoverStaminaPopup({
-                            currentTarget: $(`.use-item-num[data-item-index="1"]`)[0]
-                        });
+
+                        for(let x in Game.view._subViews) {
+                            let view = Game.view._subViews[x];
+                            if(view.updateRecoverStaminaPopup) {
+                                view.updateRecoverStaminaPopup({
+                                    currentTarget: $(`.use-item-num[data-item-index="1"]`)[0]
+                                });
+                            }
+                        }
                         return;
                 }
             }

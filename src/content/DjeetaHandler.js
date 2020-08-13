@@ -1,6 +1,8 @@
 "use strict";
 const REQUEST_ACTION = "djeetaRequestAction";
 class DjeetaHandler {
+    sandboxListeners = []
+
     constructor() {
         this.opQueue = new OperationQueue();
         this.combat = new CombatExecutor(this.opQueue);
@@ -8,6 +10,7 @@ class DjeetaHandler {
         this.reward = new RewardExecutor(this.opQueue);
         this.arcarum = new ArcarumExecutor(this.opQueue);
         this.coop = new CoopExecutor(this.opQueue);
+        this.raid = new RaidListExecutor(this.opQueue);
         this.api = new ApiExecutor(this.opQueue);
     }
 
@@ -104,15 +107,26 @@ class DjeetaHandler {
                     this.coop.waitForBattleOrRequestRefresh(actionMeta);
                     break;
 
+                // RAIDS
+                case "delayReloadRaid":
+                    this.raid.delayRefreshRaids(actionMeta);
+                    break;
+                case "selectRaid":
+                    this.raid.selectRaid(actionMeta);
+                    break;
+
                 // API
                 case "refillAP":
                     this.api.refillAp(actionMeta);
+                    break;
+                case "delayReload":
+                    this.api.delayReload(actionMeta);
                     break;
             }
         }
     }
 
-    onInjectInterrupt(data) {
+    onInjectMessage(data) {
         console.log(`received inject: `, data);
         switch(data.key) {
             case "battleErrorPop":
@@ -125,7 +139,7 @@ class DjeetaHandler {
             case "onPopup":
                 if(this.arcarum.isRunning) {
                     this.arcarum.queueInterrupt(async () => {
-                        let bot = new BaseBot();
+                        let bot = this.arcarum.bot;
                         await timeout(1000);
                         await bot.clickOkPopup();
                     });
@@ -133,6 +147,7 @@ class DjeetaHandler {
 
                 break;
         }
+        this.processListeners(data);
     }
 
     onActionRequested(request) {
@@ -161,8 +176,26 @@ class DjeetaHandler {
         return false;
     }
 
+    createSandboxPromise(key) {
+        return new Promise(r => this.sandboxListeners.push({key, func: r }));
+    }
+
+    processListeners(data) {
+        let listeners = this.sandboxListeners
+        for(let i=0; i < listeners.length; i++) {
+            let listener = listeners[i]
+            if(listener.key == data.key) {
+                listener.func(data)
+                delete listeners[i];
+            }
+        }
+
+        this.sandboxListeners = listeners.filter(x => !!x);
+    }
+
     abortExecutors() {
         this.opQueue.abort();
+        this.sandboxListeners.length = 0;
     }
 
     get isRunning() {
@@ -222,6 +255,12 @@ class DjeetaHandler {
     }
 
     requestRaidListAction() {
-        return this.requestAction(Page.RAIDS);
+        return this.requestAction(Page.RAIDS, "init", {
+            hasUnclaimed: $el("div.receive-reward").is(":visible")
+        });
+    }
+
+    requestUnclaimedListAction() {
+        return this.requestAction(Page.UNCLAIMED_REWARD);
     }
 }

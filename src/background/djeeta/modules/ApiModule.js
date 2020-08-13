@@ -32,6 +32,9 @@ class ApiModule extends BaseModule {
                 this.requestGameNavigation(this.detourOrigin.hash);
                 this.detourOrigin = undefined;
                 return FLAG_IDLE
+            case "requestRefresh":
+                this.requestGameRefresh();
+                return FLAG_IDLE
         }
     }
 

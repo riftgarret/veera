@@ -1,29 +1,40 @@
 "use strict";
+
 class RaidModule extends BaseModule {
-    constructor(raidNames) {
-        this.raids = Array.isArray(raidNames)? raidNames : [raidNames];
+    constructor(raidConfigs) {
+        super();
+        if(raidConfigs.length == 0) console.warn("No raid configs found");
+        this.raidConfigs = raidConfigs;
     }
 
-    get isCrewOnly() {
-        return !!this.options.isCrewOnly;
+    get assistMeta() {
+        return this.pageMeta.meta.assist_raids_data;
     }
 
-    getfilteredRaids() {
-        let filtered = this.pageMeta.meta.assist_raids_data.filter(raid => {
-            let name = raid.chapter_name.toLowerCase()
-            let found = this.raids.find(raidName => name.startsWith(raidName));
-            if(!found) return false;
-            if(this.isCrewOnly && !found.is_same_guild) {
+    getfilteredRaids(raidData) {
+        return raidData.filter(raid => {
+            let foundConfig = this.raidConfigs.find(config => raid.name.startsWith(config.name));
+            if(!foundConfig) return false;
+
+            if(raid.joined) return false;
+
+            let isCrewOnly = !!foundConfig.options.isCrewOnly;
+            let minHp = foundConfig.options.minHp;
+            let maxJoined = foundConfig.options.maxJoined;
+
+            if(isCrewOnly && !raid.isCrew) {
                 return false;
             }
 
-            if(this.options.minHp && this.options.minHp < raid.boss_hp_width) {
+            if(minHp != undefined && minHp < raid.currentHP) {
                 return false;
             }
 
-            if(this.options.maxJoined && this.member_count > this.options.maxJoined) {
+            if(maxJoined != undefined && raid.memberCount > maxJoined) {
                 return false;
             }
+
+            raid.config = foundConfig;
 
             return true;
         });
@@ -34,22 +45,55 @@ class RaidModule extends BaseModule {
     }
 
     onDataEvent(data) {
-
+        if(!data.firstOf) {
+            this.requestContentPing();
+        }
     }
 
     onActionRequested(data) {
-        if(data.page == Page.PG_FINAL_REWARD) {
-            return FLAG_END_ROUND;
+        if(data.hasUnclaimed) {
+            this.requestGameNavigation("#quest/assist/unclaimed/0/0");
+            return FLAG_IDLE
         }
 
-        // assume landing
-        this.prepareGameNavigation([
-            (e) => e.event == "navigate" && e.page == Page.STAGE_HANDLER,
-            (e) => e.event == "refresh",
-            (e) => e.event == "navigate" && e.page == Page.COMBAT,
-        ]);
+        let raidData = this.assistMeta.map(rawRaid => new RaidDataWrapper(rawRaid));
+
+        // already 3 active raids
+        if(raidData.filter(x => x.joined).length >= 3) {
+            return {
+                action: "delayReload",
+                delay: 4000
+            }
+        }
+
+        let newValidRaids = this.getfilteredRaids(raidData);
+        if(newValidRaids.length > 0) {
+            let topRaid = newValidRaids[0]
+            return {
+                action: "selectRaid",
+                id: topRaid.raidId,
+                config: topRaid.config
+            }
+        }
+
+        // no raids, click refresh
         return {
-            action: "startPgFight"
+            action: "delayReloadRaid",
+            delay: 4000
         }
     }
+}
+
+class RaidDataWrapper {
+    constructor(raidBlob) {
+        this.raid = raidBlob;
+    }
+
+    get joined() { return this.raid["data-raid-type"] == 0 }
+    get name() { return this.raid.chapter_name }
+    get isCrew() { return this.raid.is_same_guild }
+    get isFriend() { return this.raid.is_friend }
+    get memberCount() { return this.member_count }
+    get currentHP() { return this.raid.boss_hp_width }
+    get raidId() { return this.raid.raid.multi_raid_id }
 }

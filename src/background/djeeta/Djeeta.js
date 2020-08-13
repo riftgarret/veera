@@ -279,6 +279,11 @@ class Djeeta {
         this.postActionScriptCheck(DataEvent.REWARD_DATA);
     }
 
+    onUnclaimedReward(json) {
+        this.parse.unclaimed(json, this.pageMeta.meta);
+        this.postActionScriptCheck(DataEvent.UNCLAIMED_REWARD);
+    }
+
     onArcDungeonList(json) {
         this.parse.arcDungeon(json, this.pageMeta.meta);
         this.postActionScriptCheck(DataEvent.ARC_DUNGEON);
@@ -364,8 +369,11 @@ class Djeeta {
             case hash.startsWith("#raid_semi/"):
                 newPage = Page.COMBAT;
                 break;
-            case hash.startsWith("#quest/assist"):
+            case hash == "#quest/assist":
                 newPage = Page.RAIDS;
+                break;
+            case hash.startsWith("#quest/assist/unclaimed/"):
+                newPage = Page.UNCLAIMED_REWARD;
                 break;
             case hash.startsWith("#quest/supporter_raid/"):
             case hash.startsWith("#quest/supporter/"):

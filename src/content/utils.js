@@ -6,19 +6,21 @@ function wrapLogger(obj) {
         return function() {
             let result = func.apply(this, arguments)
             if(result instanceof Promise) {
+                let start = new Date().getTime();
                 return result.then((result) => {
-                    logAction(func.name, Array.from(arguments), result);
+                    logAction(func.name, Array.from(arguments), result, new Date().getTime() - start);
                     return result;
-                });                
-            } else {            
+                });
+            } else {
                 logAction(func.name, Array.from(arguments), result);
                 return result;
             }
         }
     }
 
-    let logAction = function(funcName, args, result) {
-        console.log(`${obj.constructor.name} . ${funcName}: `, args, ` -> `, result);
+    let logAction = function(funcName, args, result, timing) {
+        timing = timing? " : " + timing : ""
+        console.log(`${obj.constructor.name} . ${funcName}: `, args, ` -> `, result, timing);
     }
 
     let handler = {
@@ -43,7 +45,7 @@ jQuery.fn.gbfClick = async function(skipWait) {
     return clicked;
 }
 
-jQuery.fn.isGbfVisible = function() {    
+jQuery.fn.isGbfVisible = function() {
     let ret = false;
     this.each((i, el) => ret |= isVisibleElement(el));
     return ret;
@@ -113,7 +115,7 @@ async function generateClick(target, delayMouseUp = 0) {
         }
         // elt.trigger(asClick ? "click" : "tap");
         result = true;
-    }        
+    }
     return result;
 }
 ;
@@ -155,7 +157,7 @@ function Queue() {
 
 Object.defineProperties(Queue.prototype, {
     enqueue: {
-        get: function(e) {  
+        get: function(e) {
             this.elements.push(e);
         }
     },
@@ -194,6 +196,22 @@ String.prototype.splitEx = function(separator, limit) {
     return str;
 }
 
+function waitForSandbox(...args) {
+    let promises = [];
+    args.forEach(param => {
+        switch(typeof(param)) {
+            case "string":
+                promises.push(djeetaHandler.createSandboxPromise(param))
+                break;
+            case "number":
+                promises.push(timeout(param))
+                break;
+        }
+    });
+
+    return Promise.race(promises);
+}
+
 // vargs
 function waitForVisible(...args) {
     let promises = [];
@@ -201,15 +219,15 @@ function waitForVisible(...args) {
         switch(typeof(selector)) {
             case "string":
                 promises.push(createAwaitPromise(
-                    selector, 
-                    (e) => e.is(":visible"), 
+                    selector,
+                    (e) => e.is(":visible"),
                     { attributes: true, attributeFilter: ['class', 'style'] }
                 ));
                 break;
             case "number":
                 promises.push(timeout(selector))
                 break;
-        }        
+        }
     });
 
     return Promise.race(promises);
@@ -220,10 +238,10 @@ var promiseCounter = 0;
 function createAwaitPromise(jquery, predicate, config = {}, timeout = 500, key = jquery) {
     if(knownObservers[key]) {
         console.log("disconnecting old observer");
-        knownObservers[key].disconnect();        
-        delete knownObservers[key];        
+        knownObservers[key].disconnect();
+        delete knownObservers[key];
     }
-    
+
     knownObservers[key] = new AwaitPromiser(jquery, predicate, config, timeout);
     return knownObservers[key].promise();
 }
@@ -234,12 +252,12 @@ class AwaitPromiser {
     timeoutHandle = undefined;
     observer = undefined;
     pc = promiseCounter++;
-    
-    constructor(jquery, predicate, mutObsConfig = {}, timeoutTime = 500) {        
+
+    constructor(jquery, predicate, mutObsConfig = {}, timeoutTime = 500) {
         this.jquery = jquery;
         this.predicate = () => {
             let e = $(jquery);
-            return predicate(e);   
+            return predicate(e);
         }
         this.mutObsConfig = mutObsConfig;
         this.timeoutTime = timeoutTime;
@@ -248,32 +266,32 @@ class AwaitPromiser {
     promise() {
         const self = this;
         return new Promise((r) => {
-            self.r = r;                        
-            console.log(`starting ${self.jquery} : ${self.pc}`)            
+            self.r = r;
+            console.log(`starting ${self.jquery} : ${self.pc}`)
             if(self.predicate()) {
                 console.log(`resolved immediately ${self.jquery} : ${self.pc}`);
                 self.resolved();
-            } else {                            
-                self.startObserver();             
-                self.startTimer();                
+            } else {
+                self.startObserver();
+                self.startTimer();
             }
-        });        
+        });
     }
 
     startTimer() {
         if(this.timeoutTime == 0) return;
 
-        const self = this;        
-        self.timeoutHandle = function() {            
+        const self = this;
+        self.timeoutHandle = function() {
             if(!self.timeoutHandle) return;
 
             if(self.predicate()) {
-                self.resolved();                
+                self.resolved();
             } else {
                 timeout(self.timeoutTime).then(self.timeoutHandle)
             }
         };
-        self.timeoutHandle();        
+        self.timeoutHandle();
     }
 
     startObserver() {
@@ -282,14 +300,14 @@ class AwaitPromiser {
 
         const element = e[0];
         const self = this;
-        self.observer = new MutationObserver(() => {                
+        self.observer = new MutationObserver(() => {
             console.log(`checking for ${self.jquery} : ${self.pc} -> `);
-            console.log(element);                               
-            if(self.predicate()) {        
-                console.log(`resolved ${self.jquery} : ${self.pc}`);                                    
-                self.resolved();                           
-            }                    
-        
+            console.log(element);
+            if(self.predicate()) {
+                console.log(`resolved ${self.jquery} : ${self.pc}`);
+                self.resolved();
+            }
+
         });
         console.log(`observing ${self.jquery} ${JSON.stringify(self.mutObsConfig)}`);
         self.observer.observe(element, self.mutObsConfig || {})
@@ -305,9 +323,9 @@ class AwaitPromiser {
             this.observer.disconnect();
             this.observer = undefined;
         }
-        
-        this.timeoutHandle = undefined;        
-    }    
+
+        this.timeoutHandle = undefined;
+    }
 }
 function sendExternalMessage(msg) {
     if (!externalChannel) {

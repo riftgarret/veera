@@ -13,7 +13,6 @@ if(chrome.runtime) {
     BackgroundPage.connect();
 }
 
-
 if(!$el) {
     createAwaitPromise(
         ".contents",
@@ -32,8 +31,9 @@ $(window).on('hashchange', () => {
     for(let prop in knownObservers) {
         knownObservers[prop].disconnect();
         delete knownObservers[prop];
-        djeetaHandler.abortExecutors();
     }
+
+    djeetaHandler.abortExecutors();
 
     const checkCounter = ++resetCounter
     new Promise(async () => {
@@ -63,7 +63,7 @@ function onMessageFromSandbox(evt) {
 
     switch(evt.data.type) {
         case "methodHook": {
-            djeetaHandler.onInjectInterrupt(evt.data);
+            djeetaHandler.onInjectMessage(evt.data);
             break;
         }
     }

@@ -479,6 +479,10 @@ class DjeetaParser {
         Object.assign(metaObj, json);
     }
 
+    unclaimed(json, metaObj) {
+        Object.assign(metaObj, json);
+    }
+
     actionPoint(json, userStatus) {
         userStatus.ap = json.action_point;
         userStatus.halfElixirRecovery = Number(json.elixir_half_recover_value);

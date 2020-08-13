@@ -89,4 +89,31 @@ class ScriptEnv {
     console.log(`called hostRaid: ${script}, ${url}, ${summons}, ${options}`);
   }
 
+  raidList() {
+    return new RaidBuilder(this);
+  }
+}
+
+class RaidBuilder {
+  raids = []
+
+  constructor(env) {
+    this.env = env;
+  }
+
+  newRaid(name, script, summons, options = {}) {
+    this.raids.push({name, script, summons, options});
+    return this
+  }
+
+  build(options = {}) {
+    // assign cascading options
+    for(let raidMeta of this.raids) {
+      let raidOpts = {};
+      Object.assign(raidOpts, options)
+      Object.assign(raidOpts, raidMeta.options)
+      raidMeta.options = raidOpts;
+    }
+    this.env.processes.push(new RaidListProcess(this.raids, options))
+  }
 }
