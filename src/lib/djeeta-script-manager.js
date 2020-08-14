@@ -9,6 +9,42 @@ class DjeetaScriptManager {
         return new Promise((r) => Storage.get({djeeta_scripts: []}, (data) => r(data.djeeta_scripts)));
     }
 
+    findCombatScript(boss) {
+        return new Promise(r => Storage.get({djeeta_scripts: [], boss_history: {}}, data => r(data.djeeta_scripts, data.boss_history)))
+        .then((metas, history) => {
+            let bossKey = this.getBossKey(boss);
+            if(history[bossKey]) {
+                let scriptName = history[bossKey].scriptName
+                let meta = metas.find(meta => meta.name == scriptName);
+                if(meta) return meta.name;
+            }
+        });
+    }
+
+    getBossKey(boss) {
+        return boss.name;
+    }
+
+    recordCombatBoss(scriptName, boss) {
+        if(!scriptName || !boss) return;
+        return new Promise(r => Storage.get({boss_history: {}}, data => r(data.boss_history)))
+        .then(history => {
+            let bossKey = this.getBossKey(boss);
+            if(!history[bossKey]) {
+                history[bossKey] = {
+                    name: boss.name
+                };
+            }
+            let bossHistory = history[bossKey];
+            bossHistory.scriptName = scriptName;
+            bossHistory.date = new Date().getTime()
+            return new Promise(r => Storage.set({boss_history: history}, () => {
+                console.log(`${name} boss storage updated.`);
+                r(script);
+            }))
+        });
+    }
+
     findScript(name) {
         return this.getScripts().then(metas => this._findScript(metas, name));
     }

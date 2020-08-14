@@ -5,6 +5,8 @@ class CombatModule extends BaseModule {
     actionHistory = {};
     defaultAttack = new AttackAction();
     lastAction
+    autoLoad = false
+    scriptName = undefined
 
     loadScript(script, name = "") {
         this.reset();
@@ -144,8 +146,19 @@ class CombatModule extends BaseModule {
     }
 
     onDataEvent(event) {
-        // we handle all combat data events, except for first move
-        if(event.event == DataEvent.COMBAT_START) return;
+        // we handle all combat data events, except for first json blob (COMBAT_START)
+        if(event.event == DataEvent.COMBAT_START) {
+            if(this.autoLoad && !this.scriptName) {
+                ScriptManager.findCombatScript(this.state.bosses[0])
+                .then(meta => this.loadScript(meta, meta.name));
+            }
+
+            if(!this.autoLoad && this.scriptName) {
+                ScriptManager.recordCombatBoss(this.scriptName, this.state.bosses[0]);
+            }
+
+            return
+        }
 
         let actionMeta = event.data;
         let shouldRefresh = false;

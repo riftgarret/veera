@@ -403,21 +403,22 @@ class DjeetaParser {
         //                         : (g = !0, f = "#raid/" + d.raid_id + "/" + (u.currentFps / 6 - 1) + "/" + v.gGameStatus.lock);
 
 
-        if(win.next_url != "") return win.next_url;
+        if(win.next_url && win.next_url != "") return win.next_url;
 
         let currentFPS = 24; // figure out how to get this
         let fpsPath = currentFPS / 6 - 1;
+        let raidId = win.raid_id? win.raid_id : state.raidId
 
             switch(state.scenario) {
                 case Scenario.ARCANUM:
-                    return `#result/${win.raid_id}/${fpsPath}/1`;
+                    return `#result/${raidId}/${fpsPath}/1`;
                 case Scenario.RAID:
-                    return `#result_multi/${win.raid_id}/${fpsPath}`; // test
+                    return `#result_multi/${raidId}/${fpsPath}`; // test
                 case Scenario.SINGLE:
                     if(win.is_last_raid) {
-                        return `#result/${win.raid_id}/${fpsPath}`
+                        return `#result/${raidId}/${fpsPath}`
                     } else {
-                        return `#raid/${win.raid_id}/${fpsPath}/${state.isHoldingCA? "1" : "0"}`
+                        return `#raid/${raidId}/${fpsPath}/${state.isHoldingCA? "1" : "0"}`
                     }
                 default:
                     throw new Error(`unhandled win condition ${win}`);
