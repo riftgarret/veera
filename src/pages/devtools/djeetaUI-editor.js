@@ -221,7 +221,7 @@ class DjeetaScriptEditor {
 
         this.tableDialog = $("#table-dialog").dialog({
             autoOpen: false,
-            width: 400,
+            width: 600,
             height: 450,
             modal: true,
         });
@@ -278,6 +278,13 @@ class DjeetaScriptEditor {
                     updated: meta.updated || ""
                 }
             };
+        });
+
+        // sort descending date updated
+        data.sort((a,b) => {
+            let numA = isNaN(a.attributes.updated)? 0 : Number(a.attributes.updated);
+            let numB = isNaN(b.attributes.updated)? 0 : Number(b.attributes.updated);
+            return numB - numA;
         });
 
         this.displayDialog({
@@ -349,8 +356,8 @@ class DjeetaScriptEditor {
                     let valA = getRowVal(a);
                     let valB = getRowVal(b);
                     let ret = 0;
-                    if(valA > valB) ret = 1;
-                    else if(valA < valB) ret = -1;
+                    if(valA > valB || (!isNaN(valA) && isNaN(valB))) ret = 1;
+                    else if(valA < valB || (isNaN(valA) && !isNaN(valB))) ret = -1;
                     return ret * sortDir;
                 });
                 rows.forEach((row) => tbody.append(row));
