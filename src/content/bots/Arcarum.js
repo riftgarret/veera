@@ -100,6 +100,10 @@ class ArcarumBot extends BaseBot {
         return await $(`.btn-move-division`).gbfClick();
     }
 
+    get hasElementalDamageWarning() {
+        return $el(".pop-confirm-givendamage-reduction").length > 0
+    }
+
     get hasMoveDivisionButton() {
         return $(`.btn-move-division:visible`).length > 0;
     }
@@ -238,7 +242,11 @@ class ArcarumExecutor extends BaseExecutor {
             await bot.clickPartyMarker(action.pos);
         }
 
-        return await bot.clickPartyOk();
+        await bot.clickPartyOk();
+
+        if(bot.hasElementalDamageWarning) {
+            await bot.clickOkPopup();
+        }
     }
 
     async selectPartyGroup(action) {

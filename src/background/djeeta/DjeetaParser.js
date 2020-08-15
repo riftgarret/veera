@@ -426,7 +426,10 @@ class DjeetaParser {
     }
 
     startBackupRequest(json, state) {
-        if(!json.assist) return;
+        if(!json.assist) {
+            state.assistable = [false, false, false];
+            return;
+        }
 
         for(let i=0; i < 3; i++) {
             if(!json.assist[`${i+1}`]) break;
