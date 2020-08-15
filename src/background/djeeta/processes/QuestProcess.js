@@ -23,7 +23,7 @@ class QuestProcess extends ModularProcess {
     start() {
         super.start();
 
-        if(this.canResume()) {
+        if(this.canResume() && this.pageMeta.page != Page.REWARD) {
             this.requestContentPing();
         } else {
             this.beginRound();
