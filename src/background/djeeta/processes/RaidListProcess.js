@@ -4,7 +4,7 @@ class RaidListProcess extends ModularProcess {
     constructor(raidMetas, options) {
         super(options);
 
-        this.addModule(this.combat = new CombatModule());
+        this.addModule(this.combat = new CombatModule(Behavior.RAIDS));
         this.addModule(this.summon = new SupportModule());
         this.addModule(new RaidModule(raidMetas))
         this.addModule(new ClaimRewardModule());
@@ -19,9 +19,29 @@ class RaidListProcess extends ModularProcess {
 
     start() {
         super.start();
-
-        if(this.canResume() && this.pageMeta.page != Page.REWARD) {
-            this.requestContentPing();
+        if(this.canResume()) {
+            switch(this.pageMeta.page) {
+                case Page.COMBAT:
+                    ScriptManager.findCombatScript(this.state.bosses[0])
+                    .then(scriptName => {
+                        if(scriptName) {
+                            return this.combat.loadScriptName(ret.script)
+                        } else {
+                            throw new Error("Could not find combat script for ", this.state.bosses[0])
+                        }
+                    })
+                    .then(() => this.requestContentPing())
+                    .catch(() => me.abort("failed to load combat script."));
+                    break;
+                case Page.REWARD:
+                    this.beginRound();
+                    break;
+                case Page.SUMMON_SELECT:
+                    me.abort("cannot start join raid from summon page..");
+                    break;
+                default:
+                    this.requestContentPing();
+            }
         } else {
             this.beginRound();
         }
@@ -33,8 +53,7 @@ class RaidListProcess extends ModularProcess {
         if(ret.action == "selectRaid") {
             const me = this;
             this.summon.summons = ret.config.summons;
-            this.currentScriptName = ret.config.script;
-            this.combat.loadScriptName(ret.script)
+            this.combat.loadScriptName(ret.config.script)
                 .catch((e) => me.abort("failed to load combat script."));
         }
 

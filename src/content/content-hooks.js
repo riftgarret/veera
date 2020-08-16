@@ -46,6 +46,9 @@ function _awaitPageReady() {
         case hash.startsWith("#coopraid/room/"):
             hookCoopLanding();
             break;
+        case hash.startsWith("#result_multi/empty/"):
+            djeetaHandler.requestRewardAction();
+            break;
         case hash.startsWith("#result/"):
         case hash.startsWith("#result_multi/"):
         case hash.startsWith("#result_hell_skip"):

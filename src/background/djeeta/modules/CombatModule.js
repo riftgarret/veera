@@ -49,7 +49,11 @@ class CombatModule extends BaseModule {
             let action = evaluation.queue[0];
 
             if(action instanceof EndCombatAction) {
-                return FLAG_END_ROUND;
+                if(this.behavior == Behavior.RAIDS) {
+                    return FLAG_END_ROUND;
+                } else {
+                    action = evaluation[1];
+                }
             }
 
             let meta = action.actionMeta(this.state);

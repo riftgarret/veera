@@ -52,7 +52,7 @@ class ApiModule extends BaseModule {
         return {
             action: "refillAP",
             amount: refillCount,
-            onSuccessEvent: "refillComplete"
+            onSuccessEvent: {page: Page.API, event: "refillComplete"}
         }
     }
 }

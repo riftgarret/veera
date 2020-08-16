@@ -6,9 +6,21 @@ class SupportModule extends BaseModule {
         PROVING_GROUND: "proving grounds"
     };
 
+    set summons(val) {
+        if(val == undefined) {
+            this._summons = undefined
+        } else if(Array.isArray(val)) {
+            this._summons = val;
+        } else {
+            this._summons = [val];
+        }
+    }
+
+    get summons() { return this._summons }
+
     constructor(summons, behavior = Behavior.DEFAULT) {
         super();
-        this.summons = summons;
+        this.summons = Array.isArray(summons)? summons : [summons];
         this.behavior = behavior;
     }
 

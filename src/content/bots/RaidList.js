@@ -5,7 +5,7 @@ class RaidListBot extends BaseBot  {
     }
 
     async clickRaid(raidId) {
-        return await $el(`btn-multi-raid[data-quest-id="${raidId}"]`).gbfClick();
+        return await $el(`div.btn-multi-raid[data-raid-id="${raidId}"]`).gbfClick();
     }
 }
 
@@ -25,6 +25,11 @@ class RaidListExecutor extends BaseExecutor {
         let bot = this.bot;
         this.queue(async (runner) => {
             await bot.clickRaid(action.id);
+
+            await waitForVisible(".pop-stamina", 4000);
+            if($el(".pop-stamina").is(":visible")) {
+                djeetaHandler.api.refillBp({amount: 30});
+            }
         })
     }
 }

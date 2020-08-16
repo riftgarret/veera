@@ -26,7 +26,7 @@ class RaidModule extends BaseModule {
                 return false;
             }
 
-            if(minHp != undefined && minHp < raid.currentHP) {
+            if(minHp != undefined && raid.currentHP < minHp) {
                 return false;
             }
 
@@ -45,7 +45,7 @@ class RaidModule extends BaseModule {
     }
 
     onDataEvent(data) {
-        if(!data.firstOf) {
+        if(data.event == DataEvent.RAID_LIST_UPDATE && !data.firstOf) {
             this.requestContentPing();
         }
     }
@@ -54,6 +54,14 @@ class RaidModule extends BaseModule {
         if(data.hasUnclaimed) {
             this.requestGameNavigation("#quest/assist/unclaimed/0/0");
             return FLAG_IDLE
+        }
+
+        if(this.userStatus.bp < 5) {
+            return {
+                action: "refillBP",
+                amount: 25,
+                onSuccessEvent: {page: Page.RAIDS, event: "init"}
+            }
         }
 
         let raidData = this.assistMeta.map(rawRaid => new RaidDataWrapper(rawRaid));
@@ -69,6 +77,7 @@ class RaidModule extends BaseModule {
         let newValidRaids = this.getfilteredRaids(raidData);
         if(newValidRaids.length > 0) {
             let topRaid = newValidRaids[0]
+            this.prepareGameNavigation(e => e.page == Page.SUMMON_SELECT);
             return {
                 action: "selectRaid",
                 id: topRaid.raidId,
@@ -93,7 +102,7 @@ class RaidDataWrapper {
     get name() { return this.raid.chapter_name }
     get isCrew() { return this.raid.is_same_guild }
     get isFriend() { return this.raid.is_friend }
-    get memberCount() { return this.member_count }
+    get memberCount() { return this.raid.member_count }
     get currentHP() { return this.raid.boss_hp_width }
     get raidId() { return this.raid.raid.multi_raid_id }
 }

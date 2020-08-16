@@ -40,7 +40,7 @@ class DjeetaScriptManager {
             bossHistory.date = new Date().getTime()
             return new Promise(r => Storage.set({boss_history: history}, () => {
                 console.log(`${name} boss storage updated.`);
-                r(script);
+                r();
             }))
         });
     }

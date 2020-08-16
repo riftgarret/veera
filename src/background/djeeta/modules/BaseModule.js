@@ -4,7 +4,8 @@ const Behavior = {
     DEFAULT: "default",
     PROVING_GROUND: "proving_grounds",
     ARCARUM: "arcarum",
-    COOP: "coop"
+    COOP: "coop",
+    RAIDS: "raids"
 }
 
 class BaseModule {

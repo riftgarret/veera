@@ -119,6 +119,9 @@ class DjeetaHandler {
                 case "refillAP":
                     this.api.refillAp(actionMeta);
                     break;
+                case "refillBP":
+                    this.api.refillBp(actionMeta);
+                    break;
                 case "delayReload":
                     this.api.delayReload(actionMeta);
                     break;
