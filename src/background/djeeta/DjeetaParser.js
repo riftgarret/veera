@@ -413,7 +413,7 @@ class DjeetaParser {
                 case Scenario.ARCANUM:
                     return `#result/${raidId}/${fpsPath}/1`;
                 case Scenario.RAID:
-                    return `#result_multi/${raidId}/${fpsPath}`; // test
+                    return `#result_multi/${raidId}/${fpsPath}`;
                 case Scenario.SINGLE:
                     if(win.is_last_raid) {
                         return `#result/${raidId}/${fpsPath}`

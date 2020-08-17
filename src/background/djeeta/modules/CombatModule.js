@@ -184,8 +184,12 @@ class CombatModule extends BaseModule {
 
         if(this.state.roundWon) {
             let e = this.state.notableEvents.find(e => ["win", "finished"].includes(e.cmd));
-            let hash = this.parser.getNavigationUrl(e, this.state);
-            this.requestGameNavigation(hash);
+            if(e.cmd == "win") {
+                let hash = this.parser.getNavigationUrl(e, this.state);
+                this.requestGameNavigation(hash);
+            } else {
+                this.requestCombatGameRefresh();
+            }
         } else if(shouldRefresh) {
             this.requestCombatGameRefresh();
         } else {

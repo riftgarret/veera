@@ -765,7 +765,7 @@ input:checked + .slider:before {
 }
 
 .djeeta-code-container {
-    width: 600px;
+    width: 100%;
     height: 500px;
 }
 
@@ -851,10 +851,12 @@ input:checked + .slider:before {
     background-color: rgba(4,4,221,0.05);
     outline: none;
     color: white;
+    white-space: nowrap;
 }
 
 #script-runner {
     background-color: rgba(221,4,2,0.05);
+    white-space: pre;
 }
 
 #script-runner > div.error {

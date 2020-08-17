@@ -164,6 +164,7 @@ class DjeetaHandler {
                 this.abortExecutors();
                 this.opQueue.queueInterrupt(async () => {
                     await timeout(request.delay)
+                    console.log("refreshing window")
                     window.location.reload()
                 })
                 return true;
@@ -171,6 +172,7 @@ class DjeetaHandler {
                 this.abortExecutors();
                 this.opQueue.queueInterrupt(async () => {
                     await timeout(request.delay)
+                    console.log("navigating to " + request.hash)
                     window.location.hash = request.hash
                 })
                 return true;

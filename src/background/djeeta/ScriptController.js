@@ -93,6 +93,7 @@ class ScriptController {
                     if(this.isRunning) {
                         this.heartBeat = timestamp();
                         this.requestGameRefresh();
+                        console.log("Script idle too long, refreshing");
                         // this is due to game refreshing to a new page to redirect once or twice
                         this.prepareGameNavigation([
                             () => true,
@@ -186,9 +187,6 @@ class ScriptController {
     }
 
     prepareGameNavigation(navEventValidator) {
-        if(this.expectedNavigation) {
-            console.warn(`still have existing navEventValidator`);
-        }
         this.expectedNavigation = navEventValidator;
     }
 
@@ -221,6 +219,7 @@ class ScriptController {
                 actionObj.delay = this.config.buttonDelay;
         }
 
+        console.log("requesting action: ", actionObj);
         ContentTab.query("djeetaExecuteAction", actionObj);
     }
 
