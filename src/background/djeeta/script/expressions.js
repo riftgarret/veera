@@ -128,7 +128,7 @@ class UnitExpression {
         this.eval = (state) => {
             let unit = unitExp.eval(state);
             if(!unit) return undefined;
-            propEval(unit);
+            return propEval(unit);
         }
     }
 };
