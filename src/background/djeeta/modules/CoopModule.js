@@ -36,7 +36,7 @@ class CoopModule extends BaseModule {
         this.prepareGameNavigation([
             (e) => this.isValidNavigation(e),
             (e) => this.isValidNavigation(e)
-        ]);
+        ], "coop -> refresh");
     }
 
     isValidNavigation(e) {
@@ -52,7 +52,7 @@ class CoopModule extends BaseModule {
         }
 
         if(!settings.is_set_supporter) {
-            this.prepareGameNavigation((e) => e.page == Page.SUMMON_SELECT);
+            this.prepareGameNavigation((e) => e.page == Page.SUMMON_SELECT, "coop -> summon");
             return {
                 action: "selectCoopParty"
             }

@@ -12,7 +12,7 @@ class ApiBot extends BaseBot {
         return $(".pop-recover-stamina").is(":visible")
     }
 
-    async selectHalfElixirAmount(num) {
+    async selectStaminaAmount(num) {
         let option = $el(`.use-item-num[data-item-index="1"]`)
         option.val(num) // apparently this doesnt bubble the event to GBF
         sendExternalMessage({
@@ -21,16 +21,12 @@ class ApiBot extends BaseBot {
         return await waitButtonInterval()
     }
 
-    get getSelectHalfElixirAmount() {
+    get getSelectedStaminaAmount() {
         return $(`.use-item-num[data-item-index="1"]`).val()
     }
 
-    async useHalfElixirAmount() {
+    async useStaminaAmount() {
         return await $(`.btn-use-item[data-item-index="1"]`).gbfClick();
-    }
-
-    get hasApReuestPopup() {
-        return $(".pop-recover-stamina").is(":visible")
     }
 
     get hasPopupRecoverSuccess() {
@@ -41,7 +37,7 @@ class ApiBot extends BaseBot {
 class ApiExecutor extends BaseExecutor {
     bot = wrapLogger(new ApiBot());
 
-    async refillAp(action) {
+    async refillStamina(action, isAp) {
         let bot = this.bot;
 
         this.queue(async (runner) => {
@@ -49,7 +45,11 @@ class ApiExecutor extends BaseExecutor {
             // open AP request
             await runner.tryAction(
                 async () => {
-                    await bot.clickApMeter();
+                    if(isAp) {
+                        await bot.clickApMeter();
+                    } else {
+                        await bot.clickBpMeter();
+                    }
                     await waitForVisible(".pop-recover-stamina", 4000);
                 },
                 () => bot.hasRecoveryPopup
@@ -57,14 +57,14 @@ class ApiExecutor extends BaseExecutor {
 
             // select AP amount
             await runner.tryAction(
-                async () => bot.selectHalfElixirAmount(action.amount),
-                () => bot.getSelectHalfElixirAmount == action.amount
+                async () => bot.selectStaminaAmount(action.amount),
+                () => bot.getSelectedStaminaAmount == action.amount
             );
 
             // click OK
             await runner.tryAction(
                 async () => {
-                    await bot.useHalfElixirAmount()
+                    await bot.useStaminaAmount()
                     await waitForVisible(".pop-complete-recover-stamina", 4000);
                 },
                 () => bot.hasPopupRecoverSuccess
@@ -78,51 +78,17 @@ class ApiExecutor extends BaseExecutor {
 
             if(!runner.isValid) return;
             if(action.onSuccessEvent) {
-                djeetaHandler.requestApi("", "", action.onSuccessEvent)
+                djeetaHandler.requestAction("", "", action.onSuccessEvent)
             }
         })
     }
 
+    async refillAp(action) {
+        this.refillStamina(action, true);
+    }
+
     async refillBp(action) {
-        let bot = this.bot;
-
-        this.queue(async (runner) => {
-
-            // open AP request
-            await runner.tryAction(
-                async () => {
-                    await bot.clickBpMeter();
-                    await waitForVisible(".pop-recover-stamina", 4000);
-                },
-                () => bot.hasRecoveryPopup
-            );
-
-            // select AP amount
-            await runner.tryAction(
-                async () => bot.selectHalfElixirAmount(action.amount),
-                () => bot.getSelectHalfElixirAmount == action.amount
-            );
-
-            // click OK
-            await runner.tryAction(
-                async () => {
-                    await bot.useHalfElixirAmount()
-                    await waitForVisible(".pop-complete-recover-stamina", 4000);
-                },
-                () => bot.hasPopupRecoverSuccess
-            )
-
-            // click OK to confirmed
-            await runner.tryAction(
-                async () => await bot.clickOkPopup(),
-                () => !bot.hasPopupRecoverSuccess
-            )
-
-            if(!runner.isValid) return;
-            if(action.onSuccessEvent) {
-                djeetaHandler.requestApi("", "", action.onSuccessEvent)
-            }
-        })
+        this.refillStamina(action, false);
     }
 
     async delayReload() {

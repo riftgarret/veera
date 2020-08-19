@@ -18,11 +18,8 @@ class RewardModule extends BaseModule {
                     case Behavior.COOP:
                         this.requestGameNavigation(this.pageMeta.meta.nextUrl || this.pageMeta.meta.url);
                         // due to auto start happening before page loads.., lets pretend we are waiting for it.
-                        this.prepareGameNavigation([
-                            (e) => e.page == Page.COOP_RAID_LANDING,
-                            (e) => e.page == Page.COMBAT,
-                            (e) => e.event == "refresh"
-                        ]);
+                        let coopPrep = (e) => e.page == Page.COOP_LANDING || e.page == Page.COOP_RAID_LANDING || e.page == Page.COMBAT || e.event == "refresh";
+                        this.prepareGameNavigation([coopPrep, coopPrep, coopPrep], "reward->coop");
                         return FLAG_IDLE
 
                     case Behavior.ARCARUM:

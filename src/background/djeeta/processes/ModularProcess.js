@@ -81,7 +81,7 @@ class ModularProcess {
             this.onProcessEnd();
             return;
         } else if(result == undefined) {
-            console.error(`Failed to find action from ${mod.__proto__}`);
+            console.error(`Failed to find action`, data, mod);
         }
         return result;
     }

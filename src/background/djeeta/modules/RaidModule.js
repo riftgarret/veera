@@ -77,7 +77,7 @@ class RaidModule extends BaseModule {
         let newValidRaids = this.getfilteredRaids(raidData);
         if(newValidRaids.length > 0) {
             let topRaid = newValidRaids[0]
-            this.prepareGameNavigation(e => e.page == Page.SUMMON_SELECT);
+            this.prepareGameNavigation(e => e.page == Page.SUMMON_SELECT, "raid -> summon");
             return {
                 action: "selectRaid",
                 id: topRaid.raidId,

@@ -44,7 +44,7 @@ class SupportModule extends BaseModule {
                         this.prepareGameNavigation([
                             eHandle,
                             eHandle
-                        ]);
+                        ], "support -> coop");
                         return {
                             action: "selectSummon",
                             summons: this.summons,
@@ -53,7 +53,7 @@ class SupportModule extends BaseModule {
                     case Behavior.PROVING_GROUND: {
                         this.prepareGameNavigation([
                             (e) => e.event == "navigate" && e.page == Page.PG_LANDING,
-                        ]);
+                        ], "support -> proving grounds");
                         return {
                             action: "selectSummon",
                             summons: this.summons,
@@ -63,7 +63,7 @@ class SupportModule extends BaseModule {
                         this.prepareGameNavigation([
                             (e) => e.event == "navigate" && e.page == Page.COMBAT,
                             (e) => e.event == "refresh",
-                        ]);
+                        ], "support -> combat");
                         return {
                             action: "selectSummon",
                             summons: this.summons,

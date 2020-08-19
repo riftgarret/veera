@@ -49,6 +49,10 @@ class ApiModule extends BaseModule {
         let goal = 200 // should be configurable
         let refillCount = Math.round((goal - ap) / recovery);
 
+        if(refillCount == 0) {
+            return FLAG_END_ROUND;
+        }
+
         return {
             action: "refillAP",
             amount: refillCount,

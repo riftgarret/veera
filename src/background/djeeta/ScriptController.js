@@ -58,9 +58,9 @@ class ScriptController {
 
         const me = this;
         this.sharedApi = {
-            prepareGameNavigation: (validator) => me.prepareGameNavigation(validator),
-            requestGameNavigation: (hash) => me.requestGameNavigation(hash),
-            requestGameRefresh: () => me.requestGameRefresh(),
+            prepareGameNavigation: (validator, hint) => me.prepareGameNavigation(validator, hint),
+            requestGameNavigation: (hash, hint) => me.requestGameNavigation(hash, hint),
+            requestGameRefresh: (hint) => me.requestGameRefresh(hint),
             requestGameAction: (actionObj) => me.requestGameAction(actionObj),
             requestContentPing: () => me.requestContentPing(),
             onProcessEnd: () => me.disableScriptAndNotifyUI("Script Finished."),
@@ -99,7 +99,7 @@ class ScriptController {
                             () => true,
                             () => true,
                             () => true,
-                        ])
+                        ], "heartbeat refresh")
                     }
                 }
             }
@@ -186,8 +186,9 @@ class ScriptController {
         this.process.onDataEvent(event);
     }
 
-    prepareGameNavigation(navEventValidator) {
+    prepareGameNavigation(navEventValidator, hint) {
         this.expectedNavigation = navEventValidator;
+        this.expectedNavHint = hint;
     }
 
     consumeNavigation(navEvent) {
@@ -205,6 +206,7 @@ class ScriptController {
         }
 
         if(!valid) {
+            console.log(`aborted ${navHandler? "consumed nav entry: " : "no nav handler found"} ${this.expectedNavHint? this.expectedNavHint: ""} ${valid}`, navEvent)
             this.disableScriptAndNotifyUI(`<span class="error">Script aborted from nonscripted ${navEvent.event}.</span>`);
         }
     }
@@ -223,15 +225,15 @@ class ScriptController {
         ContentTab.query("djeetaExecuteAction", actionObj);
     }
 
-    requestGameRefresh() {
-        this.prepareGameNavigation((e) => e.event == "refresh")
+    requestGameRefresh(hint) {
+        this.prepareGameNavigation((e) => e.event == "refresh", hint? hint : "refresh request")
         this.requestGameAction({
             action: "refreshPage"
         });
     }
 
-    requestGameNavigation(hash) {
-        this.prepareGameNavigation((e) => e.event == "navigate" && e.hash == hash);
+    requestGameNavigation(hash, hint) {
+        this.prepareGameNavigation((e) => e.event == "navigate" && e.hash == hash, hint? hint : ("nav request: " + hash));
         this.requestGameAction({
             action: "navigate",
             hash

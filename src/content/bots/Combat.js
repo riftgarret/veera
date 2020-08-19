@@ -358,6 +358,7 @@ class CombatExecutor extends BaseExecutor {
                 () => bot.hasActionQueuedUp
             );
 
+            if(!runner.isValid) console.log("failed to queue full auto")
             console.log("waiting for queue")
             await bot.waitForQueueToClear();
             console.log("queue done")

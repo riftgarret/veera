@@ -76,7 +76,7 @@ class CombatModule extends BaseModule {
             possibleRefreshNavigation,
             possibleRefreshNavigation,
             possibleRefreshNavigation
-        ]);
+        ], "combat->refresh or whatever");
     }
 
     evaluate() {

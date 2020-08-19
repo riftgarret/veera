@@ -24,12 +24,9 @@ class RaidListExecutor extends BaseExecutor {
     async selectRaid(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
-            await bot.clickRaid(action.id);
-
-            await waitForVisible(".pop-stamina", 4000);
-            if($el(".pop-stamina").is(":visible")) {
-                djeetaHandler.api.refillBp({amount: 30});
-            }
+            await runner.tryNavigateAction(
+                async () => await bot.clickRaid(action.id)
+            )
         })
     }
 }
