@@ -57,7 +57,7 @@ class CombatModule extends BaseModule {
             }
 
             let meta = action.actionMeta(this.state);
-            let line = this.evaluator.lines.find(line => !!line.rule.actions.find(a => a == action));
+            let line = this.evaluator.lines.find(line => line.rule && !!line.rule.actions.find(a => a == action));
             this.lastAction = { action, meta, rule: line? line.rule : undefined }
             return meta;
         }
@@ -69,7 +69,9 @@ class CombatModule extends BaseModule {
         const possibleRefreshNavigation = (e) =>
             e.event == "refresh"
             || e.page == Page.REWARD
-            || e.page == Page.STAGE_HANDLER;
+            || e.page == Page.STAGE_HANDLER
+            || e.page == Page.COOP_LANDING
+            || e.page == Page.COOP_RAID_LANDING;
 
         this.requestGameRefresh();
         this.prepareGameNavigation([

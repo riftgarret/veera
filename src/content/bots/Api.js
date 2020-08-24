@@ -12,6 +12,10 @@ class ApiBot extends BaseBot {
         return $(".pop-recover-stamina").is(":visible")
     }
 
+    hasStaminaAmount(num) {
+        return $el(`.use-item-num[data-item-index="1"] option[value="${num}"]`).length > 0
+    }
+
     async selectStaminaAmount(num) {
         let option = $el(`.use-item-num[data-item-index="1"]`)
         option.val(num) // apparently this doesnt bubble the event to GBF
@@ -54,6 +58,12 @@ class ApiExecutor extends BaseExecutor {
                 },
                 () => bot.hasRecoveryPopup
             );
+
+            if(!bot.hasStaminaAmount(action.amount)) {
+                console.log("Invalid stamina amount");
+                djeetaHandler.requestApi("abort");
+                return;
+            }
 
             // select AP amount
             await runner.tryAction(

@@ -279,6 +279,14 @@ var _injectedScript = function injected(state) {
                             }
                         }
                         return;
+                    case "raw_code":
+                        let result = new Function(evt.data.code)();
+                        sendMessage({
+                            type: "response",
+                            queryId: evt.data.queryId,
+                            response: result
+                        })
+                        return;
                 }
             }
             catch(e) {

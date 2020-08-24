@@ -60,6 +60,13 @@ class CombatBot extends BaseBot {
         return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
 
+    async delayRailDelayTime() {
+        return await queryExternal({
+            type: "raw_code",
+            code: `return Game.view.setupView.abilityRailTurnWaiting`
+        }).then(time => timeout(time))
+    }
+
     async requestFullAutoAction() {
         sendExternalMessage({
             type: "combat_fullAutoAction",
@@ -75,8 +82,13 @@ class CombatBot extends BaseBot {
         )
     }
 
-    get hasActionQueuedUp() {
-        return $(".prt-ability-rail-overlayer").is(":visible");
+    async hasActionQueuedUp() {
+        return await queryExternal({type: "raw_code", code: "return stage.gGameStatus.attackQueue.queue.length"})
+        .then(length => length > 0);
+    }
+
+    async hasAttackQueuedUp() {
+        return await queryExternal({type: "raw_code", code: `return !!stage.gGameStatus.attackQueue.queue.find(x => x.index == "NormalAttack")`})
     }
 
     async clickRequestBackup() {
@@ -352,10 +364,16 @@ class CombatExecutor extends BaseExecutor {
     async executeFullAutoAction(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
+            await bot.delayRailDelayTime();
+
+            if(await bot.hasAttackQueuedUp()) {
+                return; // we are attacking ignore command. This can happen due to manual input.
+            }
+
             console.log("starting fullauto")
             await runner.tryAction(
                 async () => await bot.requestFullAutoAction(),
-                () => bot.hasActionQueuedUp
+                async () => await bot.hasActionQueuedUp()
             );
 
             if(!runner.isValid) console.log("failed to queue full auto")

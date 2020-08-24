@@ -128,7 +128,7 @@ class Runner {
         while(this.isValid) {
             await this.processInterrupt();
             await action();
-            if(confirm()) {
+            if(await confirm()) {
                 return true;
             }
             this.retryCount--;

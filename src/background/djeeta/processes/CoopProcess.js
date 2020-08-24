@@ -7,7 +7,7 @@ class CoopProcess extends ModularProcess {
         this.options = options;
         this.summons = summons;
 
-        this.addModule(this.combat = new CombatModule());
+        this.addModule(this.combat = new CombatModule(Behavior.COOP));
         this.addModule(this.summon = new SupportModule(summons, Behavior.COOP));
         this.addModule(new RewardModule(Behavior.COOP));
         this.addModule(new CoopModule());

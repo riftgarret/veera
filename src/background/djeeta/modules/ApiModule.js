@@ -46,7 +46,7 @@ class ApiModule extends BaseModule {
     refillApAction() {
         let recovery = this.userStatus.halfElixirRecovery;
         let ap = this.userStatus.ap;
-        let goal = 200 // should be configurable
+        let goal = 400 // should be configurable
         let refillCount = Math.round((goal - ap) / recovery);
 
         if(refillCount == 0) {

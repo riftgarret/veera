@@ -58,13 +58,44 @@ var step2 = function() {
 // $(window).ready(() => initExternalSandbox(step1, {}, onMessageFromSandbox));
 initExternalSandbox(step1, {}, onMessageFromSandbox);
 
-function onMessageFromSandbox(evt) {
-    console.log(evt);
+var queryHandlers = {};
+var queryCounter = 0;
 
-    switch(evt.data.type) {
+function onMessageFromSandbox(evt) {
+    if(!evt || !evt.data) return;
+    let data = evt.data;
+    console.log(data);
+
+    switch(data.type) {
         case "methodHook": {
-            djeetaHandler.onInjectMessage(evt.data);
+            djeetaHandler.onInjectMessage(data);
+            break;
+        }
+
+        case "response": {
+            queryHandlers[data.queryId](data.response);
+            delete queryHandlers[data.queryId];
             break;
         }
     }
 }
+
+function sendExternalMessage(msg) {
+    if (!externalChannel) {
+        console.log("channel is not ready yet..");
+    }
+    else {
+        externalChannel.postMessage(msg);
+    }
+}
+
+function queryExternal(msg) {
+    return new Promise((r) => {
+        let id = queryCounter++;
+        queryHandlers[id] = r;
+
+        msg.queryId = id;
+        sendExternalMessage(msg);
+    });
+}
+;

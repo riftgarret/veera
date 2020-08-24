@@ -86,11 +86,11 @@ class SupportExecutor extends BaseExecutor {
 
             await runner.tryAction(
                 async () => await candidates[candidates.length - 1].e.gbfClick(),
-                () => $(".pop-deck, .prt-check-auth, #pop-confirm-sequence").is(":visible")
+                () => $(".common-pop-error, .pop-deck, .prt-check-auth, #pop-confirm-sequence").is(":visible")
             );
 
-            let ePopup = await waitForVisible(".pop-deck", ".prt-check-auth", "#pop-confirm-sequence");
-            if(ePopup.hasClass("prt-check-auth")) {
+            let ePopup = await waitForVisible(".common-pop-error", ".pop-deck", ".prt-check-auth", "#pop-confirm-sequence");
+            if(ePopup.hasClass("prt-check-auth") || ePopup.hasClass("common-pop-error")) {
                 // abort!
                 // TODO notify auth popup
                 console.log("auth found.");

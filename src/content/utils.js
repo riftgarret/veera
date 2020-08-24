@@ -327,12 +327,3 @@ class AwaitPromiser {
         this.timeoutHandle = undefined;
     }
 }
-function sendExternalMessage(msg) {
-    if (!externalChannel) {
-        console.log("channel is not ready yet..");
-    }
-    else {
-        externalChannel.postMessage(msg);
-    }
-}
-;
