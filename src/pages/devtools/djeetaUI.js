@@ -105,6 +105,15 @@ class DevToolDjeeta {
     }
 };
 
+const copyToClipboard = str => {
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
 var $consoleUI = $('#script-console');
 window.consoleUI = (html) => $consoleUI.html(html);
 window.ScriptManager = new DjeetaScriptManager()

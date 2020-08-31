@@ -37,6 +37,23 @@ class NumberExpression {
     }
 };
 
+class FlagExpression {
+    // temp party dead
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.eval = (state) => this.isPartyDead(state);
+    }
+
+    isPartyDead(state) {
+        for(let i = 0; i < 4; i++) {
+            let char = state.getCharAtPos(i);
+            if(char.alive) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
 
 class CharacterEval {
     constructor(rawClip) {
@@ -83,7 +100,7 @@ class UnitExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
         // boss.hp boss[0].hp% char[MC].hasDebuff[234] char[MC].isAlive char[MC].hasDebuff[234_40*]
-        let regex = /(?<unit>\w+)(\[(?<param>[\d\w]+)\])?(\.(?<attr>\w+\%?)(\[(?<attr_param>[\d\w\_\*]+)\])?)?/
+        let regex = /(?<unit>\w+)(\[(?<param>[\d\w\s@$!%*#?&]+)\])?(\.(?<attr>\w+\%?)(\[(?<attr_param>[\d\w\_\*]+)\])?)?/
         let {unit, param, attr, attr_param} = rawClip.raw.match(regex).groups;
         param = param || ""
 
@@ -111,8 +128,14 @@ class UnitExpression {
             case "hp%":
                 propEval = (unit) => 100 * unit.hp / unit.hpMax;
                 break;
+            case "ougi":
+                propEval = (unit) => unit.ougi;
+                break;
             case "isAlive":
                 propEval = (unit) => unit.alive;
+                break;
+            case "isDead":
+                propEval = (unit) => !unit.alive;
                 break;
             case "hasBuff":
                 propEval = (unit) => evalHasCondition(unit.buffs, attr_param);
@@ -198,7 +221,7 @@ class ComparativeExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        let esplit = rawClip.raw.match(/([\w\[\]\.\%]+|[\<\>\=]+)/gs);
+        let esplit = rawClip.raw.match(/([\w\s@$!%*#?&\[\]\.\%]+|[\<\>\=]+)/gs);
         let pos = 0;
         if(esplit.length != 3) throw new ScriptError("invalid condition split: ", rawClip);
 
@@ -303,6 +326,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
         case "endCombat": return new EndCombatAction(paramsClip);
+        case "sticker" :  return new StickerAction(paramsClip);
 
         default:
             throw new ScriptError(`unknown method ${methodClip.raw}`, methodClip);
@@ -321,6 +345,7 @@ function createInnerExpression(rawClip) {
         case "pground": return new PGRoundExpression(rawClip);
         case "stage":   return new StageExpression(rawClip);
         case "honors":  return new HonorsExpression(rawClip);
+        case "flag":    return new FlagExpression(rawClip);
         case "boss":
         case "char":    return new UnitExpression(rawClip, params);
         case "v2special": return new V2TriggerExpression(rawClip, params);

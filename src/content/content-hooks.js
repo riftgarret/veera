@@ -83,6 +83,7 @@ function hookBattlePage() {
             { attributeFilter: ["class"] })
     ]).then(() => {
             console.log("Djeeta > Reporting in!");
+            sendExternalMessage("combat_hookFormChangeFlag")
             return djeetaHandler.requestCombatAction()
     });
 }

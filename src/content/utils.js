@@ -53,7 +53,7 @@ jQuery.fn.isGbfVisible = function() {
 
 var djeetaConfig = {
     buttonPressInterval: 700,
-    buttonDownInterval: 200,
+    buttonDownInterval: 150,
 }
 
 function waitButtonInterval() { return timeout(djeetaConfig.buttonPressInterval) }

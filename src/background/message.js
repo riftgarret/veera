@@ -317,6 +317,7 @@ function hear(msg, sender) {
                         DjeetaMind.onPartyDeckShown(msg.data.json);
                         break;
                     case path.ismatch("/temporary_item_result"):
+                    case path.ismatch("/event_temporary_item_result"):
                         DjeetaMind.onItemUse(msg.data.postData, msg.data.json);
                         break;
                     case path.ismatch("guard_setting.json"):

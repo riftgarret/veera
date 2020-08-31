@@ -7,6 +7,10 @@ class Djeeta {
     parse = new DjeetaParser();
     scriptRunner = new ScriptController(this);
 
+    get curScript() {
+        return this.scriptRunner.process.curProcess || this.scriptRunner.process;
+    }
+
     // This object captures methods for interacting with the Dev tools UI layer
     djeetaUI = {
         updateState: function(state) {
@@ -139,11 +143,27 @@ class Djeeta {
     onItemUse(postData, json) {
         let itemType;
         let params;
-        if(postData.character_num == undefined) {
-            itemType = params = "blue"
+        // gw items
+        if(postData.event_type === 3) {
+            switch(Number(postData.item_id)) {
+                case 1:
+                    itemType = params = "gw_blue";
+                    break;
+                case 2:
+                    itemType = "gw_herb";
+                    params = [itemType, this.safeCharName(Number(postData.character_num))];
+                    break;
+                case 3:
+                    itemType = params = "gw_revival";
+                    break;
+            }
         } else {
-            itemType = "green";
-            params = [itemType, this.safeCharName(Number(postData.character_num))];
+            if(postData.character_num == undefined) {
+                itemType = params = "blue"
+            } else {
+                itemType = "green";
+                params = [itemType, this.safeCharName(Number(postData.character_num))];
+            }
         }
         let actionMeta = { action: "useItem", value: itemType }
         this.djeetaUI.appendAction({

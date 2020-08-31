@@ -25,10 +25,7 @@ class ArcarumBot extends BaseBot {
 
     async clickDivisionNode(divisionId) {
         await createAwaitPromise(".cnt-division-list", (e) => e.length > 0);
-        sendExternalMessage({
-            type: "arc_map_node_select",
-            divisionId
-        });
+        sendExternalMessage("arc_map_node_select", { divisionId });
         await timeout(1000);
     }
 

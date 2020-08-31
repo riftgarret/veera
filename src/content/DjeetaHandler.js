@@ -49,6 +49,9 @@ class DjeetaHandler {
                 case "selectTarget":
                     this.combat.selectTarget(actionMeta);
                     break;
+                case "chatSticker":
+                    this.combat.chatSticker(actionMeta);
+                    break;
 
                 //supporter
                 case "selectSummon":

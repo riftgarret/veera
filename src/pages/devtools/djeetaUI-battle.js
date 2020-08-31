@@ -90,7 +90,7 @@ class DjeetaBattleUI {
     generateActionStateNode(innerHTML) {
         let div = $(`<div>${innerHTML}</div>`);
         let stateSnapshot = this.snapshotState();
-        div.click((e) => UI.djeeta.updateStateUI(stateSnapshot));
+        div.click((e) => this.updateStateUI(stateSnapshot));
         return div;
     }
 
@@ -109,6 +109,7 @@ class DjeetaBattleUI {
                     src: `http://game-a1.granbluefantasy.jp/assets_en/img_mid/sp/ui/icon/status/x64/status_${cond}.png`,
                     title: cond
                 });
+                img.on("click", e => copyToClipboard(cond))
                 div.append(img);
             }
         };
@@ -161,7 +162,8 @@ class DjeetaBattleUI {
         for(let i = 0; i < this.playerMetaElements.length; i++) {
             let node = this.playerMetaElements[i];
             if(i < state.party.length) {
-                let unit = state.party[i];
+                let unitPos = state.formation[i];
+                let unit = state.party[unitPos];
                 updateCommon(unit, node);
                 updateConditions(unit.buffs, node.buffs);
                 updateConditions(unit.debuffs, node.debuffs);

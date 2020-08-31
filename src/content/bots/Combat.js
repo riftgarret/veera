@@ -60,17 +60,20 @@ class CombatBot extends BaseBot {
         return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
 
+    async isSkillInQueue(skillId) {
+        return await queryExternal("raw_code", {
+            code: `return !!stage.gGameStatus.attackQueue.queue.find(x => x.param && x.param.ability_id == "${skillId}")`
+        })
+    }
+
     async delayRailDelayTime() {
-        return await queryExternal({
-            type: "raw_code",
+        return await queryExternal("raw_code", {
             code: `return Game.view.setupView.abilityRailTurnWaiting`
         }).then(time => timeout(time))
     }
 
     async requestFullAutoAction() {
-        sendExternalMessage({
-            type: "combat_fullAutoAction",
-        });
+        sendExternalMessage("combat_fullAutoAction");
         await timeout(1000);
     }
 
@@ -83,12 +86,16 @@ class CombatBot extends BaseBot {
     }
 
     async hasActionQueuedUp() {
-        return await queryExternal({type: "raw_code", code: "return stage.gGameStatus.attackQueue.queue.length"})
+        return await queryExternal("raw_code", {
+            code: "return stage.gGameStatus.attackQueue.queue.length"
+        })
         .then(length => length > 0);
     }
 
     async hasAttackQueuedUp() {
-        return await queryExternal({type: "raw_code", code: `return !!stage.gGameStatus.attackQueue.queue.find(x => x.index == "NormalAttack")`})
+        return await queryExternal("raw_code", {
+            code: `return !!stage.gGameStatus.attackQueue.queue.find(x => x.index == "NormalAttack")`
+        })
     }
 
     async clickRequestBackup() {
@@ -168,12 +175,29 @@ class CombatBot extends BaseBot {
     async clickHealOption(optionName) {
         switch(optionName) {
             case "green":
-                return await $(".item-small.btn-temporary-small").gbfClick();
+                return await $el(".item-small.btn-temporary-small").gbfClick();
             case "blue":
-                return await $(".item-large.btn-temporary-large").gbfClick();
+                return await $el(".item-large.btn-temporary-large").gbfClick();
             case "elixir":
-                return await $(".item-potion.btn-temporary-large").gbfClick();
+                return await $el(".item-potion.btn-temporary-large").gbfClick();
+            case "gw_blue":
+                return await $el(`.btn-event-item[item-id="1"]`).gbfClick();
+            case "gw_herb":
+                return await $el(`.btn-event-item[item-id="2"]`).gbfClick();
+            case "gw_revival":
+                return await $el(`.btn-event-item[item-id="3"]`).gbfClick();
         }
+    }
+
+    async openChatStickerPanel() {
+        return await $el(`.btn-chat[category="9999"]`).gbfClick();
+    }
+
+    async selectChatSticker(index) {
+        let stickers = $el(".lis-stamp");
+        if(stickers.length == 0) return;
+        let designated = $(stickers[Math.min(stickers.length - 1, index)]);
+        return await designated.gbfClick();
     }
 }
 
@@ -236,11 +260,11 @@ class CombatExecutor extends BaseExecutor {
                         runner.abort();
                     };
                 },
-                () => {
+                async () => {
                     if(action.targetAim != undefined || action.subParams != undefined) {
                         return bot.hasPopup;
                     }
-                    return !bot.isSkillIconAvailable(action.id)
+                    return !bot.isSkillIconAvailable(action.id) // || await bot.isSkillInQueue(action.id)
                 }
             );
 
@@ -383,6 +407,21 @@ class CombatExecutor extends BaseExecutor {
         });
     }
 
+    async chatSticker(action) {
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            await runner.tryAction(
+                async () => await bot.openChatStickerPanel(),
+                () => bot.hasPopup
+            )
+
+            await runner.tryAction(
+                async () => await bot.selectChatSticker(action.sticker),
+                () => !bot.hasPopup
+            )
+        })
+    }
+
     async useItem(action) {
         let bot = this.bot;
         this.queue(async (runner) => {
@@ -403,7 +442,19 @@ class CombatExecutor extends BaseExecutor {
                     await bot.clickHealOption("green");
                     return await bot.clickCharacterPortrait(action.charPos);
                 case "blue":
-                    await bot.clickOpenHealButton("blue");
+                    await bot.clickHealOption("blue");
+                    return await bot.clickOkPopup();
+                case "gw_blue":
+                    await runner.tryAction(
+                        async () => await bot.clickHealOption("gw_blue"),
+                        () => bot.isPopupVisible("pop-event-item")
+                    );
+                    return await bot.clickOkPopup();
+                case "gw_herb":
+                    await bot.clickHealOption("gw_herb");
+                    return await bot.clickCharacterPortrait(action.charPos);
+                case "gw_revival":
+                    await bot.clickHealOption("gw_revival");
                     return await bot.clickOkPopup();
                 default:
                     throw new Error(`Unsupported item type: ${action.value}`);

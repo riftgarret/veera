@@ -4,7 +4,7 @@ class ScriptReader {
     // sync with expressions.js
     let knownMethods = ["when", "find", "skill", "summon",
     "holdCA", "useItem", "requestBackup", "fullAutoAction",
-    "selectTarget", "guard"];
+    "selectTarget", "guard", "sticker"];
     return !!knownMethods.find(keyword => rawScript.startsWith(keyword));
   }
 

@@ -13,6 +13,7 @@ class DjeetaParser {
         state.targetedBossIndex = 0;
         state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
         state.pgSequence = json.sequence? json.sequence.type : undefined;
+        state.availableChatPotion = json.chat_temporary_flag === 0
         this.v2triggerDetails(json.special_skill_indicate, state);
         this.abilities(json, state);    // needs to happen before party (condition abilities lock)
         this.startSummons(json, state);
@@ -205,6 +206,20 @@ class DjeetaParser {
                 case "temporary": {
                     state.items.greenPotions = Number(action.small);
                     state.items.bluePotions = Number(action.large);
+                    break;
+                }
+                case "event_temporary": {
+                    switch(Number(action.item_id)) {
+                        case 1:
+                            state.items.gwBlue = action.number;
+                            break;
+                        case 2:
+                            state.items.gwHerb = action.number;
+                            break;
+                        case 1:
+                            state.items.gwRevival = action.number;
+                            break;
+                    }
                     break;
                 }
             }
@@ -442,10 +457,17 @@ class DjeetaParser {
         let it = json.temporary;
         state.items.greenPotions = Number(it.small);
         state.items.bluePotions = Number(it.large);
+        if(json.event && json.event.item) {
+            let eventItems = json.event.item;
+            state.items.gwBlue = eventItems[1].number;
+            state.items.gwHerb = eventItems[2].number;
+            state.items.gwRevival = eventItems[3].number;
+        }
     }
 
     chat(json, state) {
         this.scenario(json.scenario, state);
+        state.availableChatPotion = false;
     }
 
     backupRequest(postData, state) {

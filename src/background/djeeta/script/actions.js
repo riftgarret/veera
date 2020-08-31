@@ -61,6 +61,21 @@ class AttackAction {
     isValid() { return true };
 }
 
+class StickerAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.stickerIndex = isNaN(rawClip.raw)? 0 : Number(rawClip.raw);
+    }
+
+    actionMeta() {
+        return {
+            action: "chatSticker",
+            sticker: this.stickerIndex
+        }
+    };
+    isValid(state) { return state.availableChatPotion };
+}
+
 class EndCombatAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -205,17 +220,40 @@ class UseItemAction {
         return true;
     }
 
+    anyDead(state) {
+        for(let i = 0; i < state.party.length; i++) {
+            let char = state.party[i];
+            if(!char.alive) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     isValid(state) {
         switch(this.itemType) {
-            case "green":
+            case "green": {
                 if(!state.items.greenPotions) return false;
                 let target = this.findTarget(state);
                 let targetInFront = target? state.formation.includes(target.charIndex) : false;
                 if(!target || !target.alive || !targetInFront) return false;
                 return !this.isFullLife(target);
+            }
             case "blue":
                 if(!state.items.bluePotions) return false;
                 return !this.isPartyFullLife(state) && !this.isPartyDead(state);
+            case "gw_blue":
+                if(!state.items.gwBlue) return false;
+                return !this.isPartyFullLife(state) && !this.isPartyDead(state);
+            case "gw_herb": {
+                let target = this.findTarget(state);
+                let targetInFront = target? state.formation.includes(target.charIndex) : false;
+                if(!state.items.gwHerb) return false;
+                return targetInFront && target.alive && target.debuffs.length > 0;
+            }
+            case "gw_revival":
+                if(!state.items.gwRevival) return false;
+                return this.anyDead(state);
             default:
                 return false;
         }

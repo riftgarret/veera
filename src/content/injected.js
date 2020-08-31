@@ -151,16 +151,15 @@ var _injectedScript = function injected(state) {
                 this.hookForProp(context, "Game", (game) => {
                     log(`GameObj: ${game}`);
                     self.hookForProp(game, "view", (v) => self.hookView(v), false);
-                    self.muteProp(game, "reportError");
+                    self.muteProp(game, "reportError", () => {});
                 });
             }
 
-            muteProp(obj, prop) {
+            muteProp(obj, prop, muteVal) {
                 if(!obj) return;
                 (function(){
-                    const mute = () => {};
                     let getter = function() {
-                        return mute;
+                        return muteVal;
                     };
                     let setter = function(newValue) {
                         // ignored
@@ -267,6 +266,9 @@ var _injectedScript = function injected(state) {
                         return;
                     case "combat_fullAutoAction":
                         Game.view.setupView.runFullAuto();
+                        return;
+                    case "combat_hookFormChangeFlag":
+                        hooker.muteProp(stage.gGameStatus.boss, "form_change_command", true);
                         return;
                     case "api_updateApPopup":
 

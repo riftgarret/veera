@@ -16,7 +16,7 @@ class BaseBot {
     }
 
     async clickOkPopup() {
-        return await $('.pop-usual:visible .btn-usual-ok, .pop-usual:visible .btn-usual-text').gbfClick();
+        return await $('.pop-usual:visible .btn-usual-use, .pop-usual:visible .btn-usual-ok, .pop-usual:visible .btn-usual-text').gbfClick();
     }
 
     async clickClosePopup() {

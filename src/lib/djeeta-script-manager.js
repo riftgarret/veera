@@ -10,8 +10,8 @@ class DjeetaScriptManager {
     }
 
     findCombatScript(boss) {
-        return new Promise(r => Storage.get({djeeta_scripts: [], boss_history: {}}, data => r(data.djeeta_scripts, data.boss_history)))
-        .then((metas, history) => {
+        return new Promise(r => Storage.get({djeeta_scripts: [], boss_history: {}}, data => r({metas: data.djeeta_scripts, history: data.boss_history})))
+        .then(({metas, history}) => {
             let bossKey = this.getBossKey(boss);
             if(history[bossKey]) {
                 let scriptName = history[bossKey].scriptName

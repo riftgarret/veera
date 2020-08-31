@@ -132,7 +132,8 @@ class RawClip {
     }
 
     subClip(innerRaw, innerIndexStartSearchPos = 0) {
-        return new RawClip(this.getRule, innerRaw, this.raw.indexOf(innerRaw, innerIndexStartSearchPos) + this.pos);
+        let inner = innerRaw.trim();
+        return new RawClip(this.getRule, inner, this.raw.indexOf(inner, innerIndexStartSearchPos) + this.pos);
     };
 }
 

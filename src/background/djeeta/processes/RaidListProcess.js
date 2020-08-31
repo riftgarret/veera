@@ -31,13 +31,16 @@ class RaidListProcess extends ModularProcess {
                         }
                     })
                     .then(() => this.requestContentPing())
-                    .catch(() => me.abort("failed to load combat script."));
+                    .catch(e => {
+                        log.error(e);
+                        this.abort("failed to load combat script.")
+                    });
                     break;
                 case Page.REWARD:
                     this.beginRound();
                     break;
                 case Page.SUMMON_SELECT:
-                    me.abort("cannot start join raid from summon page..");
+                    this.abort("cannot start join raid from summon page..");
                     break;
                 default:
                     this.requestContentPing();

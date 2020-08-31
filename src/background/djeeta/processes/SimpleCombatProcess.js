@@ -5,7 +5,7 @@ class SimpleCombatProcess extends ModularProcess {
         super({claimNightmare: true});
         let combat = new CombatModule();
         combat.loadScript(script);
-        this.addModule(combat);
+        this.addModule(this.combat = combat);
         this.addModule(new RewardModule()); // this triggers script end.
     }
 

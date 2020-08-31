@@ -80,22 +80,25 @@ function onMessageFromSandbox(evt) {
     }
 }
 
-function sendExternalMessage(msg) {
+function sendExternalMessage(key, data = {}) {
     if (!externalChannel) {
         console.log("channel is not ready yet..");
     }
     else {
+        let msg = {type: key}
+        Object.assign(msg, data);
+
         externalChannel.postMessage(msg);
     }
 }
 
-function queryExternal(msg) {
+function queryExternal(key, msg) {
     return new Promise((r) => {
         let id = queryCounter++;
         queryHandlers[id] = r;
 
         msg.queryId = id;
-        sendExternalMessage(msg);
+        sendExternalMessage(key, msg);
     });
 }
 ;

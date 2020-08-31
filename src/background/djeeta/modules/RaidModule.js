@@ -64,6 +64,14 @@ class RaidModule extends BaseModule {
             }
         }
 
+        if(this.assistMeta == undefined) {
+            // temp: happens when we load the page for the first time
+            return {
+                action: "delayReload",
+                delay: 2000
+            }
+        }
+
         let raidData = this.assistMeta.map(rawRaid => new RaidDataWrapper(rawRaid));
 
         // already 3 active raids
