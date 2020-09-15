@@ -50,6 +50,18 @@ class RaidModule extends BaseModule {
         }
     }
 
+    getDesiredRaid(raidList) {
+        let results = raidList.map(r => {
+            let val = (r.isCrew? 10 : 0);
+            val -= r.memberCount; // so if we have 10 people, this would be - 10 points
+            val += r.currentHP / 10; // if hp is 100, 10 points, 50 = 5 points
+            return { r, val }
+        });
+
+        let max = results.findMax("val");
+        return max.r;
+    }
+
     onActionRequested(data) {
         if(data.hasUnclaimed) {
             this.requestGameNavigation("#quest/assist/unclaimed/0/0");
@@ -84,7 +96,8 @@ class RaidModule extends BaseModule {
 
         let newValidRaids = this.getfilteredRaids(raidData);
         if(newValidRaids.length > 0) {
-            let topRaid = newValidRaids[0]
+            let topRaid = this.getDesiredRaid(newValidRaids);
+            // let topRaid = newValidRaids[0]
             this.prepareGameNavigation(e => e.page == Page.SUMMON_SELECT, "raid -> summon");
             return {
                 action: "selectRaid",

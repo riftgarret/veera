@@ -11,6 +11,15 @@ class DjeetaScriptEngine {
             let enable = $(e.target).prop('checked');
             BackgroundPage.send("djeetaAutoLoadEnabled", enable)
         });
+
+        $('#btn-load-current').click(() => {
+            let state = UI.djeeta.battle.state;
+            if(!state.bosses) return;
+            let boss = state.bosses[0];
+
+            ScriptManager.findCombatScript(boss)
+                .then(meta => BackgroundPage.send("djeetaScriptLoad", meta.name));
+        });
     }
 
     updateCombatScriptToggle(enable) {

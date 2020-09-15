@@ -35,6 +35,8 @@ class ApiModule extends BaseModule {
             case "requestRefresh":
                 this.requestGameRefresh();
                 return FLAG_IDLE
+            case "restartRound":
+                return FLAG_RESTART_ROUND;
         }
     }
 

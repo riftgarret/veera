@@ -4,7 +4,6 @@ class CoopProcess extends ModularProcess {
     constructor(scriptName, summons, options = {}) {
         super(options);
         this.scriptName = scriptName;
-        this.options = options;
         this.summons = summons;
 
         this.addModule(this.combat = new CombatModule(Behavior.COOP));

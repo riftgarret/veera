@@ -88,8 +88,10 @@ class EndCombatAction {
 class AbilityAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
-        let abilitySplit = rawClip.raw.split(/\s*,\s*/);
-        this.abilityName = abilitySplit[0];
+        let abilitySplit = rawClip.raw.split(/\s*[^\\],\s*/); // ignore escaped commas \,
+
+        this.abilityName = abilitySplit[0].replaceAll("\\,", ",");
+
         switch(abilitySplit.length) {
             case 2:
                 let target = abilitySplit[1];

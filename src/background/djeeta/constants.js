@@ -30,6 +30,7 @@ const DataEvent = {
     COMBAT_CHAT: "combat_chat",
     COOP_ROOM_DATA: "coop_room_data",
     RAID_LIST_UPDATE: "raid_list_update",
+    RAIDFINDER_UPDATE: "raidfinder",
     AP_UPDATE: "ap_update",
     ITEM_UPDATE: "items_update",
     REWARD_DATA: "reward_data",

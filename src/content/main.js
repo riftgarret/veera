@@ -22,6 +22,7 @@ if(!$el) {
         $el = selector => $_el.find(selector)
         awaitPageReady = _awaitPageReady;
         awaitPageReady();
+        hookLoadingMutation();
     });
 }
 

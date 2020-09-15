@@ -20,6 +20,10 @@ function handleOnDataChanged() {
         for(let func of callbackFuncs) {
             func(raidId)
         }
+
+        if(BackgroundPage.connection != null) {
+            BackgroundPage.send("raidFinderUpdate", {id: raidId})
+        }
     }
     callbackFuncs.length = 0;
 }

@@ -80,6 +80,7 @@ class Djeeta {
         let skillTarget = postData.ability_aim_num;
 
         let abilityName = this.state.getAbilityNameById(postData.ability_id);
+        abilityName = abilityName.replaceAll(",", "\\,"); // escape commas
         let params = [abilityName];
 
         if(skillTarget) {
@@ -323,6 +324,13 @@ class Djeeta {
     onPartyDeckShown(json) {
         this.parse.partyDeck(json, this.pageMeta.meta);
         this.postActionScriptCheck(DataEvent.SUPPORT_PARTYDECK);
+    }
+
+    onRaidFinderUpdate(data) {
+        if(this.pageMeta.page == Page.RAIDS) {
+            this.pageMeta.meta.lastRaidId = data.id;
+            this.postActionScriptCheck(DataEvent.RAIDFINDER_UPDATE);
+        }
     }
 
     // script calls

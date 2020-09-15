@@ -85,12 +85,12 @@ class ScriptEnv {
     this.processes.push(new ProvingGroundProcess(script, url, summons, options));
   }
 
-  hostRaid(script, url, summons, options) {
-    console.log(`called hostRaid: ${script}, ${url}, ${summons}, ${options}`);
-  }
-
   raidList() {
     return new RaidBuilder(this);
+  }
+
+  raidFinder(script, summons, options) {
+    this.processes.push(new RaidFinderProcess(script, summons, options));
   }
 }
 

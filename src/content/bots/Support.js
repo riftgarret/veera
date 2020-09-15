@@ -36,7 +36,11 @@ class SupportBot extends BaseBot {
     }
 
     async clickStartSummonFight() {
-        return await $(".prt-btn-deck .btn-usual-ok, #pop-confirm-sequence .btn-usual-ok").gbfClick();
+        return await $el(".prt-btn-deck .btn-usual-ok, #pop-confirm-sequence .btn-usual-ok").gbfClick();
+    }
+
+    get hasJoinRaidError() {
+        return $el(".pop-result-assist-raid:visible").length > 0
     }
 }
 
@@ -85,7 +89,10 @@ class SupportExecutor extends BaseExecutor {
             });
 
             await runner.tryAction(
-                async () => await candidates[candidates.length - 1].e.gbfClick(),
+                async () => {
+                    await candidates[candidates.length - 1].e.gbfClick()
+                    await awaitLoading()
+                },
                 () => $(".common-pop-error, .pop-deck, .prt-check-auth, #pop-confirm-sequence").is(":visible")
             );
 
@@ -108,7 +115,23 @@ class SupportExecutor extends BaseExecutor {
             }
 
             await runner.tryNavigateAction(
-                async () => await bot.clickStartSummonFight()
+                async () => {
+                    await bot.clickStartSummonFight()
+                    let waitResolved = await Promise.race([
+                        awaitLoading().then(r => 1),
+                        waitForVisible(".common-pop-error").then(r => 2)
+                    ])
+                    if(waitResolved == 2) {
+                        console.log("error on start, aborting.");
+                        djeetaHandler.requestApi("error on starting");
+                        runner.abort();
+                        return;
+                    } else if(actionMeta.behavior == "join_raid") {
+                        if(bot.hasJoinRaidError()) {
+                            djeetaHandler.requestApi("restartRound");
+                        }
+                    }
+                }
             );
         });
     }

@@ -62,8 +62,10 @@ class ArcarumBot extends BaseBot {
                 await $("div.btn-change-boss").gbfClick();
                 await waitForVisible(".pop-usual", 2000)
                 await $(`.btn-select-boss[data-id="${action.id}"]`).gbfClick();
+                await awaitLoading()
                 await timeout(700)
                 await this.clickOkPopup();
+                await awaitLoading()
                 await timeout(700)
                 return await this.clickOkPopup();
         }
@@ -122,7 +124,7 @@ class ArcarumExecutor extends BaseExecutor {
         let bot = this.bot;
 
         this.queue(async (runner) => {
-
+            await awaitLoading();
             await bot.awaitArcStageAnimations();
 
             await timeout(1000);
@@ -142,7 +144,10 @@ class ArcarumExecutor extends BaseExecutor {
 
             await bot.awaitArcStageAnimations();
             await runner.tryAction(
-                async () => await bot.clickOkPopup(),
+                async () => {
+                    await bot.clickOkPopup()
+                    await awaitLoading();
+                },
                 () => !bot.hasPopup
             )
         });
@@ -168,7 +173,10 @@ class ArcarumExecutor extends BaseExecutor {
             );
 
             await runner.tryAction(
-                async () => await bot.clickMoveDivision(),
+                async () => {
+                    await bot.clickMoveDivision()
+                    await awaitLoading()
+                },
                 () => !bot.hasMoveDivisionButton
             );
         });
@@ -178,6 +186,7 @@ class ArcarumExecutor extends BaseExecutor {
         let bot = this.bot;
 
         this.queue(async (runner) => {
+            await awaitLoading()
             await bot.awaitArcStageAnimations();
 
             if(bot.hasPopup) {
@@ -186,13 +195,17 @@ class ArcarumExecutor extends BaseExecutor {
                 await bot.awaitArcStageAnimations();
             }
 
+            await awaitLoading()
             await runner.tryAction(
                 async () => await bot.clickDivisionNode(action.divisionId),
                 () => bot.currentDivision == action.divisionId
             );
 
             await runner.tryAction(
-                async () => await bot.clickDivisionAction(action),
+                async () => {
+                    await bot.clickDivisionAction(action)
+                    await awaitLoading()
+                },
                 () => !bot.hasDivisionAction(action)
             );
         });
@@ -202,6 +215,7 @@ class ArcarumExecutor extends BaseExecutor {
         let bot = this.bot;
 
         this.queue(async (runner) => {
+            await awaitLoading()
             await waitForVisible(".prt-next-stage", 5000);
             await bot.awaitArcStageAnimations();
 
@@ -211,7 +225,7 @@ class ArcarumExecutor extends BaseExecutor {
                 await bot.awaitArcStageAnimations();
             }
 
-
+            await awaitLoading()
             await runner.tryAction(
                 async () => {
                     await bot.clickNextStage();
@@ -223,7 +237,10 @@ class ArcarumExecutor extends BaseExecutor {
             await bot.awaitArcStageAnimations();
 
             await runner.tryAction(
-                async () => await bot.clickOkPopup(),
+                async () => {
+                    await bot.clickOkPopup()
+                    await awaitLoading()
+                },
                 () => !bot.hasPopup
             )
         });
@@ -233,10 +250,12 @@ class ArcarumExecutor extends BaseExecutor {
     async selectPartyAndGo(action) {
         let bot = this.bot;
 
+        await awaitLoading()
         await waitButtonInterval();
 
         if(action.pos) {
             await bot.clickPartyMarker(action.pos);
+            await awaitLoading()
         }
 
         await bot.clickPartyOk();
@@ -250,10 +269,12 @@ class ArcarumExecutor extends BaseExecutor {
         let bot = this.bot;
 
         let partyPos = action.pos;
+        await awaitLoading()
         if(!bot.isShowingPartyGroup(partyPos)) {
             await bot.clickTogglePartyGroupSet();
         }
 
-        return await bot.clickPartyGroupTab(partyPos);
+        await bot.clickPartyGroupTab(partyPos);
+        return await awaitLoading()
     }
 }

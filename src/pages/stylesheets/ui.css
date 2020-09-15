@@ -771,7 +771,6 @@ input:checked + .slider:before {
 
 .djeeta-code {
     font-family: "system";
-    font-size: 140%;
     width: 100%;
     margin: 0.2em 2px;
     overflow-x: scroll;
@@ -779,6 +778,8 @@ input:checked + .slider:before {
     padding: 3px;
     flex: 1 1 auto;
 }
+
+
 
 .code-tab {
     display: none;
@@ -845,6 +846,7 @@ input:checked + .slider:before {
 
 #script-tracker {
     background-color: rgba(4,221,2,0.05);
+    font-size: 120%;
 }
 
 #script-editor {
@@ -852,11 +854,13 @@ input:checked + .slider:before {
     outline: none;
     color: white;
     white-space: nowrap;
+    font-size: 120%;
 }
 
 #script-runner {
     background-color: rgba(221,4,2,0.05);
     white-space: pre;
+    font-size: 120%;
 }
 
 #script-runner > div.error {

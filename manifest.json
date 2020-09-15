@@ -31,7 +31,7 @@
          "src/content/bots/Coop.js",
          "src/content/bots/ProvingGround.js",
          "src/content/bots/Reward.js",
-         "src/content/bots/RaidList.js",
+         "src/content/bots/Raid.js",
          "src/content/bots/Support.js",
          "src/content/DjeetaHandler.js",
          "src/content/content-hooks.js",
@@ -47,7 +47,7 @@
          "src/raidfinder/message.js",
          "src/raidfinder/main.js"
       ],
-      "matches": [ "*://gbf-raidfinder.aikats.us/*" ],
+      "matches": [ "*://granblue-raidfinder.herokuapp.com/*", "*://gbf-raidfinder.aikats.us/*" ],
       "run_at": "document_idle"
    }],
 
@@ -80,6 +80,7 @@
                  "src/background/djeeta/modules/ProvingGroundModule.js",
                  "src/background/djeeta/modules/ArcarumModule.js",
                  "src/background/djeeta/modules/RaidModule.js",
+                 "src/background/djeeta/modules/RaidFinderModule.js",
                  "src/background/djeeta/modules/ClaimRewardModule.js",
                  "src/background/djeeta/modules/CoopModule.js",
                  "src/background/djeeta/processes/MasterProcess.js",
@@ -89,6 +90,7 @@
                  "src/background/djeeta/processes/ProvingGroundProcess.js",
                  "src/background/djeeta/processes/ArcarumProcess.js",
                  "src/background/djeeta/processes/RaidListProcess.js",
+                 "src/background/djeeta/processes/RaidFinderProcess.js",
                  "src/background/djeeta/processes/SimpleCombatProcess.js",
                  "src/background/djeeta/ScriptController.js",
                  "src/background/djeeta/ScriptReader.js",

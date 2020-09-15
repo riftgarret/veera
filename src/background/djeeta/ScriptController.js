@@ -35,7 +35,7 @@ class ScriptController {
     set autoLoadCombat(val) {
         if(val == this._autoLoadCombat) return;
         this._autoLoadCombat = val;
-        if(this.pageMeta.page == Page.COMBAT) {
+        if(val && this.pageMeta.page == Page.COMBAT) {
             this.findAndLoadCurrentCombatScript();
         }
         this.mind.djeetaUI.updateValue({"autoLoadToggle": val});
@@ -281,16 +281,13 @@ class ScriptController {
         if(this.isRunning) return // notify cannot load while running;
         if(this.pageMeta.page != Page.COMBAT) return;
         let boss = this.state.bosses[0];
-        if(!boss) return;
 
-        ScriptManager.getScripts()
-            .then(metas => {
-                let scripts = metas.filter(meta => meta.boss == boss.name && meta.type == "combat");
-                if(scripts.length == 0) return;
-                let timestamps = scripts.map(meta => meta.used)
-                timestamps.sort();
-                let foundMeta = scripts.find(meta => meta.used == timestamps[timestamps.length - 1]);
-                this.loadScript(foundMeta);
+
+        ScriptManager.findCombatScript(boss)
+            .then(meta => {
+                if(meta) {
+                    this.mind.loadScript(meta.name);
+                }
             });
     }
 

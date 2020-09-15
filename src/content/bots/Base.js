@@ -1,18 +1,21 @@
 "use strict";
 
 class BaseBot {
+    get isLoading() {
+        return $("#loading").is(":visible");
+    }
 
     get hasPopup() {
-        return $('.pop-usual').is(":visible")
+        return $el('.pop-usual').is(":visible")
     }
 
     isPopupVisible(className) {
         if(!className) className = "pop-usual";
-        return $(`.${className}:visible`).length > 0;
+        return $el(`.${className}:visible`).length > 0;
     }
 
     async clickCancelPopup() {
-        return await $('.pop-usual:visible .btn-usual-cancel').gbfClick();
+        return await $el('.pop-usual:visible .btn-usual-cancel').gbfClick();
     }
 
     async clickOkPopup() {

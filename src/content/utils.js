@@ -51,6 +51,11 @@ jQuery.fn.isGbfVisible = function() {
     return ret;
 }
 
+jQuery.fn.widthPerc = function() {
+    if(this.length == 0) return 0;
+    return Math.round(this.width() / this.offsetParent().width() * 100)
+}
+
 var djeetaConfig = {
     buttonPressInterval: 700,
     buttonDownInterval: 150,
@@ -148,6 +153,44 @@ function clickIfPossibleElement(ele) {
         return generateClick(ele);
     }
     return false;
+}
+
+var loadingMutation = new MutationObserver(mut => {
+    let retainedList = []
+    for(let listener of loadingListeners) {
+        if(listener(loadingElement.is(":visible"))) {
+            retainedList.push(listener);
+        }
+    }
+    loadingListeners = retainedList;
+})
+
+var loadingListeners = [];
+var loadingElement;
+function hookLoadingMutation() {
+    loadingElement = $("#loading");
+    loadingMutation.observe(loadingElement[0], {attributeFilter: ["style"]});
+}
+
+function onLoadingEvent(func) {
+    loadingListeners.push(func);
+}
+
+function awaitLoading() {
+    return new Promise(r => {
+        if(!loadingElement.is(":visible")) {
+            console.log("resolved loading immediately");
+            r();
+        } else {
+            console.log("hooking for loading");
+            onLoadingEvent(visible => {
+                if(visible) return true;
+                console.log("resolved loading from mutation");
+                r();
+            })
+        }
+    });
+
 }
 
 function Queue() {

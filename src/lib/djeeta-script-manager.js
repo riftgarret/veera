@@ -15,8 +15,7 @@ class DjeetaScriptManager {
             let bossKey = this.getBossKey(boss);
             if(history[bossKey]) {
                 let scriptName = history[bossKey].scriptName
-                let meta = metas.find(meta => meta.name == scriptName);
-                if(meta) return meta.name;
+                return metas.find(meta => meta.name == scriptName);
             }
         });
     }

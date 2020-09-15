@@ -5,16 +5,10 @@ class RaidListProcess extends ModularProcess {
         super(options);
 
         this.addModule(this.combat = new CombatModule(Behavior.RAIDS));
-        this.addModule(this.summon = new SupportModule());
+        this.addModule(this.summon = new SupportModule([], Behavior.RAIDS));
         this.addModule(new RaidModule(raidMetas))
         this.addModule(new ClaimRewardModule());
         this.addModule(new RewardModule());
-    }
-
-    loadResources() {
-        const me = this;
-         this.combat.loadScriptName(this.scriptName)
-            .catch((e) => me.abort("failed to load combat script."));
     }
 
     start() {
@@ -23,8 +17,9 @@ class RaidListProcess extends ModularProcess {
             switch(this.pageMeta.page) {
                 case Page.COMBAT:
                     ScriptManager.findCombatScript(this.state.bosses[0])
-                    .then(scriptName => {
-                        if(scriptName) {
+                    .then(meta => {
+                        if(meta) {
+                            this.lastScript = meta.name;
                             return this.combat.loadScriptName(ret.script)
                         } else {
                             throw new Error("Could not find combat script for ", this.state.bosses[0])
@@ -56,6 +51,7 @@ class RaidListProcess extends ModularProcess {
         if(ret.action == "selectRaid") {
             const me = this;
             this.summon.summons = ret.config.summons;
+            this.lastScript = ret.config.script;
             this.combat.loadScriptName(ret.config.script)
                 .catch((e) => me.abort("failed to load combat script."));
         }
@@ -70,10 +66,12 @@ class RaidListProcess extends ModularProcess {
     }
 
     onNewBattle() {
-        let boss = this.state.bosses[0];
-        this.updateScriptProps(this.scriptName, {
-            boss: boss.name,
-            element: boss.attr
-        });
+        if(this.lastScript) {
+            let boss = this.state.bosses[0];
+            this.updateScriptProps(this.scriptName, {
+                boss: boss.name,
+                element: boss.attr
+            });
+        }
     }
 }

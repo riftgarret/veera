@@ -98,7 +98,7 @@ window.RaidfinderTab = {
     connected(port) {
         console.log("Raid-sama!", port);
         this.connection = port;
-        port.onMessage.addListener(hearContent);
+        port.onMessage.addListener(hearRaidFinder);
         port.onDisconnect.addListener(self.deafen);
     },
     deafen() {
@@ -108,7 +108,7 @@ window.RaidfinderTab = {
         }
         if (self.connection) {
             self.connection.onMessage.removeListener(this.listen);
-            chrome.runtime.onMessage.removeListener(hearContent);
+            chrome.runtime.onMessage.removeListener(hearRaidFinder);
             self.connection.disconnect();
             self.connection = null;
         }
@@ -473,11 +473,20 @@ function hear(msg, sender) {
         case "djeetaAutoLoadEnabled":
             DjeetaMind.enableDetectAutoLoad(msg.data);
             break;
+
     }
 }
 
 function hearContent(msg, sender) {
 
+}
+
+function hearRaidFinder(msg, sender) {
+    switch (msg.action) {
+        case "raidFinderUpdate":
+            DjeetaMind.onRaidFinderUpdate(msg.data);
+            break;
+    }
 }
 
 function hearQuery(data, sender, respond) {

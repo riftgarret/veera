@@ -226,6 +226,21 @@ class DjeetaScriptEditor {
             modal: true,
         });
 
+        this.docDialog = $("#script-documentation-dialog")
+
+        this.docDialog.find("> div").accordion({
+            heightStyle: "content",
+            collapsible: true,
+            active: false
+        })
+        this.docDialog.dialog({
+            autoOpen: false,
+            width: 600,
+            height: 450,
+            modal: false,
+        });
+
+        $("#btn-documentation").click(e => this.docDialog.dialog("open"))
     }
 
     loadScript(meta) {

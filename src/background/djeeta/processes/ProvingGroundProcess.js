@@ -4,7 +4,6 @@ class ProvingGroundProcess extends ModularProcess {
     constructor(scriptName, url, summons, options = {}) {
         super(options);
         this.scriptName = scriptName;
-        this.options = options || {};
         this.url = url;
         this.summons = summons;
 

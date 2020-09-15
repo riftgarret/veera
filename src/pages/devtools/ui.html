@@ -589,11 +589,213 @@
                                         </div>
                                         <button id="btn-save-script" class="menu-button">Save</button>
                                         <button id="btn-execute-script" class="menu-button">Load Engine</button>
+                                        <button id="btn-documentation" class="menu-button">Documentation</button>
                                         <div>Script: <span id="script-editor-scriptname"></span></div>
                                     </div>
 
                                 </div>
                                 <textarea id="script-editor" spellcheck="false" class="djeeta-code"></textarea>
+                                <!-- script documentation -->
+                                <div id="script-documentation-dialog">
+                                    <div>
+                                        <h3>quest(..)</h3>
+                                        <div>
+                                            <div>
+                                                Hosted Raids or single player quests. Options to repeat <i>n</i>- number of times
+                                                or to play nightmare as well.
+                                            </div>
+                                            <div>Example:</div>
+                                            <div class="djeeta-code">
+                                                <b>quest(</b><br/>
+                                                "avatar_combat",<br/>
+                                                "http://game.granbluefantasy.jp/#quest/supporter/757081/1/0/10352",<br/>
+                                                ["Zeus", "Lucifer"],<br/>
+                                                {repeatCount: 2}<br/>
+                                                <b>)</b>
+                                            </div>
+                                            <div>Parameters: </div>
+                                            <div class="djeeta-code">
+                                                <div>1. <i><b>"scriptName"</b></i> - name of combat script.</div>
+                                                <div>2. <i><b>"http://summonSelectUrl"</b></i> - url to summon select page</div>
+                                                <div>3. <i><b>["summon names"]</b></i> - summons to use as json array, or can be a single string such as "Shiva" if only 1 summon is desired.</div>
+                                                <div>4. <b>{ options }</b> available combat options:</div>
+                                                <div style="margin-left: 1em;">
+                                                    <div>* <i><b>repeatCount: n</b></i> - repeat the quest this many times.</div>
+                                                    <div>* <i><b>claimNightmare: true</b></i> - claim nightmare reward (often event pages).</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3>raid(..)</h3>
+                                        <div>
+                                            <div>
+                                                Join Raids that show up on the raids screen. This will refill BP when below 5
+                                                and join raids based on what is a valid raid, and what is
+                                                the most desirable raid by calculation between prioritizing crew raids, number of
+                                                players joined, and boss HP left.<br/><br/>
+                                                Due to the nature that there may be more than 1 raid that might want to be
+                                                joined at once, the method interface differs to allow providing multiple raid
+                                                parameters to look for.
+                                            </div>
+                                            <div>Example:</div>
+                                            <div class="djeeta-code">
+                                                <b>raidList()<br/>
+                                                .newRaid(</b><br/>
+                                                "Lvl 150 Queen Bee", <br/>
+                                                "queen_bee_combat",<br/>
+                                                ["Zephyrus","Grimr"], <br/>
+                                                {minHp: 60, maxJoined: 3}<br/>
+                                                <b>)</b><br/>
+                                                <b>.newRaid(</b><br/>
+                                                "Lvl 100 Queen Bee", <br/>
+                                                "queen_bee_combat",<br/>
+                                                ["Zephyrus","Grimr"], <br/>
+                                                {minHp: 60, maxJoined: 1}<br/>
+                                                <b>)<br/>
+                                                .build(</b>{repeatCount: 50}<b>)</b>
+                                            </div>
+                                            <div>
+                                                These parameters differ that after <b class="djeeta-code">raidList()</b>. It must
+                                                follow with <b class="djeeta-code">newRaid(...)</b> and end with
+                                                <b class="djeeta-code">build({options..})</b>
+                                            </div>
+                                            <div><b class="djeeta-code">newRaid(...)</b> Parameters: </div>
+                                            <div class="djeeta-code">
+                                                <div>1. <i><b>"Raid Name"</b></i> - the name of the raid as it appears in the raid list. (Case sensitive)</div>
+                                                <div>2. <i><b>"Combat Script"</b></i> - the name of the combat script</div>
+                                                <div>3. <i><b>["summon names"]</b></i> - summons to use as json array, or can be a single string such as "Shiva" if only 1 summon is desired.</div>
+                                                <div>4. <b>{ raid-options }</b> available raid-options options: (case sensitive)</div>
+                                                <div style="margin-left: 1em;">
+                                                    <div>* <i><b>minHp: n</b></i> - only join raids where the health is above or equal to <b><i>n</i></b>. N can be between 1-100, 100 being full life.</div>
+                                                    <div>* <i><b>maxJoined: n</b></i> - only join raids where there is <b><i>n</i></b> players or less that have joined.</div>
+                                                    <div>* <i><b>crewOnly: true</b></i> - only join crew raids. (gw)</div>
+                                                </div>
+                                            </div>
+                                            <div><b class="djeeta-code">build(</b>{options}<b>)</b> Parameters: </div>
+                                            <div>* <i><b>repeatCount: n</b></i> - repeat the quest this many times.</div>
+                                        </div>
+                                        <h3>coop(..)</h3>
+                                        <div>
+                                            <div>Join a coop-coop room or coop-raid room. In a coop-coop room. This script will ensure
+                                                that the 'im ready' button is toggled and that it will pick the summon if a teammate
+                                                you were hosting leaves. In a coop raid fight, this will continue to refresh the coop-coop
+                                                landing page in case the event to start the fight was missed.
+                                            </div>
+                                            <div>Example:</div>
+                                            <div class="djeeta-code">
+                                                <b>coop(</b><br/>
+                                                "oobl_combat",<br/>
+                                                ["Shiva", "Agni"]<br/>
+                                                <b>)</b>
+                                            </div>
+                                            <div>Parameters:</div>
+                                            <div class="djeeta-code">
+                                                <div>1. <i><b>"scriptName"</b></i> - name of combat script.</div>
+                                                <div>2. <i><b>["summon names"]</b></i> - summons to use as json array, or can be a single string such as "Shiva" if only 1 summon is desired.</div>
+                                            </div>
+                                        </div>
+                                        <h3>provingGrounds(..)</h3>
+                                        <div>
+                                            <div>
+                                                Proving Grounds is ideally meant to farm the <i>extreme</i> challenge. The requirements
+                                                are that the party's already be selected in the order you want them per stage.
+                                            </div>
+                                            <div>Example:</div>
+                                            <div class="djeeta-code">
+                                                <b>provingGrounds(</b><br/>
+                                                "fire_pg_combat",<br/>
+                                                "http://game.granbluefantasy.jp/#quest/supporter/757081/1/0/10352",<br/>
+                                                ["Shiva", "Agni"],<br/>
+                                                {repeatCount: 20}<br/>
+                                                <b>)</b>
+                                            </div>
+                                            <div>Parameters: </div>
+                                            <div class="djeeta-code">
+                                                <div>1. <i><b>"scriptName"</b></i> - name of combat script.</div>
+                                                <div>2. <i><b>"http://summonSelectUrl"</b></i> - url to summon select page when starting PG</div>
+                                                <div>3. <i><b>["summon names"]</b></i> - summons to use as json array, or can be a single string such as "Shiva" if only 1 summon is desired.</div>
+                                                <div>4. <b>{ options }</b> available combat options:</div>
+                                                <div style="margin-left: 1em;">
+                                                    <div>* <i><b>repeatCount: n</b></i> - repeat the quest this many times.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3>arcarum(..)</h3>
+                                        <div>
+                                            <div>
+                                                Arcarum automation. Probably the most complex script due to the nature of handling so many
+                                                different fights and situations. The idea is you specify the path you want to repeat, and
+                                                add options for any boss you want to appear.
+                                            </div>
+                                            <div>Example:</div>
+<div class="djeeta-code" style="white-space: pre;">
+let delegate = function(props) {
+let advElement = props.advElement;
+let mainGroup = [8, 5, "arc_mainGroup"];
+<span class="comment">// SR ONLY</span>
+if(props.srOnly) {
+    if(advElement == "0") advElement = 3;
+    return [9, advElement, "arc_combatBasic"];
+}
+<span class="comment">// R ONLY</span>
+if(props.rOnly) {
+    if(advElement == "0") advElement = 2;
+    return [10, advElement, "arc_combatBasic"];
+}
+
+<span class="comment">// MULTIPLE ENEMY WITH SSR</span>
+if(props.enemyCount > 1 && !props.isBoss) return mainGroup;
+
+if(props.name == "Mimic") return mainGroup;
+
+if(advElement == "0") return mainGroup;
+
+<span class="comment">// BOSSES (3-3, 6-3, 9-3)</span>
+if(props.isBoss) {
+    switch(advElement) {
+        case "1": return [3, 3, "arc_fireBoss"];
+        case "2": return [5, 3, "arc_waterBoss"];
+        case "3": return [4, 2, "arc_earthBoss"];
+        case "4": return [7, 6, "arc_windBoss"];
+        case "5": return [1, 6, "arc_lightBoss"];
+        case "6": return [6, 5, "arc_darkBoss"];
+    }
+}
+
+<span class="comment">// DEFAULT</span>
+return [8, advElement, "arc_combatBasic"];
+}
+
+<b>arcarum(</b>"red", delegate, {targetBoss: "The Hanged Man"}<b>)</b>
+</div>
+                                            <div><b>arcarum(...)</b> Parameters: </div>
+                                            <div class="djeeta-code">
+                                                <div>1. <i><b>"path color"</b></i> - red, green or blue to select when starting a new path. Otherwise it'll continue what is currently on.</div>
+                                                <div>2. <i><b>partySelectionFunction</b></i> - this is a javascript function that should return an array of [partyGroupPosition, partyPosition, "script"] (more below)</div>
+                                                <div>3. <b>{ options }</b> available arcarum options:</div>
+                                                <div style="margin-left: 1em;">
+                                                    <div>* <i><b>targetBoss: "The Hanged Man"</b></i> - select this boss if it is not the one that appears on the 9th stage.</div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                The party select function is a javascript function in the form of <b>(props) => { ... return [1, 2, "fire_combat"] }</b>.
+                                                The result of this function should return an array of 3 values. the first should be the party group tab. This refers
+                                                to the 1-7 tabs on page A of the party select screen, or the 8-14 on the B side. The 2nd value is position
+                                                refers to the position in that tab, which party to select, this will be between 1-6.
+                                                The final position in the array will be the combat script name.
+                                            </div>
+                                            <div><b>props</b> properties for your javascript function:</div>
+                                            <div class="djeeta-code">
+                                                <div><i><b>advElement</b></i>(number) - The advantage element for the fight: 1 = fire, 2 = water, 3 = earth, 4 = wind, 5 = light, 6 = dark.</div>
+                                                <div><i><b>advElementName</b></i>(string) - The advantage element for the fight, but written as wind, dark, etc.</div>
+                                                <div><i><b>srOnly</b></i> (boolean) - true if only SR and Rs are allowed to fight.</div>
+                                                <div><i><b>rOnly</b></i> (boolean) - true if only Rs are allowed to fight.</div>
+                                                <div><i><b>isBoss</b></i> (boolean) - true this is a boss fight (The Hanged Man).</div>
+                                                <div><i><b>name</b></i>(string) - The name of the fight, useful for detecting if its the "Mimic".</div>
+                                                <div><i><b>enemyCount</b></i>(number) - number of enemies appearing in this fight.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div id="script-runner-container" class="code-tab">
                                 <div class="script-dashboard column-table">

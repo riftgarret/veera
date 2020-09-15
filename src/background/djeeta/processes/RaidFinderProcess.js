@@ -1,15 +1,16 @@
 "use strict";
 
-class QuestProcess extends ModularProcess {
-    constructor(scriptName, url, summons, options = {}) {
+class RaidFinderProcess extends ModularProcess {
+    constructor(scriptName, summons, options = {}) {
         super(options);
+
         this.scriptName = scriptName;
-        this.url = url;
         this.summons = summons;
 
-        this.addModule(this.combat = new CombatModule());
-        this.addModule(this.summon = new SupportModule(summons));
-        this.addModule(new ApiModule())
+        this.addModule(this.combat = new CombatModule(Behavior.RAIDS));
+        this.addModule(this.summon = new SupportModule(summons, Behavior.RAIDS));
+        this.addModule(new RaidFinderModule())
+        this.addModule(new ClaimRewardModule());
         this.addModule(new RewardModule());
     }
 
@@ -32,8 +33,7 @@ class QuestProcess extends ModularProcess {
     beginRound() {
         super.beginRound();
 
-        let hash = new URL(this.url).hash;
-        this.requestGameNavigation(hash);
+        this.requestGameNavigation("#quest/assist");
     }
 
     onNewBattle() {

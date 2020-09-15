@@ -10,8 +10,9 @@ class DjeetaHandler {
         this.reward = new RewardExecutor(this.opQueue);
         this.arcarum = new ArcarumExecutor(this.opQueue);
         this.coop = new CoopExecutor(this.opQueue);
-        this.raid = new RaidListExecutor(this.opQueue);
+        this.raid = new RaidExecutor(this.opQueue);
         this.api = new ApiExecutor(this.opQueue);
+        this.idle = new IdleHandler();
     }
 
     onActionReceived(actionMeta) {
@@ -22,6 +23,8 @@ class DjeetaHandler {
         console.log("Received Action", actionMeta);
 
         if(actionMeta.isRunning) {
+            this.idle.cancelIdle();
+
             // battle
             switch(actionMeta.action) {
                 case "skill":
@@ -117,6 +120,9 @@ class DjeetaHandler {
                 case "selectRaid":
                     this.raid.selectRaid(actionMeta);
                     break;
+                case "selectEnterRaidId":
+                    this.raid.enterRaidId(actionMeta);
+                    break;
 
                 // API
                 case "refillAP":
@@ -128,6 +134,10 @@ class DjeetaHandler {
                 case "delayReload":
                     this.api.delayReload(actionMeta);
                     break;
+                case "idle":
+                    this.idle.idleFor(actionMeta.delay || 4000)
+                    break;
+
             }
         }
     }
@@ -235,7 +245,21 @@ class DjeetaHandler {
     }
 
     requestSupportAction() {
-        return this.requestAction(Page.SUMMON_SELECT);
+        let memberInfo = $el(".prt-flees-in").text();
+        let memberCount = 0
+        let memberTotal = 0
+
+        if(memberInfo.indexOf("/") > 0) {
+            let memberSplit = memberInfo.split("/")
+            memberCount = Number(memberSplit[0])
+            memberTotal = Number(memberSplit[1])
+        }
+
+        return this.requestAction(Page.SUMMON_SELECT, "init", {
+            hp: $el(".prt-raid-gauge-inner").widthPerc(),
+            memberCount,
+            memberTotal
+        });
     }
 
     requestRewardAction() {
@@ -270,5 +294,38 @@ class DjeetaHandler {
 
     requestUnclaimedListAction() {
         return this.requestAction(Page.UNCLAIMED_REWARD);
+    }
+}
+
+class IdleHandler {
+    isIdling = false
+    idleTo = 0
+    isRunning = false
+
+    idleFor(time) {
+        this.isIdling = true;
+        if(!this.isRunning) {
+            this.isRunning = true;
+            timeout(time).then(() => this.onIdleWakeup);
+        }
+    }
+
+    onIdleWakeup() {
+        if(this.isIdling) {
+            let idleDiff = this.idleTo - new Date().getTime();
+            if(idleDiff <= 0) {
+                this.isIdling = false;
+                this.isRunning = false;
+                awaitPageReady();
+            } else {
+                timeout(idleDiff).then(() => this.onIdleWakeup);
+            }
+        } else {
+            this.isRunning = false;
+        }
+    }
+
+    cancelIdle() {
+        this.isIdling = false;
     }
 }
