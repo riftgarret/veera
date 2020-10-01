@@ -1,10 +1,10 @@
 "use strict";
 
-// state to manage current fight 
+// state to manage current fight
 class DjeetaState {
     constructor() {
-        this.party = [];    
-        this.bosses = [];    
+        this.party = [];
+        this.bosses = [];
         this.assistable = [];
         this.abilities = [];
         this.summons = [];
@@ -12,16 +12,17 @@ class DjeetaState {
         this.stageCurrent = 1;
         this.stageMax = 1;
         this.roundWon = false;
-        this.roundLost = false;            
+        this.roundLost = false;
         this.isHoldingCA = false;
         this.summonsEnabled = true;
         this.notableEvents = [];
         this.scenario = null;
         this.items = {};
         this.turn = 1;
-        this.raidId = 0;    
+        this.raidId = 0;
+        this.fatedChainMeter = 0;
         this.pgSequence = undefined;
-    }    
+    }
 
     getAbilityNameById(id) {
         let found = this.abilities.find(a => a.id == id);
@@ -34,7 +35,7 @@ class DjeetaState {
 
     getCharByName(name) {
         if(name.toLowerCase() == "mc") return this.party[0];
-        return this.party.find(c => c.name == name);        
+        return this.party.find(c => c.name == name);
     }
 
     getCharNameByPos(pos) {
@@ -48,7 +49,7 @@ class DjeetaState {
         return char.name;
     }
 
-    getSummonPosByName(name) {        
+    getSummonPosByName(name) {
         return this.summons.findIndex(s => s.name === name);
     }
 
@@ -63,6 +64,16 @@ class DjeetaState {
         return found;
     }
 
+    get isPartyDead() {
+        for(let i = 0; i < 4; i++) {
+            let char = this.getCharAtPos(i);
+            if(char.alive) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     getDeadCharacters() {
         let found = [];
         for(let x of this.party) {
@@ -73,20 +84,20 @@ class DjeetaState {
         return found;
     }
 
-    getSummonByPos(pos) {        
+    getSummonByPos(pos) {
         if(pos == "supporter") {
             return this.summons[5];
         }
         return this.summons[pos - 1];
     }
 
-    getSummonByName(name) {        
-        return this.summons.find(s => s.name == name);      
-    }    
+    getSummonByName(name) {
+        return this.summons.find(s => s.name == name);
+    }
 
     createUniqueBattleToken() {
         let questId = this.questId;
-        let raidId = this.raidId;            
+        let raidId = this.raidId;
         return {questId, raidId};
     }
 

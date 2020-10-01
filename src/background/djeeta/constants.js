@@ -28,6 +28,7 @@ const DataEvent = {
     COMBAT_CA: "combat_ca_toggle",
     COMBAT_BACKUP: "combat_request_backup",
     COMBAT_CHAT: "combat_chat",
+    COMBAT_FATED_CHAIN: "combat_fated_chain",
     COOP_ROOM_DATA: "coop_room_data",
     RAID_LIST_UPDATE: "raid_list_update",
     RAIDFINDER_UPDATE: "raidfinder",

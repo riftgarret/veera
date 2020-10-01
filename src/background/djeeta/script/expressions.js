@@ -30,6 +30,13 @@ class StageExpression {
     }
 };
 
+class BooleanExpression {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.eval = () => JSON.parse(rawClip.raw);
+    }
+}
+
 class NumberExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -37,21 +44,19 @@ class NumberExpression {
     }
 };
 
+class StringExpression {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+        this.str = rawClip.raw.substring(1);
+        this.eval = () => this.str;
+    }
+}
+
 class FlagExpression {
     // temp party dead
     constructor(rawClip) {
         this.rawClip = rawClip;
-        this.eval = (state) => this.isPartyDead(state);
-    }
-
-    isPartyDead(state) {
-        for(let i = 0; i < 4; i++) {
-            let char = state.getCharAtPos(i);
-            if(char.alive) {
-                return false;
-            }
-        }
-        return true;
+        this.eval = (state) => state.isPartyDead;
     }
 }
 
@@ -63,7 +68,7 @@ class CharacterEval {
         let getChar = (state) => {
             switch (true) {
                 case !isNaN(param):
-                    return state.getCharByPos(Number(param));
+                    return state.getCharAtPos(Number(param));
                 case param == "TARGET":
                     return rawClip.getRule().findCapture(state);
                 default:
@@ -100,7 +105,7 @@ class UnitExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
         // boss.hp boss[0].hp% char[MC].hasDebuff[234] char[MC].isAlive char[MC].hasDebuff[234_40*]
-        let regex = /(?<unit>\w+)(\[(?<param>[\d\w\s@$!%*#?&]+)\])?(\.(?<attr>\w+\%?)(\[(?<attr_param>[\d\w\_\*]+)\])?)?/
+        let regex = /(?<unit>\w+)(\[(?<param>[\d\w\s"'@$!%*#?&]+)\])?(\.(?<attr>\w+\%?)(\[(?<attr_param>[\d\w\_\*]+)\])?)?/
         let {unit, param, attr, attr_param} = rawClip.raw.match(regex).groups;
         param = param || ""
 
@@ -128,6 +133,7 @@ class UnitExpression {
             case "hp%":
                 propEval = (unit) => 100 * unit.hp / unit.hpMax;
                 break;
+            case "ca":
             case "ougi":
                 propEval = (unit) => unit.ougi;
                 break;
@@ -167,19 +173,19 @@ class V2TriggerExpression {
         if(attr) {
             switch(attr) {
                 case "name":
-                    propEval = (special) => special.name;
+                    propEval = (special) => !special? "" : special.name;
                     break;
                 case "targets":
-                    propEval = (special, state) => special.targetedCharPos.map(pos => state.party[state.formation[pos]]);
+                    propEval = (special, state) => !special? [] : special.targetedCharPos.map(pos => state.party[state.formation[pos]]);
                     break;
                 case "color":
-                    propEval = (special) => special.color;
+                    propEval = (special) => !special? "" : special.color;
                     break;
                 case "isOugi":
-                    propEval = (special) => special.isOugi;
+                    propEval = (special) => !special? false : special.isOugi;
                     break;
                 case "isTrigger":
-                    propEval = (special) => special.isTrigger;
+                    propEval = (special) => !special? false : special.isTrigger;
                     break;
 
                 default:
@@ -188,10 +194,8 @@ class V2TriggerExpression {
         }
 
         this.eval = (state) => {
-            if(!state.v2Trigger) return false;
-
             if(!attr) {
-                return true; // has trigger
+                return state.v2Trigger; // has trigger
             } else {
                 return propEval(state.v2Trigger, state);
             }
@@ -221,15 +225,16 @@ class ComparativeExpression {
     constructor(rawClip) {
         this.rawClip = rawClip;
 
-        let esplit = rawClip.raw.match(/([\w\s@$!%*#?&\[\]\.\%]+|[\<\>\=]+)/gs);
+        let esplit = rawClip.raw.match(/(?<left>[\w\s"'@$!%*#?&\[\]\.\%]+)\s(?<eq>[!\<\>\=]{1,2})\s(?<right>[\w\s"'@$!%*#?&\[\]\.\%]+)/);
+        let {left, eq, right} = esplit.groups;
         let pos = 0;
-        if(esplit.length != 3) throw new ScriptError("invalid condition split: ", rawClip);
+        if(left == undefined || eq == undefined || right == undefined) throw new ScriptError("invalid condition split: ", rawClip);
 
-        this.leftExp = createExpression(rawClip.subClip(esplit[0], pos));
+        this.leftExp = createExpression(rawClip.subClip(left, pos));
         pos += esplit[0].length;
-        this.condExp = new ComparatorEval(rawClip.subClip(esplit[1], pos));
+        this.condExp = new ComparatorEval(rawClip.subClip(eq, pos));
         pos += esplit[1].length;
-        this.rightExp = createExpression(rawClip.subClip(esplit[2], pos));
+        this.rightExp = createExpression(rawClip.subClip(right, pos));
 
         this.eval = (state) => this.condExp.eval(this.leftExp.eval(state), this.rightExp.eval(state));
         this.getResults = (state) => { return { exp: this, isValid: this.eval(state) }};
@@ -322,6 +327,7 @@ function createMethodExpression(methodClip, paramsClip) {
         case "guard": return new GuardAction(paramsClip);
         case "useItem": return new UseItemAction(paramsClip);
         case "selectTarget": return new TargetAction(paramsClip);
+        case "fatedChain": return new FatedChainAction(paramsClip);
         case "attack": return new AttackAction(paramsClip);
         case "fullAutoAction": return new FullAutoAction(paramsClip);
         case "requestBackup": return new RequestBackupAction(paramsClip);
@@ -334,6 +340,10 @@ function createMethodExpression(methodClip, paramsClip) {
 }
 
 function createInnerExpression(rawClip) {
+    if(rawClip.raw.startsWith('"')) {
+        return new StringExpression(rawClip);
+    }
+
     var params = rawClip.raw.match(/\w+/gs); // todo proper capture
     if(!isNaN(params[0])) {
         return new NumberExpression(rawClip.subClip(params[0]));
@@ -346,9 +356,11 @@ function createInnerExpression(rawClip) {
         case "stage":   return new StageExpression(rawClip);
         case "honors":  return new HonorsExpression(rawClip);
         case "flag":    return new FlagExpression(rawClip);
+        case "true":
+        case "false":   return new BooleanExpression(rawClip);
         case "boss":
         case "char":    return new UnitExpression(rawClip, params);
-        case "v2special": return new V2TriggerExpression(rawClip, params);
+        case "v2trigger": return new V2TriggerExpression(rawClip, params);
         default:
             throw new ScriptError(`unknown expression: ${params[0]}`, rawClip);
     }

@@ -3,6 +3,8 @@
 class RaidFinderModule extends BaseModule {
 
     trackedRaids = []
+    contentPingDebouncer = 0
+    DEBOUNCE_EVENTS = 2000
 
     handlesPage(page) {
         return page == Page.RAIDS;
@@ -15,7 +17,11 @@ class RaidFinderModule extends BaseModule {
             if(this.isNewRaid(raidId)) {
                 this.pushRaid(raidId);
             }
-            this.requestContentPing();
+            let time = new Date().getTime()
+            if(time - this.contentPingDebouncer > this.DEBOUNCE_EVENTS) {
+                this.requestContentPing();
+            }
+            this.contentPingDebouncer = time;
         }
     }
 
@@ -25,6 +31,10 @@ class RaidFinderModule extends BaseModule {
 
     pushRaid(raidId) {
         this.trackedRaids.push({id: raidId, sentToClient: false, time: new Date().getTime()})
+    }
+
+    get assistMeta() {
+        return this.pageMeta.meta.assist_raids_data;
     }
 
     onActionRequested(data) {
@@ -38,6 +48,16 @@ class RaidFinderModule extends BaseModule {
                 action: "refillBP",
                 amount: 25,
                 onSuccessEvent: {page: Page.RAIDS, event: "init"}
+            }
+        }
+
+        let raidData = this.assistMeta.map(rawRaid => new RaidDataWrapper(rawRaid));
+
+        // already 3 active raids
+        if(raidData.filter(x => x.joined).length >= 3) {
+            return {
+                action: "delayReloadRaid",
+                delay: 10000
             }
         }
 

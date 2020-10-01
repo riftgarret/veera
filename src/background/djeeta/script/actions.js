@@ -37,6 +37,15 @@ class SummonAction {
     }
 }
 
+class FatedChainAction {
+    constructor(rawClip) {
+        this.rawClip = rawClip;
+    }
+
+    actionMeta() { return { action: "activateFatedChain" } };
+    isValid(state) { return !state.isPartyDead && state.fatedChainMeter == 100 };
+}
+
 class TargetAction {
     constructor(rawClip) {
         this.rawClip = rawClip;
@@ -212,16 +221,6 @@ class UseItemAction {
         return true;
     }
 
-    isPartyDead(state) {
-        for(let i = 0; i < 4; i++) {
-            let char = state.getCharAtPos(i);
-            if(char.alive) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     anyDead(state) {
         for(let i = 0; i < state.party.length; i++) {
             let char = state.party[i];
@@ -243,10 +242,10 @@ class UseItemAction {
             }
             case "blue":
                 if(!state.items.bluePotions) return false;
-                return !this.isPartyFullLife(state) && !this.isPartyDead(state);
+                return !this.isPartyFullLife(state) && !state.isPartyDead;
             case "gw_blue":
                 if(!state.items.gwBlue) return false;
-                return !this.isPartyFullLife(state) && !this.isPartyDead(state);
+                return !this.isPartyFullLife(state) && !state.isPartyDead;
             case "gw_herb": {
                 let target = this.findTarget(state);
                 let targetInFront = target? state.formation.includes(target.charIndex) : false;

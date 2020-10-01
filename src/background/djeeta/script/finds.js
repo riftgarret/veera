@@ -20,6 +20,8 @@ class FindClause {
                         return { c, val: evalHasCondition(c.debuffs) }
                     });
 
+                    if(results.length == 0) return undefined;
+
                     let max = results.findMax("val");
                     return max.val > 0? max.c : undefined;
                 }
@@ -33,6 +35,8 @@ class FindClause {
                     let results = state.getActiveCharacters().map(c => {
                         return { c, val: evalHasCondition(c.buffs) }
                     });
+
+                    if(results.length == 0) return undefined;
 
                     let max = results.findMax("val");
                     return max.val > 0? max.c : undefined;

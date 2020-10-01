@@ -55,6 +55,9 @@ class DjeetaHandler {
                 case "chatSticker":
                     this.combat.chatSticker(actionMeta);
                     break;
+                case "activateFatedChain":
+                    this.combat.activateFatedChain(actionMeta);
+                    break;
 
                 //supporter
                 case "selectSummon":
@@ -176,12 +179,17 @@ class DjeetaHandler {
             case "refreshPage":
                 this.abortExecutors();
                 this.opQueue.queueInterrupt(async () => {
+                    awaitPageReady = () => console.log("Ignoring request input due to reload request");
                     await timeout(request.delay)
                     console.log("refreshing window")
                     window.location.reload()
                 })
                 return true;
             case "navigate":
+                if(!request.hash) {
+                    console.warn("Invalid navigate, no hash supplied.")
+                    return;
+                }
                 this.abortExecutors();
                 this.opQueue.queueInterrupt(async () => {
                     await timeout(request.delay)
@@ -233,8 +241,8 @@ class DjeetaHandler {
         return this.requestAction(Page.API, event);
     }
 
-    requestCombatAction() {
-        return this.requestAction(Page.COMBAT, "init", {
+    requestCombatAction(event = "init") {
+        return this.requestAction(Page.COMBAT, event, {
             targetIndex: this.combat.bot.targetNumber,
             myHonors: this.combat.bot.myHonors || 0
         });

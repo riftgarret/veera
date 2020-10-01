@@ -78,6 +78,10 @@ function hookBattlePage() {
             (e) => e.hasClass("display-on") && e.is(":visible"),
             { attributeFilter: ['class'] }),
         createAwaitPromise(
+                "div.btn-revival",
+                (e) => e.is(":visible"),
+                { attributeFilter: ['class'] }),
+        createAwaitPromise(
             "div.prt-battle-condition",
             (e) => e.is(":visible"),
             { attributeFilter: ["class"] })
@@ -185,6 +189,7 @@ function hookCoopLanding() {
 }
 
 function hookRaidsList() {
+    if(djeetaHandler.isRunning) return;
     console.log("hooking Raids Landing..");
     createAwaitPromise(
         "div.prt-assist-list",

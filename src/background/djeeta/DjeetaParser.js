@@ -14,6 +14,7 @@ class DjeetaParser {
         state.scenario = json.multi == 1? Scenario.RAID : json.is_arcanum? Scenario.ARCANUM : Scenario.SINGLE;
         state.pgSequence = json.sequence? json.sequence.type : undefined;
         state.availableChatPotion = json.chat_temporary_flag === 0
+        state.fatedChainMeter = json.chain_burst_gauge? Number(json.chain_burst_gauge) : 0
         this.v2triggerDetails(json.special_skill_indicate, state);
         this.abilities(json, state);    // needs to happen before party (condition abilities lock)
         this.startSummons(json, state);
@@ -21,8 +22,8 @@ class DjeetaParser {
         this.startBosses(json, state);
         this.startBackupRequest(json, state);
         this.startItems(json, state);
-        this.scenario(json.scenario, state);
         this.status(json.status, state);
+        this.scenario(json.scenario, state);
         state.roundLost = !state.party.find(c => c.alive);
         state.questId = json.quest_id;
         state.raidId = json.raid_id;
@@ -154,6 +155,12 @@ class DjeetaParser {
                         // long delays
                         state.notableEvents.push(action);
                     }
+                    break;
+                }
+
+                case "chain_burst_gauge": {
+                    state.fatedChainMeter = Number(action.value)
+                    break;
                 }
 
                 case "recast": {
@@ -321,6 +328,7 @@ class DjeetaParser {
                 continue;
             let buffs = this.conditions(player.condition, true);
             let debuffs = this.conditions(player.condition, false);
+
 
             let playerObj = {
                 type: "character",

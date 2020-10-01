@@ -101,13 +101,29 @@ class Djeeta {
             name: abilityName
         };
 
-        this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
+        this.parse.scenario(json.scenario, this.state);
 
         this.pushDevState();
         this.postActionScriptCheck(DataEvent.COMBAT_SKILL, actionMeta);
     }
 
+    onFatedChain(postData, json) {
+        this.djeetaUI.appendAction({
+            when: this.whenCurrentTurn,
+            action: "fatedChain"
+        });
+
+        let actionMeta = {
+            action: "activateFatedChain",
+        };
+
+        this.parse.status(json.status, this.state);
+        this.parse.scenario(json.scenario, this.state);
+
+        this.pushDevState();
+        this.postActionScriptCheck(DataEvent.COMBAT_FATED_CHAIN, actionMeta);
+    }
 
     onCombatSummonCall(postData, json) {
         let summonId = postData.summon_id;
@@ -125,8 +141,8 @@ class Djeeta {
             name: summonName
         };
 
-        this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
+        this.parse.scenario(json.scenario, this.state);
 
         this.pushDevState();
         this.postActionScriptCheck(DataEvent.COMBAT_SUMMON, actionMeta);
@@ -135,8 +151,8 @@ class Djeeta {
     onCombatAttack(postData, json) {
         let actionMeta = { action: "attack" };
         this.processAttackCA(postData);
-        this.parse.scenario(json.scenario, this.state);
         this.parse.status(json.status, this.state);
+        this.parse.scenario(json.scenario, this.state);
         this.pushDevState();
         this.postActionScriptCheck(DataEvent.COMBAT_ATTACK, actionMeta)
     }
@@ -172,8 +188,9 @@ class Djeeta {
             action: "useItem",
             params
         });
-        this.parse.scenario(json.scenario, this.state);
+
         this.parse.status(json.status, this.state);
+        this.parse.scenario(json.scenario, this.state);
         this.pushDevState();
         this.postActionScriptCheck(DataEvent.COMBAT_ITEM, actionMeta)
     }

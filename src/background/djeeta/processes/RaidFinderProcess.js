@@ -12,6 +12,7 @@ class RaidFinderProcess extends ModularProcess {
         this.addModule(new RaidFinderModule())
         this.addModule(new ClaimRewardModule());
         this.addModule(new RewardModule());
+        this.addModule(new ApiModule());
     }
 
     loadResources() {

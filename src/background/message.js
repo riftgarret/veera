@@ -234,6 +234,9 @@ function hear(msg, sender) {
                         battleUseAbility(msg.data.json, msg.data.postData);
                         DjeetaMind.onCombatSkill(msg.data.postData, msg.data.json);
                         break;
+                    case path.ismatch("fatal_chain_result.json"):
+                        DjeetaMind.onFatedChain(msg.data.postData, msg.data.json);
+                        break;
                     case path.ismatch("rest/raid/normal_attack_result.json"):
                     case path.ismatch("rest/multiraid/normal_attack_result.json"):
                         battleAttack(msg.data.json);

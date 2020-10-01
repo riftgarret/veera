@@ -94,8 +94,6 @@ class CombatModule extends BaseModule {
             // technically these are ignored.. because post processing navigates or ends the fight.
             let action = this.state.stageCurrent == this.state.stageMax? "navigateToVictory" : "navigateNextStage";
             return [{ actionMeta: () => { return { action } } }];
-        } else if(this.state.roundLost) {
-            return FLAG_IDLE // TODO figure out to end round or what, maybe behavior
         }
 
         // converts found valid actions into single array.
@@ -112,7 +110,9 @@ class CombatModule extends BaseModule {
         }
 
         // push attack as last option every time
-        actions.push(this.defaultAttack);
+        if(!this.state.roundLost) {
+            actions.push(this.defaultAttack);
+        }
         return actions;
     }
 

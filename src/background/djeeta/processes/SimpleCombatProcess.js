@@ -13,6 +13,8 @@ class SimpleCombatProcess extends ModularProcess {
         super.start();
 
         if(this.pageMeta.page == Page.COMBAT) {
+            ScriptManager.recordCombatBoss(this.name, this.state.bosses[0]);
+            this.combat.onNewRound();
             this.requestContentPing();
         } else {
             this.abort("Can't run script on non-combat page.");

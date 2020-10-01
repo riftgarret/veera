@@ -99,7 +99,7 @@ class ApiExecutor extends BaseExecutor {
         this.refillStamina(action, false);
     }
 
-    async delayReload() {
+    async delayReload(action) {
         this.queue(async (runner) => {
             await timeout(action.delay)
             if(!runner.isValid) return;

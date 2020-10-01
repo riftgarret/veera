@@ -2,27 +2,27 @@
 class CombatBot extends BaseBot {
     // ie arcarum : Poisoned, or Cant use CA
     get hasBattleConditionOverlay() {
-        return $(".prt-battle-condition").is(":visible");
+        return $el(".prt-battle-condition").is(":visible");
     }
 
     async clickRemoveConditionOverlay() {
-        return await $(".prt-battle-condition").gbfClick();
+        return await $el(".prt-battle-condition").gbfClick();
     }
 
     async clickBack() {
-        return await $("div.btn-command-back").gbfClick();
+        return await $el("div.btn-command-back").gbfClick();
     }
 
     get isRootScreen() {
-        return $('div.btn-command-character').is(":visible");
+        return $el('div.btn-command-character').is(":visible");
     }
 
     get isAttackButtonVisible() {
-        return $('div.btn-attack-start.display-on').length > 0;
+        return $el('div.btn-attack-start.display-on').length > 0;
     }
 
     get targetNumber() {
-        let selectedTarget = $(".btn-targeting.lock-on").attr("data-target")
+        let selectedTarget = $el(".btn-targeting.lock-on").attr("data-target")
         return selectedTarget? Number(selectedTarget) - 1 : 0;
     }
 
@@ -35,27 +35,31 @@ class CombatBot extends BaseBot {
     }
 
     async selectTarget(index) {
-        return await $(`.btn-targeting[data-target="${index + 1}"`).gbfClick()
+        return await $el(`.btn-targeting[data-target="${index + 1}"`).gbfClick()
     }
 
     async clickAttack() {
-        return await $('div.btn-attack-start.display-on').gbfClick();
+        return await $el('div.btn-attack-start.display-on').gbfClick();
     }
 
     async clickCharacterPortrait(charIndex) {
-        return await $(`div.prt-member>div[pos="${charIndex}"]>img.img-chara-command`).gbfClick();
+        return await $el(`div.prt-member>div[pos="${charIndex}"]>img.img-chara-command`).gbfClick();
     }
 
     isCharacterPortraitOpen(pos) {
-        return $(`.prt-command-chara[pos="${pos+1}"]`).is(":visible")
+        return $el(`.prt-command-chara[pos="${pos+1}"]`).is(":visible")
     }
 
     async clickSkillIcon(skillId) {
-        return await $(`.lis-ability > div[ability-id="${skillId}"]`).gbfClick()
+        return await $el(`.lis-ability > div[ability-id="${skillId}"]`).gbfClick()
+    }
+
+    async clickFatedChain() {
+        return await $el("div.btn-cb-gauge.max").gbfClick();
     }
 
     isSkillIconAvailable(skillId) {
-        let button = $(`.lis-ability > div[ability-id="${skillId}"]`);
+        let button = $el(`.lis-ability > div[ability-id="${skillId}"]`);
         let parent = button.parent(".lis-ability");
         return parent.hasClass("btn-ability-available") && !parent.hasClass("tmp-mask");
     }
@@ -99,15 +103,15 @@ class CombatBot extends BaseBot {
     }
 
     async clickRequestBackup() {
-        return await $(`.btn-assist`).gbfClick();
+        return await $el(`.btn-assist`).gbfClick();
     }
 
     get isRequestBackupClickable() {
-        return $('.btn-assist').is(":visible");
+        return $el('.btn-assist').is(":visible");
     }
 
     async clickPopupOption(options) {
-        let popups = $('.pop-usual:visible');
+        let popups = $el('.pop-usual:visible');
         if(popups.length == 0) {
             console.warn("expecting popup but none was found.");
             return false;
@@ -133,43 +137,43 @@ class CombatBot extends BaseBot {
     }
 
     async clickHoldCA() {
-        return await $(`div.btn-lock`).gbfClick();
+        return await $el(`div.btn-lock`).gbfClick();
     }
 
     get isHoldCA() {
-        return $(`div.btn-lock.lock1`).is(":visible");
+        return $el(`div.btn-lock.lock1`).is(":visible");
     }
 
     async clickSummonPool() {
-        return await $(`div.btn-command-summon`).gbfClick();
+        return await $el(`div.btn-command-summon`).gbfClick();
     }
 
     async clickSummon(summonIndex) {
-        return await $(`div.lis-summon[pos="${summonIndex + 1}"]`).gbfClick();
+        return await $el(`div.lis-summon[pos="${summonIndex + 1}"]`).gbfClick();
     }
 
     isSummonAvailable(summonIndex) {
-        return $(`div.lis-summon[pos="${summonIndex + 1}"].btn-summon-available`).is(":visible");
+        return $el(`div.lis-summon[pos="${summonIndex + 1}"].btn-summon-available`).is(":visible");
     }
 
     get isSummonListShown() {
-        return $(`div.prt-summon-list.opened`).is(":visible");
+        return $el(`div.prt-summon-list.opened`).is(":visible");
     }
 
     get isLogBlockingUi() {
-        return $(`div.prt-raid-log`).is(":visible");
+        return $el(`div.prt-raid-log`).is(":visible");
     }
 
     async clickBlockingBattleUi() {
-        return await $(`div.prt-raid-log`).gbfClick();
+        return await $el(`div.prt-raid-log`).gbfClick();
     }
 
     async clickOpenHealButton() {
-        return await $('div.btn-temporary').gbfClick();
+        return await $el('div.btn-temporary').gbfClick();
     }
 
     get isHealPanelOpen() {
-        return $(".item-small.btn-temporary-small:visible").length > 0;
+        return $el(".item-small.btn-temporary-small:visible").length > 0;
     }
 
     async clickHealOption(optionName) {
@@ -196,7 +200,7 @@ class CombatBot extends BaseBot {
     async selectChatSticker(index) {
         let stickers = $el(".lis-stamp");
         if(stickers.length == 0) return;
-        let designated = $(stickers[Math.min(stickers.length - 1, index)]);
+        let designated = $el(stickers[Math.min(stickers.length - 1, index)]);
         return await designated.gbfClick();
     }
 }
@@ -302,6 +306,29 @@ class CombatExecutor extends BaseExecutor {
                 },
                 () => bot.hasPopup
             );
+
+            await runner.tryAction(
+                async () => await bot.clickOkPopup(),
+                () => !bot.hasPopup
+            );
+        });
+    }
+
+    async activateFatedChain(action) {
+        let bot = this.bot;
+        this.queue(async (runner) => {
+            await this.clearStageOverlays();
+            if(!bot.isRootScreen) {
+                await bot.clickBack();
+            }
+
+            await runner.tryAction(
+                async () => {
+                    await this.ensureNoBattleLogOverlay();
+                    await bot.clickFatedChain();
+                },
+                () => bot.hasPopup
+            )
 
             await runner.tryAction(
                 async () => await bot.clickOkPopup(),

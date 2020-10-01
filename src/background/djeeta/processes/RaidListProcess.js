@@ -9,6 +9,7 @@ class RaidListProcess extends ModularProcess {
         this.addModule(new RaidModule(raidMetas))
         this.addModule(new ClaimRewardModule());
         this.addModule(new RewardModule());
+        this.addModule(new ApiModule());
     }
 
     start() {
